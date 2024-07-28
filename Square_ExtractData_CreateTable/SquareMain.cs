@@ -12,7 +12,7 @@ using System.Linq;
 
 public class MyCommands
 {
-    [CommandMethod("SIP")]
+    [CommandMethod("MSIP")]
     public void SIP()
     {
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
@@ -20,7 +20,7 @@ public class MyCommands
         Editor ed = acDoc.Editor;
 
         // Zoom extents
-        ed.Command("_zoom", "_e");
+        ed.Command("_.zoom", "_e");
 
         // Turn on and thaw layers
         ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
@@ -82,6 +82,8 @@ public class MyCommands
                                     new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
                                 };
                                 SelectionFilter acSelFtrPoly = new SelectionFilter(acTypValArPoly);
+
+                                // Using CrossingPolygon selection to find intersections
                                 PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(pts, acSelFtrPoly);
 
                                 if (acSSPromptPoly.Status == PromptStatus.OK)
@@ -94,10 +96,32 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                if (acPoly2.GeometricExtents != null)
+                                                List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
+                                                List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
+
+                                                if (uniquePoints.Count > 1)
                                                 {
                                                     snoPno.Add((val2, acPoly2.ObjectId));
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Using WindowPolygon selection to find intersections
+                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(pts, acSelFtrPoly);
+
+                                if (acSSPromptZeroPoly.Status == PromptStatus.OK)
+                                {
+                                    SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
+                                    foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
+                                    {
+                                        if (acSSObjZeroPoly != null)
+                                        {
+                                            Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
+                                            if (acPoly2 != null)
+                                            {
+                                                snoPno.Add((val2, acPoly2.ObjectId));
                                             }
                                         }
                                     }
@@ -116,14 +140,34 @@ public class MyCommands
 
         foreach (var val in snoPnoUnique)
         {
-            string val2 = "";
             using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
             {
-                DBText acText = acTrans.GetObject(val.Item2, OpenMode.ForRead) as DBText;
-                if (acText != null)
+                Entity ent = acTrans.GetObject(val.Item2, OpenMode.ForRead) as Entity;
+                if (ent is Polyline poly)
                 {
-                    val2 = acText.TextString;
-                    snoPnoVal.Add((val2, val.Item1));
+                    Point3dCollection fpts = new Point3dCollection();
+                    for (int i = 0; i < poly.NumberOfVertices; i++)
+                    {
+                        fpts.Add(poly.GetPoint3dAt(i));
+                    }
+
+                    // Perform a selection using the window polygon method with the extracted points
+                    TypedValue[] textFilter = {
+                        new TypedValue((int)DxfCode.Start, "TEXT"),
+                        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+                    };
+                    SelectionFilter textSelFilter = new SelectionFilter(textFilter);
+                    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
+
+                    if (textSelResult.Status == PromptStatus.OK)
+                    {
+                        DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+                        if (textEntity != null)
+                        {
+                            string fval2 = textEntity.TextString;
+                            snoPnoVal.Add((fval2, val.Item1));
+                        }
+                    }
                 }
 
                 acTrans.Commit();
@@ -132,13 +176,94 @@ public class MyCommands
 
         snoPnoVal = snoPnoVal.OrderBy(x => int.Parse(x.Item1)).ToList();
 
+        // Additional logic for _IndivSubPlot layer
+        List<(ObjectId, string)> ispAllData = new List<(ObjectId, string)>();
+        List<string> ispItemname = new List<string>();
+        List<string> ispSno = new List<string>();
+
+        using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+        {
+            TypedValue[] acTypValArIndiv = new TypedValue[]
+            {
+                new TypedValue((int)DxfCode.Start, "LWPOLYLINE"),
+                new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            };
+            SelectionFilter acSelFtrIndiv = new SelectionFilter(acTypValArIndiv);
+            PromptSelectionResult acSSPromptIndiv = ed.SelectAll(acSelFtrIndiv);
+
+            if (acSSPromptIndiv.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSetIndiv = acSSPromptIndiv.Value;
+
+                foreach (SelectedObject acSSObjIndiv in acSSetIndiv)
+                {
+                    if (acSSObjIndiv != null)
+                    {
+                        Polyline acPolyIndiv = acTrans.GetObject(acSSObjIndiv.ObjectId, OpenMode.ForRead) as Polyline;
+
+                        if (acPolyIndiv != null)
+                        {
+                            Point3dCollection ptsIndiv = new Point3dCollection();
+                            for (int i = 0; i < acPolyIndiv.NumberOfVertices; i++)
+                            {
+                                ptsIndiv.Add(acPolyIndiv.GetPoint3dAt(i));
+                            }
+
+                            // Find text entity on _IndivSubPlot layer
+                            TypedValue[] acTypValArTextIndiv = new TypedValue[]
+                            {
+                                new TypedValue((int)DxfCode.Start, "TEXT"),
+                                new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+                            };
+                            SelectionFilter acSelFtrTextIndiv = new SelectionFilter(acTypValArTextIndiv);
+                            PromptSelectionResult acSSPromptTextIndiv = ed.SelectCrossingPolygon(ptsIndiv, acSelFtrTextIndiv);
+
+                            if (acSSPromptTextIndiv.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetTextIndiv = acSSPromptTextIndiv.Value;
+                                DBText acTextIndiv = acTrans.GetObject(acSSetTextIndiv[0].ObjectId, OpenMode.ForRead) as DBText;
+                                string val2Indiv = acTextIndiv.TextString;
+
+                                ispItemname.Add(acPolyIndiv.ObjectId.ToString());
+                                ispSno.Add(val2Indiv);
+                                ispAllData.Add((acPolyIndiv.ObjectId, val2Indiv));
+                            }
+                        }
+                    }
+                }
+            }
+
+            acTrans.Commit();
+        }
+
+        ispSno = ispSno.OrderBy(x => int.Parse(x)).ToList();
+
+        List<(string, string)> ispSvnoData = new List<(string, string)>();
+
+        foreach (var val in ispSno)
+        {
+            var pts1 = snoPnoVal.Where(x => x.Item1 == val).Select(x => x.Item2).ToList();
+
+            string ispSvno;
+            if (pts1.Count > 1)
+            {
+                ispSvno = string.Join("|", pts1);
+            }
+            else
+            {
+                ispSvno = pts1.FirstOrDefault();
+            }
+
+            ispSvnoData.Add((val, ispSvno));
+        }
+
         // Write data to CSV
-        string csvFileNew = Path.Combine(acCurDb.Filename, "SIP.csv");
+        string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
             sw.WriteLine("Plot Number,Survey No");
-            foreach (var itm in snoPnoVal)
+            foreach (var itm in ispSvnoData)
             {
                 sw.WriteLine($"{itm.Item1},{itm.Item2}");
             }
@@ -150,5 +275,45 @@ public class MyCommands
         ed.Command("_-layer", "OFF", "_SurveyNo", "");
 
         ed.WriteMessage("\nProcess complete.");
+    }
+
+    private List<Point3d> GetIntersections(Polyline poly1, Polyline poly2)
+    {
+        List<Point3d> intersectionPoints = new List<Point3d>();
+
+        using (Transaction acTrans = Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction())
+        {
+            Entity ent1 = (Entity)acTrans.GetObject(poly1.ObjectId, OpenMode.ForRead);
+            Entity ent2 = (Entity)acTrans.GetObject(poly2.ObjectId, OpenMode.ForRead);
+
+            Point3dCollection points = new Point3dCollection();
+            ent1.IntersectWith(ent2, Intersect.OnBothOperands, points, IntPtr.Zero, IntPtr.Zero);
+
+            foreach (Point3d pt in points)
+            {
+                intersectionPoints.Add(pt);
+            }
+
+            acTrans.Commit();
+        }
+
+        return intersectionPoints;
+    }
+
+    private List<Point3d> RemoveConsecutiveDuplicates(List<Point3d> points)
+    {
+        if (points == null || points.Count == 0) return points;
+
+        List<Point3d> uniquePoints = new List<Point3d> { points[0] };
+
+        for (int i = 1; i < points.Count; i++)
+        {
+            if (!points[i].IsEqualTo(points[i - 1], new Tolerance(1e-4, 1e-4)))
+            {
+                uniquePoints.Add(points[i]);
+            }
+        }
+
+        return uniquePoints;
     }
 }
