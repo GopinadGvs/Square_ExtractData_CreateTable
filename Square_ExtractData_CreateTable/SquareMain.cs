@@ -61,10 +61,10 @@ public class MyCommands
 
                         if (acPoly != null)
                         {
-                            Point3dCollection pts = new Point3dCollection();
+                            //Point3dCollection pts = new Point3dCollection();
                             for (int i = 0; i < acPoly.NumberOfVertices; i++)
                             {
-                                pts.Add(acPoly.GetPoint3dAt(i));
+                                surveyNo._PolylinePoints.Add(acPoly.GetPoint3dAt(i));
                             }
 
                             // Find text entity on _SurveyNo layer
@@ -74,7 +74,7 @@ public class MyCommands
                                 new TypedValue((int)DxfCode.LayerName, "_SurveyNo")
                             };
                             SelectionFilter acSelFtrText = new SelectionFilter(acTypValArText);
-                            PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(pts, acSelFtrText);
+                            PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, acSelFtrText);
 
                             if (acSSPromptText.Status == PromptStatus.OK)
                             {
@@ -93,7 +93,7 @@ public class MyCommands
                                 SelectionFilter acSelFtrPoly = new SelectionFilter(acTypValArPoly);
 
                                 // Using CrossingPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(pts, acSelFtrPoly);
+                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, acSelFtrPoly);
 
                                 if (acSSPromptPoly.Status == PromptStatus.OK)
                                 {
@@ -103,7 +103,7 @@ public class MyCommands
                                     {
                                         if (acSSObjPoly != null)
                                         {
-                                            PlotNo plotNo = new PlotNo(); //create new PlotNo object
+                                            Plot plotNo = new Plot(); //create new PlotNo object
 
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
 
@@ -131,10 +131,10 @@ public class MyCommands
 
                                                         //snoPno.Add((val2, acPoly2.ObjectId)); //surveyNo, PolylineId -> old
 
-                                                        Point3dCollection fpts = new Point3dCollection();
+                                                        //Point3dCollection fpts = new Point3dCollection();
                                                         for (int i = 0; i < acPoly2.NumberOfVertices; i++)
                                                         {
-                                                            fpts.Add(acPoly2.GetPoint3dAt(i));
+                                                            plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
                                                         }
 
                                                         // Perform a selection using the window polygon method with the extracted points
@@ -142,7 +142,7 @@ public class MyCommands
                                                                             new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
                                                                           };
                                                         SelectionFilter textSelFilter = new SelectionFilter(textFilter);
-                                                        PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
+                                                        PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, textSelFilter);
 
                                                         if (textSelResult.Status == PromptStatus.OK)
                                                         {
@@ -165,7 +165,7 @@ public class MyCommands
                                 }
 
                                 // Using WindowPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(pts, acSelFtrPoly);
+                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, acSelFtrPoly);
 
                                 if (acSSPromptZeroPoly.Status == PromptStatus.OK)
                                 {
@@ -175,7 +175,7 @@ public class MyCommands
                                     {
                                         if (acSSObjZeroPoly != null)
                                         {
-                                            PlotNo plotNo = new PlotNo(); //create new PlotNo object
+                                            Plot plotNo = new Plot(); //create new PlotNo object
 
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
@@ -198,10 +198,10 @@ public class MyCommands
 
                                                     //snoPno.Add((val2, acPoly2.ObjectId)); -> old
 
-                                                    Point3dCollection fpts = new Point3dCollection();
+                                                    //Point3dCollection fpts = new Point3dCollection();
                                                     for (int i = 0; i < acPoly2.NumberOfVertices; i++)
                                                     {
-                                                        fpts.Add(acPoly2.GetPoint3dAt(i));
+                                                        plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
                                                     }
 
                                                     // Perform a selection using the window polygon method with the extracted points
@@ -209,7 +209,7 @@ public class MyCommands
                                                                             new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
                                                                           };
                                                     SelectionFilter textSelFilter = new SelectionFilter(textFilter);
-                                                    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
+                                                    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, textSelFilter);
 
                                                     if (textSelResult.Status == PromptStatus.OK)
                                                     {

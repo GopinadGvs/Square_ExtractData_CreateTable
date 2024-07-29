@@ -11,16 +11,16 @@ using Autodesk.AutoCAD.Runtime;
 
 namespace Square_ExtractData_CreateTable
 {
-    public class PlotNo
+    public class Plot
     {
         public string _PlotNo;
-        public double _AreaInEast;
-        public double _AreaInSouth;
-        public double _AreaInWest;
-        public double _AreaInNorth;
+        public double _SizeInEast;
+        public double _SizeInSouth;
+        public double _SizeInWest;
+        public double _SizeInNorth;
+        public double _Area;
         public double _PlotArea;
         public double _MortgageArea;
-        public double _UtilityArea;
         public double _AmenityArea;
         public string _EastInfo;
         public string _SouthInfo;
@@ -28,5 +28,9 @@ namespace Square_ExtractData_CreateTable
         public string _NorthInfo;
         public Polyline _Polyline;
         public List<SurveyNo> _ParentSurveyNos = new List<SurveyNo>();
+        public bool IsPlotArea;
+        public bool IsMortgageArea;
+        public bool IsUtilityArea;
+        public Point3dCollection _PolylinePoints = new Point3dCollection();
     }
 }

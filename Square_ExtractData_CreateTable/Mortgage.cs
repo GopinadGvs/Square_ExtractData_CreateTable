@@ -11,7 +11,7 @@ using Autodesk.AutoCAD.Runtime;
 
 namespace Square_ExtractData_CreateTable
 {
-    public class SurveyNo
+    public class Mortgage
     {
         public List<Plot> _PlotNos = new List<Plot>();
         public string _SurveyNo = string.Empty;

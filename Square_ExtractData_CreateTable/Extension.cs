@@ -75,9 +75,9 @@ namespace Square_ExtractData_CreateTable
 
     #endregion
 
-    public class AlphanumericPlotComparer : IComparer<PlotNo>
+    public class AlphanumericPlotComparer : IComparer<Plot>
     {
-        public int Compare(PlotNo x, PlotNo y)
+        public int Compare(Plot x, Plot y)
         {
             if (x == null || y == null)
                 return 0;
