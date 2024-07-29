@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extension.cs" />
     <Compile Include="ExtractData.cs" />
     <Compile Include="LayerUtils.cs" />
     <Compile Include="LineUtils.cs" />
