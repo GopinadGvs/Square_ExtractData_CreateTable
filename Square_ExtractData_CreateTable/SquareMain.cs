@@ -118,52 +118,54 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    // ToDo Add new logic here
+                                                    FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, ed, acTrans);
 
-                                                    var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
-                                                        (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+                                                    //// ToDo Add new logic here
 
-                                                    if (existingPlotNos.Count > 0)
-                                                    {
-                                                        plotNo = existingPlotNos[0];
-                                                        plotNo._ParentSurveyNos.Add(surveyNo);
-                                                    }
+                                                    //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+                                                    //    (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
-                                                    else
-                                                    {
-                                                        plotNo._Polyline = acPoly2; //assign polyline
-                                                        plotNo.Center = getCenter(plotNo._Polyline);
-                                                        FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
+                                                    //if (existingPlotNos.Count > 0)
+                                                    //{
+                                                    //    plotNo = existingPlotNos[0];
+                                                    //    plotNo._ParentSurveyNos.Add(surveyNo);
+                                                    //}
 
-                                                        //snoPno.Add((val2, acPoly2.ObjectId)); //surveyNo, PolylineId -> old
+                                                    //else
+                                                    //{
+                                                    //    plotNo._Polyline = acPoly2; //assign polyline
+                                                    //    plotNo.Center = getCenter(plotNo._Polyline);
+                                                    //    FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
 
-                                                        //Point3dCollection fpts = new Point3dCollection();
-                                                        //for (int i = 0; i < acPoly2.NumberOfVertices; i++)
-                                                        //{
-                                                        //    plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
-                                                        //}
+                                                    //    //snoPno.Add((val2, acPoly2.ObjectId)); //surveyNo, PolylineId -> old
 
-                                                        // Perform a selection using the window polygon method with the extracted points
-                                                        //TypedValue[] textFilter = { new TypedValue((int)DxfCode.Start, "TEXT"),
-                                                        //                    new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
-                                                        //                  };
-                                                        //SelectionFilter textSelFilter = new SelectionFilter(textFilter);
-                                                        PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
+                                                    //    //Point3dCollection fpts = new Point3dCollection();
+                                                    //    //for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                                    //    //{
+                                                    //    //    plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
+                                                    //    //}
 
-                                                        if (textSelResult.Status == PromptStatus.OK)
-                                                        {
-                                                            DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
-                                                            if (textEntity != null)
-                                                            {
-                                                                string fval2 = textEntity.TextString;
-                                                                plotNo._PlotNo = fval2;
-                                                                plotNo._ParentSurveyNos.Add(surveyNo);
-                                                                //snoPnoVal.Add((fval2, val.Item1)); -> old
-                                                            }
-                                                        }
-                                                    }
+                                                    //    // Perform a selection using the window polygon method with the extracted points
+                                                    //    //TypedValue[] textFilter = { new TypedValue((int)DxfCode.Start, "TEXT"),
+                                                    //    //                    new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+                                                    //    //                  };
+                                                    //    //SelectionFilter textSelFilter = new SelectionFilter(textFilter);
+                                                    //    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
 
-                                                    surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+                                                    //    if (textSelResult.Status == PromptStatus.OK)
+                                                    //    {
+                                                    //        DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+                                                    //        if (textEntity != null)
+                                                    //        {
+                                                    //            string fval2 = textEntity.TextString;
+                                                    //            plotNo._PlotNo = fval2;
+                                                    //            plotNo._ParentSurveyNos.Add(surveyNo);
+                                                    //            //snoPnoVal.Add((fval2, val.Item1)); -> old
+                                                    //        }
+                                                    //    }
+                                                    //}
+
+                                                    //surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                                 }
                                             }
                                         }
@@ -186,51 +188,54 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                // ToDo Add new logic here
-                                                var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
-                                                    (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
-                                                if (existingPlotNos.Count > 0)
-                                                {
-                                                    plotNo = existingPlotNos[0];
-                                                    plotNo._ParentSurveyNos.Add(surveyNo);
-                                                }
+                                                FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, ed, acTrans);
 
-                                                else
-                                                {
-                                                    plotNo._Polyline = acPoly2; //assign polyline
+                                                //// ToDo Add new logic here
+                                                //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+                                                //    (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
-                                                    plotNo.Center = getCenter(plotNo._Polyline);
-                                                    FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
+                                                //if (existingPlotNos.Count > 0)
+                                                //{
+                                                //    plotNo = existingPlotNos[0];
+                                                //    plotNo._ParentSurveyNos.Add(surveyNo);
+                                                //}
 
-                                                    //snoPno.Add((val2, acPoly2.ObjectId)); -> old
+                                                //else
+                                                //{
+                                                //    plotNo._Polyline = acPoly2; //assign polyline
 
-                                                    //for (int i = 0; i < acPoly2.NumberOfVertices; i++)
-                                                    //{
-                                                    //    plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
-                                                    //}
+                                                //    plotNo.Center = getCenter(plotNo._Polyline);
+                                                //    FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
 
-                                                    // Perform a selection using the window polygon method with the extracted points
-                                                    TypedValue[] textFilter = { new TypedValue((int)DxfCode.Start, "TEXT"),
-                                                                            new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
-                                                                          };
-                                                    SelectionFilter textSelFilter = new SelectionFilter(textFilter);
-                                                    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, textSelFilter);
+                                                //    //snoPno.Add((val2, acPoly2.ObjectId)); -> old
 
-                                                    if (textSelResult.Status == PromptStatus.OK)
-                                                    {
-                                                        DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
-                                                        if (textEntity != null)
-                                                        {
-                                                            string fval2 = textEntity.TextString;
-                                                            plotNo._PlotNo = fval2;
-                                                            plotNo._ParentSurveyNos.Add(surveyNo);
-                                                            //snoPnoVal.Add((fval2, val.Item1)); -> old
-                                                        }
-                                                    }
-                                                }
+                                                //    //for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                                //    //{
+                                                //    //    plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
+                                                //    //}
 
-                                                surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+                                                //    // Perform a selection using the window polygon method with the extracted points
+                                                //    //TypedValue[] textFilter = { new TypedValue((int)DxfCode.Start, "TEXT"),
+                                                //    //                        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+                                                //    //                      };
+                                                //    //SelectionFilter textSelFilter = new SelectionFilter(textFilter);
+                                                //    PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
+
+                                                //    if (textSelResult.Status == PromptStatus.OK)
+                                                //    {
+                                                //        DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+                                                //        if (textEntity != null)
+                                                //        {
+                                                //            string fval2 = textEntity.TextString;
+                                                //            plotNo._PlotNo = fval2;
+                                                //            plotNo._ParentSurveyNos.Add(surveyNo);
+                                                //            //snoPnoVal.Add((fval2, val.Item1)); -> old
+                                                //        }
+                                                //    }
+                                                //}
+
+                                                //surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                             }
                                         }
                                     }
@@ -523,5 +528,54 @@ public class MyCommands
 
         SelectionFilter acSelFtr = new SelectionFilter(Filter);
         return acSelFtr;
+    }
+
+    private void FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo, Editor ed, Transaction acTrans)
+    {
+        // ToDo Add new logic here
+        var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+        (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+
+        if (existingPlotNos.Count > 0)
+        {
+            plotNo = existingPlotNos[0];
+            plotNo._ParentSurveyNos.Add(surveyNo);
+        }
+
+        else
+        {
+            plotNo._Polyline = acPoly2; //assign polyline
+            plotNo.Center = getCenter(plotNo._Polyline);
+            FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
+
+            //snoPno.Add((val2, acPoly2.ObjectId)); //surveyNo, PolylineId -> old
+
+            //Point3dCollection fpts = new Point3dCollection();
+            //for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+            //{
+            //    plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
+            //}
+
+            // Perform a selection using the window polygon method with the extracted points
+            //TypedValue[] textFilter = { new TypedValue((int)DxfCode.Start, "TEXT"),
+            //                    new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //                  };
+            //SelectionFilter textSelFilter = new SelectionFilter(textFilter);
+            PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
+
+            if (textSelResult.Status == PromptStatus.OK)
+            {
+                DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+                if (textEntity != null)
+                {
+                    string fval2 = textEntity.TextString;
+                    plotNo._PlotNo = fval2;
+                    plotNo._ParentSurveyNos.Add(surveyNo);
+                    //snoPnoVal.Add((fval2, val.Item1)); -> old
+                }
+            }
+        }
+
+        surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
     }
 }
