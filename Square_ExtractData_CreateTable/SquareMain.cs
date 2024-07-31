@@ -61,6 +61,9 @@ public class MyCommands
 
                         if (acPoly != null)
                         {
+                            surveyNo.Center = getCenter(surveyNo._Polyline);
+                            FillPointsByDirection(surveyNo._Polyline, surveyNo);
+
                             //Point3dCollection pts = new Point3dCollection();
                             for (int i = 0; i < acPoly.NumberOfVertices; i++)
                             {
@@ -129,6 +132,9 @@ public class MyCommands
                                                     {
                                                         plotNo._Polyline = acPoly2; //assign polyline
 
+                                                        plotNo.Center = getCenter(plotNo._Polyline);
+                                                        FillPointsByDirection(plotNo._Polyline, plotNo);
+
                                                         //snoPno.Add((val2, acPoly2.ObjectId)); //surveyNo, PolylineId -> old
 
                                                         //Point3dCollection fpts = new Point3dCollection();
@@ -196,6 +202,9 @@ public class MyCommands
                                                 {
                                                     plotNo._Polyline = acPoly2; //assign polyline
 
+                                                    plotNo.Center = getCenter(plotNo._Polyline);
+                                                    FillPointsByDirection(plotNo._Polyline, plotNo);
+
                                                     //snoPno.Add((val2, acPoly2.ObjectId)); -> old
 
                                                     //Point3dCollection fpts = new Point3dCollection();
@@ -251,7 +260,7 @@ public class MyCommands
 
         foreach (var item in uniquePlots)
         {
-            plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));            
+            plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));
         }
 
         #region Old logics
@@ -451,5 +460,59 @@ public class MyCommands
         }
 
         return uniquePoints;
+    }
+
+    private Point3d getCenter(Polyline polyline)
+    {
+        Extents3d polyExtents = polyline.GeometricExtents;
+        // Calculate the center point of the polyline
+        Point3d centerPoint = new Point3d(
+            (polyExtents.MinPoint.X + polyExtents.MaxPoint.X) / 2,
+            (polyExtents.MinPoint.Y + polyExtents.MaxPoint.Y) / 2,
+            (polyExtents.MinPoint.Z + polyExtents.MaxPoint.Z) / 2);
+
+        return centerPoint;
+    }
+
+    private void FillPointsByDirection(Polyline polyline, dynamic myObject)
+    {
+        //Iterate through the polyline segments
+        for (int i = 0; i < polyline.NumberOfVertices; i++)
+        {
+            if (polyline.GetSegmentType(i) == SegmentType.Line)
+            {
+                LineSegment2d segment = polyline.GetLineSegment2dAt(i);
+
+                // Determine the direction of the segment
+                if (segment.StartPoint.X == segment.EndPoint.X)
+                {
+                    // Vertical line
+                    if (segment.StartPoint.Y < segment.EndPoint.Y)
+                    {
+                        myObject.northPoints.Add(segment.StartPoint);
+                        myObject.northPoints.Add(segment.EndPoint);
+                    }
+                    else
+                    {
+                        myObject.southPoints.Add(segment.StartPoint);
+                        myObject.southPoints.Add(segment.EndPoint);
+                    }
+                }
+                else if (segment.StartPoint.Y == segment.EndPoint.Y)
+                {
+                    // Horizontal line
+                    if (segment.StartPoint.X < segment.EndPoint.X)
+                    {
+                        myObject.eastPoints.Add(segment.StartPoint);
+                        myObject.eastPoints.Add(segment.EndPoint);
+                    }
+                    else
+                    {
+                        myObject.westPoints.Add(segment.StartPoint);
+                        myObject.westPoints.Add(segment.EndPoint);
+                    }
+                }
+            }
+        }
     }
 }
