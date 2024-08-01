@@ -255,5 +255,117 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region FillPointsByDirectionUsingCenterLogic
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.EditorInput;
+        //using Autodesk.AutoCAD.Geometry;
+        //using Autodesk.AutoCAD.Runtime;
+        //using System.Collections.Generic;
+        //using System.Linq;
+
+        //public class PolylineDirections
+        //    {
+        //        [CommandMethod("GetPolylinePointsByDirection")]
+        //        public void GetPolylinePointsByDirection()
+        //        {
+        //            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        //            Database acCurDb = acDoc.Database;
+
+        //            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+        //            {
+        //                // Prompt the user to select a polyline
+        //                PromptEntityOptions peo = new PromptEntityOptions("\nSelect a polyline: ");
+        //                peo.SetRejectMessage("\nSelected entity is not a polyline.");
+        //                peo.AddAllowedClass(typeof(Polyline), false);
+
+        //                PromptEntityResult per = acDoc.Editor.GetEntity(peo);
+        //                if (per.Status != PromptStatus.OK)
+        //                {
+        //                    return;
+        //                }
+
+        //                // Open the selected polyline for read
+        //                Polyline acPoly = acTrans.GetObject(per.ObjectId, OpenMode.ForRead) as Polyline;
+
+        //                // Get the center of the polyline
+        //                Point3d polyCenter = GetPolylineCenter(acPoly);
+
+        //                // Define lists to hold points in different directions
+        //                List<Point3d> northPoints = new List<Point3d>();
+        //                List<Point3d> southPoints = new List<Point3d>();
+        //                List<Point3d> eastPoints = new List<Point3d>();
+        //                List<Point3d> westPoints = new List<Point3d>();
+
+        //                // Iterate through the polyline vertices
+        //                for (int i = 0; i < acPoly.NumberOfVertices; i++)
+        //                {
+        //                    Point3d vertex = acPoly.GetPoint3dAt(i);
+
+        //                    Vector3d direction = vertex - polyCenter;
+
+        //                    if (direction.Y > 0)
+        //                    {
+        //                        northPoints.Add(vertex);
+        //                    }
+        //                    else if (direction.Y < 0)
+        //                    {
+        //                        southPoints.Add(vertex);
+        //                    }
+
+        //                    if (direction.X > 0)
+        //                    {
+        //                        eastPoints.Add(vertex);
+        //                    }
+        //                    else if (direction.X < 0)
+        //                    {
+        //                        westPoints.Add(vertex);
+        //                    }
+        //                }
+
+        //                // Sort points by their distance to the center and take the two closest points
+        //                northPoints = northPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+        //                southPoints = southPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+        //                eastPoints = eastPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+        //                westPoints = westPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+
+        //                // Output the results
+        //                acDoc.Editor.WriteMessage("\nNorth Points: " + string.Join(", ", northPoints));
+        //                acDoc.Editor.WriteMessage("\nSouth Points: " + string.Join(", ", southPoints));
+        //                acDoc.Editor.WriteMessage("\nEast Points: " + string.Join(", ", eastPoints));
+        //                acDoc.Editor.WriteMessage("\nWest Points: " + string.Join(", ", westPoints));
+
+        //                // Commit the transaction
+        //                acTrans.Commit();
+        //            }
+        //        }
+
+        //        private Point3d GetPolylineCenter(Polyline poly)
+        //        {
+        //            Point3dCollection pts = new Point3dCollection();
+        //            for (int i = 0; i < poly.NumberOfVertices; i++)
+        //            {
+        //                pts.Add(poly.GetPoint3dAt(i));
+        //            }
+
+        //            // Calculate the centroid
+        //            double xSum = 0;
+        //            double ySum = 0;
+        //            double zSum = 0;
+
+        //            foreach (Point3d pt in pts)
+        //            {
+        //                xSum += pt.X;
+        //                ySum += pt.Y;
+        //                zSum += pt.Z;
+        //            }
+
+        //            return new Point3d(xSum / pts.Count, ySum / pts.Count, zSum / pts.Count);
+        //        }
+        //    }
+
+        #endregion
+
     }
 }

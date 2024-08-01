@@ -2,7 +2,6 @@ E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_Cr
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\SIP.pdb
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\System.ValueTuple.dll
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\System.ValueTuple.xml
-E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.csproj.AssemblyReference.cache
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.csproj.CoreCompileInputs.cache
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.csproj.CopyComplete
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\SIP.dll

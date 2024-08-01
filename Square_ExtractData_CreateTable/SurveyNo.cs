@@ -19,9 +19,14 @@ namespace Square_ExtractData_CreateTable
         public Point3dCollection _PolylinePoints = new Point3dCollection();
         public Point3d Center;
 
-        public List<Point2d> northPoints = new List<Point2d>();
-        public List<Point2d> southPoints = new List<Point2d>();
-        public List<Point2d> eastPoints = new List<Point2d>();
-        public List<Point2d> westPoints = new List<Point2d>();
+        //public List<Point2d> northPoints = new List<Point2d>();
+        //public List<Point2d> southPoints = new List<Point2d>();
+        //public List<Point2d> eastPoints = new List<Point2d>();
+        //public List<Point2d> westPoints = new List<Point2d>();
+
+        public List<Point3d> eastPoints = new List<Point3d>();
+        public List<Point3d> southPoints = new List<Point3d>();
+        public List<Point3d> westPoints = new List<Point3d>();
+        public List<Point3d> northPoints = new List<Point3d>();
     }
 }

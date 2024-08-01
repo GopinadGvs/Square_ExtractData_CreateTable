@@ -24,7 +24,7 @@ public class MyCommands
         ed.Command("_.zoom", "_e");
 
         // Turn on and thaw layers
-        ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
+        //ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
 
         //List<(string, ObjectId)> snoPno = new List<(string, ObjectId)>(); -> old
         //List<(string, string)> snoPnoVal = new List<(string, string)>(); -> old
@@ -57,7 +57,7 @@ public class MyCommands
                         {
                             surveyNo.Center = getCenter(surveyNo._Polyline);
                             FillAllPointsAndByDirection(surveyNo._Polyline, surveyNo);
-                            
+
                             PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_SurveyNo"));
 
                             if (acSSPromptText.Status == PromptStatus.OK)
@@ -67,7 +67,7 @@ public class MyCommands
                                 string val2 = acText.TextString;
 
                                 surveyNo._SurveyNo = val2; //assign surveyNo
-                                
+
                                 PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
 
                                 if (acSSPromptPoly.Status == PromptStatus.OK)
@@ -135,12 +135,7 @@ public class MyCommands
             .OrderBy(x => x, new AlphanumericPlotComparer())
             .ToList();
 
-        Dictionary<string, string> plotNoVsSurveyNo = new Dictionary<string, string>();
 
-        foreach (var item in uniquePlots)
-        {
-            plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));
-        }
 
         #region Old logics
 
@@ -280,20 +275,53 @@ public class MyCommands
 
         #endregion
 
+        #region Save Excel New Dictionary
+
+        //Dictionary<string, string> plotNoVsSurveyNo = new Dictionary<string, string>();
+        //foreach (var item in uniquePlots)
+        //{
+        //    plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));
+        //}
+
+        //string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
+        //using (StreamWriter sw = new StreamWriter(csvFileNew))
+        //{
+        //    sw.WriteLine("Plot Number,Survey No,Center");
+        //    foreach (var itm in plotNoVsSurveyNo)
+        //    {
+        //        sw.WriteLine($"{itm.Key},{itm.Value}");
+        //    }
+        //}
+
+        #endregion
+
 
         // Write data to CSV
         string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
-            sw.WriteLine("Plot Number,Survey No");
-            foreach (var itm in plotNoVsSurveyNo)
+            sw.WriteLine("Plot Number,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
+
+            foreach (var item in uniquePlots)
             {
-                sw.WriteLine($"{itm.Key},{itm.Value}");
+                sw.WriteLine($"{item._PlotNo}," +
+                    $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
+                    $"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
+                    $"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
+                    $"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
+                    );
             }
         }
 
-        System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
+        //System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
+        System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
 
         // Turn off _SurveyNo layer
         //ed.Command("_-layer", "OFF", "_SurveyNo", "");
@@ -355,46 +383,98 @@ public class MyCommands
 
     private void FillAllPointsAndByDirection(Polyline polyline, dynamic myObject)
     {
+        #region OldLogic
+
         //Iterate through the polyline segments
+        //for (int i = 0; i < polyline.NumberOfVertices; i++)
+        //{
+        //    myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
+
+        //    if (polyline.GetSegmentType(i) == SegmentType.Line)
+        //    {
+        //        LineSegment2d segment = polyline.GetLineSegment2dAt(i);
+
+        //        // Determine the direction of the segment
+        //        if (segment.StartPoint.X == segment.EndPoint.X)
+        //        {
+        //            // Vertical line
+        //            if (segment.StartPoint.Y < segment.EndPoint.Y)
+        //            {
+        //                myObject.northPoints.Add(segment.StartPoint);
+        //                myObject.northPoints.Add(segment.EndPoint);
+        //            }
+        //            else
+        //            {
+        //                myObject.southPoints.Add(segment.StartPoint);
+        //                myObject.southPoints.Add(segment.EndPoint);
+        //            }
+        //        }
+        //        else if (segment.StartPoint.Y == segment.EndPoint.Y)
+        //        {
+        //            // Horizontal line
+        //            if (segment.StartPoint.X < segment.EndPoint.X)
+        //            {
+        //                myObject.eastPoints.Add(segment.StartPoint);
+        //                myObject.eastPoints.Add(segment.EndPoint);
+        //            }
+        //            else
+        //            {
+        //                myObject.westPoints.Add(segment.StartPoint);
+        //                myObject.westPoints.Add(segment.EndPoint);
+        //            }
+        //        }
+        //    }
+        //}
+
+        #endregion
+
+        // Iterate through the polyline vertices
         for (int i = 0; i < polyline.NumberOfVertices; i++)
         {
             myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
 
-            if (polyline.GetSegmentType(i) == SegmentType.Line)
-            {
-                LineSegment2d segment = polyline.GetLineSegment2dAt(i);
+            Point3d vertex = polyline.GetPoint3dAt(i);
 
-                // Determine the direction of the segment
-                if (segment.StartPoint.X == segment.EndPoint.X)
-                {
-                    // Vertical line
-                    if (segment.StartPoint.Y < segment.EndPoint.Y)
-                    {
-                        myObject.northPoints.Add(segment.StartPoint);
-                        myObject.northPoints.Add(segment.EndPoint);
-                    }
-                    else
-                    {
-                        myObject.southPoints.Add(segment.StartPoint);
-                        myObject.southPoints.Add(segment.EndPoint);
-                    }
-                }
-                else if (segment.StartPoint.Y == segment.EndPoint.Y)
-                {
-                    // Horizontal line
-                    if (segment.StartPoint.X < segment.EndPoint.X)
-                    {
-                        myObject.eastPoints.Add(segment.StartPoint);
-                        myObject.eastPoints.Add(segment.EndPoint);
-                    }
-                    else
-                    {
-                        myObject.westPoints.Add(segment.StartPoint);
-                        myObject.westPoints.Add(segment.EndPoint);
-                    }
-                }
+            Vector3d direction = vertex - myObject.Center;
+
+            if (direction.Y > 0)
+            {
+                myObject.northPoints.Add(vertex);
+            }
+            else if (direction.Y < 0)
+            {
+                myObject.southPoints.Add(vertex);
+            }
+
+            if (direction.X > 0)
+            {
+                myObject.eastPoints.Add(vertex);
+            }
+            else if (direction.X < 0)
+            {
+                myObject.westPoints.Add(vertex);
             }
         }
+
+
+        // Convert the dynamic lists to List<Point3d> and then process them
+        List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        List<Point3d> eastPoints = ((IEnumerable<Point3d>)myObject.eastPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        List<Point3d> westPoints = ((IEnumerable<Point3d>)myObject.westPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+
+        // Assign the processed lists back to the dynamic object
+        myObject.northPoints = northPoints;
+        myObject.southPoints = southPoints;
+        myObject.eastPoints = eastPoints;
+        myObject.westPoints = westPoints;
+
+        //// Sort points by their distance to the center and take the two closest points
+        //myObject.northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        //myObject.southPoints = myObject.southPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+        //myObject.eastPoints = myObject.eastPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+        //myObject.westPoints = myObject.westPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
+
     }
 
     private SelectionFilter CreateSelectionFilterByStartTypeAndLayer(string startType, string Layer)
@@ -424,7 +504,7 @@ public class MyCommands
             plotNo._Polyline = acPoly2; //assign polyline
             plotNo.Center = getCenter(plotNo._Polyline);
             FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
-            
+
             PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
 
             if (textSelResult.Status == PromptStatus.OK)
