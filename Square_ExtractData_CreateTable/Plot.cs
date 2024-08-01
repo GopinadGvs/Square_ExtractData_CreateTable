@@ -14,10 +14,10 @@ namespace Square_ExtractData_CreateTable
     public class Plot
     {
         public string _PlotNo;
-        public double _SizeInEast;
-        public double _SizeInSouth;
-        public double _SizeInWest;
-        public double _SizeInNorth;
+        public List<SDimension> _SizesInEast = new List<SDimension>();
+        public List<SDimension> _SizesInSouth = new List<SDimension>();
+        public List<SDimension> _SizesInWest = new List<SDimension>();
+        public List<SDimension> _SizesInNorth = new List<SDimension>();
         public double _Area;
         public double _PlotArea;
         public double _MortgageArea;
@@ -38,6 +38,6 @@ namespace Square_ExtractData_CreateTable
         public List<Point3d> westPoints = new List<Point3d>();
         public List<Point3d> northPoints = new List<Point3d>();
 
-
+        public List<SDimension> _AllDims = new List<SDimension>();
     }
 }

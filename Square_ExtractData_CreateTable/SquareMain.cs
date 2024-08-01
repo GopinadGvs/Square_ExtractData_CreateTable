@@ -13,12 +13,16 @@ using System.Linq;
 
 public class MyCommands
 {
+    private static Editor ed = null;
+
+
     [CommandMethod("MSIP")]
     public void SIP()
     {
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
         Database acCurDb = acDoc.Database;
-        Editor ed = acDoc.Editor;
+        /*Editor*/
+        ed = acDoc.Editor;
 
         // Zoom extents
         ed.Command("_.zoom", "_e");
@@ -89,7 +93,7 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, ed, acTrans);
+                                                    FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo/*, ed*/, acTrans);
                                                 }
                                             }
                                         }
@@ -112,7 +116,7 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, ed, acTrans);
+                                                FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo/*, ed*/, acTrans);
                                             }
                                         }
                                     }
@@ -301,21 +305,27 @@ public class MyCommands
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
-            sw.WriteLine("Plot Number,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
+            sw.WriteLine("Plot Number,East,South,West,North,Survey No");
+            //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
 
             foreach (var item in uniquePlots)
             {
                 sw.WriteLine($"{item._PlotNo}," +
-                    $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
-                    $"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
-                    $"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
-                    $"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
+                    $"{item._SizesInEast[0].Text}," +
+                    $"{item._SizesInSouth[0].Text}," +
+                    $"{item._SizesInWest[0].Text}," +
+                    $"{item._SizesInNorth[0].Text}," +
+                    $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}"
+                    //+
+                    //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
+                    //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
+                    //$"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
                     );
             }
         }
@@ -457,6 +467,8 @@ public class MyCommands
         }
 
 
+        //ToDo -> Issue with Circular curves
+
         // Convert the dynamic lists to List<Point3d> and then process them
         List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
         List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
@@ -468,12 +480,6 @@ public class MyCommands
         myObject.southPoints = southPoints;
         myObject.eastPoints = eastPoints;
         myObject.westPoints = westPoints;
-
-        //// Sort points by their distance to the center and take the two closest points
-        //myObject.northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
-        //myObject.southPoints = myObject.southPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
-        //myObject.eastPoints = myObject.eastPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
-        //myObject.westPoints = myObject.westPoints.OrderBy(p => p.DistanceTo(polyCenter)).Take(2).ToList();
 
     }
 
@@ -487,7 +493,7 @@ public class MyCommands
         return acSelFtr;
     }
 
-    private void FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo, Editor ed, Transaction acTrans)
+    private void FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo/*, Editor ed*/, Transaction acTrans)
     {
         // ToDo Add new logic here
         var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -497,6 +503,7 @@ public class MyCommands
         {
             plotNo = existingPlotNos[0];
             plotNo._ParentSurveyNos.Add(surveyNo);
+            //FillSizesByDirection(plotNo, acTrans);
         }
 
         else
@@ -515,11 +522,96 @@ public class MyCommands
                     string fval2 = textEntity.TextString;
                     plotNo._PlotNo = fval2;
                     plotNo._ParentSurveyNos.Add(surveyNo);
-                    //snoPnoVal.Add((fval2, val.Item1)); -> old
+                    //FillSizesByDirection(plotNo, acTrans);                    
                 }
             }
+
+            PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", "_IndivSubPlot_DIMENSION"));
+
+            if (dimSelResult.Status == PromptStatus.OK)
+            {
+                SelectionSet dimSelSet = dimSelResult.Value;
+                foreach (SelectedObject acSSObj in dimSelSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Dimension dimEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Dimension;
+                        if (dimEntity != null)
+                        {
+                            string dimValue = dimEntity.DimensionText;
+
+                            if (Convert.ToDouble(dimValue) > 0.5)
+                                plotNo._AllDims.Add(new SDimension(dimEntity, dimEntity.DimensionText, dimEntity.TextPosition));
+                        }
+                    }
+                }
+            }
+
+            FillSizesByDirection(plotNo);
         }
 
         surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+    }
+
+
+    private void FillSizesByDirection(Plot plotNo)
+    {
+        for (int i = 0; i < plotNo._AllDims.Count; i++)
+        {
+            Point3d vertex = plotNo._AllDims[i].position;
+
+            Vector3d direction = vertex - plotNo.Center;
+
+            if (direction.Y > 0)
+            {
+                plotNo._SizesInNorth.Add(plotNo._AllDims[i]);
+            }
+            else if (direction.Y < 0)
+            {
+                plotNo._SizesInSouth.Add(plotNo._AllDims[i]);
+            }
+
+            if (direction.X > 0)
+            {
+                plotNo._SizesInEast.Add(plotNo._AllDims[i]);
+            }
+            else if (direction.X < 0)
+            {
+                plotNo._SizesInWest.Add(plotNo._AllDims[i]);
+            }
+        }
+
+        //ToDo -> Issue with Circular curves
+
+        plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInEast = plotNo._SizesInEast.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+
+    }
+
+    private void FillSizesByDirection(Plot plotNo, Transaction acTrans)
+    {
+        //plotNo._SizeInEast = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.eastPoints.ToArray()));
+        //plotNo._SizeInSouth = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.southPoints.ToArray()));
+        //plotNo._SizeInWest = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.westPoints.ToArray()));
+        //plotNo._SizeInNorth = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.northPoints.ToArray()));
+    }
+
+    private string GetSize(Plot plotNo, Transaction acTrans, Point3dCollection point3dCollection)
+    {
+        PromptSelectionResult textSelResult = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", "_IndivSubPlot_DIMENSION"));
+
+        if (textSelResult.Status == PromptStatus.OK)
+        {
+            Dimension textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as Dimension;
+            if (textEntity != null)
+            {
+                string fval2 = textEntity.DimensionText;
+                return fval2;
+            }
+        }
+
+        return "";
     }
 }
