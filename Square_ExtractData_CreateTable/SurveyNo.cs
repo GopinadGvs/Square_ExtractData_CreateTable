@@ -14,6 +14,8 @@ namespace Square_ExtractData_CreateTable
     public class SurveyNo
     {
         public List<Plot> _PlotNos = new List<Plot>();
+        public List<Mortgage> _MortgagePlotNos = new List<Mortgage>();
+
         public string _SurveyNo = string.Empty;
         public Polyline _Polyline;
         public Point3dCollection _PolylinePoints = new Point3dCollection();

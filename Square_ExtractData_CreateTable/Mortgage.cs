@@ -17,5 +17,9 @@ namespace Square_ExtractData_CreateTable
         public string _SurveyNo = string.Empty;
         public Polyline _Polyline;
         public Point3dCollection _PolylinePoints = new Point3dCollection();
+        public List<SurveyNo> _ParentSurveyNos = new List<SurveyNo>();
+        public Point3d Center;
+        public ObjectId _mortgageId;
+
     }
 }

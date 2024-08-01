@@ -93,7 +93,7 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo/*, ed*/, acTrans);
+                                                    FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans);
                                                 }
                                             }
                                         }
@@ -116,11 +116,14 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo/*, ed*/, acTrans);
+                                                FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans);
                                             }
                                         }
                                     }
                                 }
+
+                                //Fill Mortgage
+
                             }
                         }
 
@@ -548,9 +551,61 @@ public class MyCommands
             }
 
             FillSizesByDirection(plotNo);
+
+            //Fill Mortgages
+
+            PromptSelectionResult mortgageSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_MortgageArea"));
+
+            if (mortgageSelResult.Status == PromptStatus.OK)
+            {
+                SelectionSet dimSelSet = mortgageSelResult.Value;
+                foreach (SelectedObject acSSObj in dimSelSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Polyline textEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+                        if (textEntity != null)
+                        {
+                            for (int i = 0; i < textEntity.NumberOfVertices; i++)
+                            {
+                                plotNo.MortgagePoints.Add(textEntity.GetPoint3dAt(i));
+                            }
+
+
+                            //    string fval2 = textEntity.TextString;
+                            //plotNo._PlotNo = fval2;
+                            //plotNo._ParentSurveyNos.Add(surveyNo);
+                            //FillSizesByDirection(plotNo, acTrans);                    
+                        }
+                    }
+                }
+            }
         }
 
         surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+    }
+
+    private void FillMortgageObject(List<SurveyNo> surveyNos, Polyline acPoly2, Mortgage plotNo, SurveyNo surveyNo, Transaction acTrans)
+    {
+        // ToDo Add new logic here
+        var existingMortgagePlotNos = surveyNos.SelectMany(x => x._MortgagePlotNos).Where
+        (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+
+        if (existingMortgagePlotNos.Count > 0)
+        {
+            plotNo = existingMortgagePlotNos[0];
+            plotNo._ParentSurveyNos.Add(surveyNo);
+            //FillSizesByDirection(plotNo, acTrans);
+        }
+
+        else
+        {
+            plotNo._Polyline = acPoly2; //assign polyline
+            plotNo.Center = getCenter(plotNo._Polyline);
+            FillAllPointsAndByDirection(plotNo._Polyline, plotNo);            
+        }
+
+        surveyNo._MortgagePlotNos.Add(plotNo); //add plotNo to SurveyNo List
     }
 
 

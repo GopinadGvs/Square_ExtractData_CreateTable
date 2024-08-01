@@ -38,6 +38,8 @@ namespace Square_ExtractData_CreateTable
         public List<Point3d> westPoints = new List<Point3d>();
         public List<Point3d> northPoints = new List<Point3d>();
 
+        public List<Point3d> MortgagePoints = new List<Point3d>();
+
         public List<SDimension> _AllDims = new List<SDimension>();
     }
 }
