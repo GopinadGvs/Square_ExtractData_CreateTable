@@ -158,8 +158,21 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+                                                    // ToDo Add new logic here
+                                                    var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+                                                    (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
+                                                    if (existingPlotNos.Count > 0)
+                                                    {
+                                                        plotNo = existingPlotNos[0];
+                                                        plotNo._ParentSurveyNos.Add(surveyNo);
+                                                    }
+
+                                                    else
+                                                    {
+                                                        plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+
+                                                    }
                                                     surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                                 }
                                             }
@@ -187,7 +200,21 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+                                                // ToDo Add new logic here
+                                                var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+                                                (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+
+                                                if (existingPlotNos.Count > 0)
+                                                {
+                                                    plotNo = existingPlotNos[0];
+                                                    plotNo._ParentSurveyNos.Add(surveyNo);
+                                                }
+
+                                                else
+                                                {
+                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+
+                                                }
                                                 surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                             }
                                         }
@@ -219,8 +246,20 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                    var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
+                                                (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
+                                                    if (existingPlotNos.Count > 0)
+                                                    {
+                                                        amenityPlotNo = existingPlotNos[0];
+                                                        amenityPlotNo._ParentSurveyNos.Add(surveyNo);
+                                                    }
+
+                                                    else
+                                                    {
+                                                        amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+
+                                                    }
                                                     surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
                                                 }
                                             }
@@ -248,8 +287,20 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
+                                               (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
+                                                if (existingPlotNos.Count > 0)
+                                                {
+                                                    amenityPlotNo = existingPlotNos[0];
+                                                    amenityPlotNo._ParentSurveyNos.Add(surveyNo);
+                                                }
+
+                                                else
+                                                {
+                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+
+                                                }
                                                 surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
                                             }
                                         }
@@ -477,7 +528,7 @@ public class MyCommands
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
-            sw.WriteLine("Plot Number,East,South,West,North,Survey No,IsMortgage");
+            sw.WriteLine("Plot Number,East,South,West,North,Survey No,Plot Area, Mortgage Plots, Amenity Plots");
             //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
 
             foreach (var item in uniquePlots)
@@ -488,7 +539,9 @@ public class MyCommands
                     $"{item._SizesInWest[0].Text}," +
                     $"{item._SizesInNorth[0].Text}," +
                     $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
-                    $"{item.IsMortgageArea.ToString()}"
+                    $"{item._PlotArea.ToString()}," +
+                    $"{item._MortgageArea.ToString()}," +
+                    $"{item._AmenityArea.ToString()}"
                     //+
                     //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
                     //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
@@ -669,62 +722,61 @@ public class MyCommands
     private dynamic FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, dynamic plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName, string dimensionLayerName)
     {
         // ToDo Add new logic here
-        var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
-        (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+        //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+        //(x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
-        if (existingPlotNos.Count > 0)
+        //if (existingPlotNos.Count > 0)
+        //{
+        //    plotNo = existingPlotNos[0];
+        //    plotNo._ParentSurveyNos.Add(surveyNo);
+        //}
+
+        //else
+        //{
+        plotNo._Polyline = acPoly2; //assign polyline
+        plotNo.Center = getCenter(plotNo._Polyline);
+        FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
+
+        PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
+
+        if (textSelResult.Status == PromptStatus.OK)
         {
-            plotNo = existingPlotNos[0];
-            plotNo._ParentSurveyNos.Add(surveyNo);
-            //FillSizesByDirection(plotNo, acTrans);
+            DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+            if (textEntity != null)
+            {
+                string fval2 = textEntity.TextString;
+                plotNo._PlotNo = fval2;
+                plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
+                plotNo._ParentSurveyNos.Add(surveyNo);
+                //FillSizesByDirection(plotNo, acTrans);                    
+            }
         }
 
-        else
+        //get all dimensions of plot and fill in plot object
+        PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
+
+        if (dimSelResult.Status == PromptStatus.OK)
         {
-            plotNo._Polyline = acPoly2; //assign polyline
-            plotNo.Center = getCenter(plotNo._Polyline);
-            FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
-
-            PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
-
-            if (textSelResult.Status == PromptStatus.OK)
+            SelectionSet dimSelSet = dimSelResult.Value;
+            foreach (SelectedObject acSSObj in dimSelSet)
             {
-                DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
-                if (textEntity != null)
+                if (acSSObj != null)
                 {
-                    string fval2 = textEntity.TextString;
-                    plotNo._PlotNo = fval2;
-                    plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
-                    plotNo._ParentSurveyNos.Add(surveyNo);
-                    //FillSizesByDirection(plotNo, acTrans);                    
-                }
-            }
-
-            //get all dimensions of plot and fill in plot object
-            PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
-
-            if (dimSelResult.Status == PromptStatus.OK)
-            {
-                SelectionSet dimSelSet = dimSelResult.Value;
-                foreach (SelectedObject acSSObj in dimSelSet)
-                {
-                    if (acSSObj != null)
+                    Dimension dimEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Dimension;
+                    if (dimEntity != null)
                     {
-                        Dimension dimEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Dimension;
-                        if (dimEntity != null)
-                        {
-                            string dimValue = dimEntity.DimensionText;
+                        string dimValue = dimEntity.DimensionText;
 
-                            if (Convert.ToDouble(dimValue) > 0.5)
-                                plotNo._AllDims.Add(new SDimension(dimEntity, dimEntity.DimensionText, dimEntity.TextPosition));
-                        }
+                        if (Convert.ToDouble(dimValue) > 0.5)
+                            plotNo._AllDims.Add(new SDimension(dimEntity, dimEntity.DimensionText, dimEntity.TextPosition));
                     }
                 }
             }
-
-            //fill sizes by direction
-            FillSizesByDirection(plotNo);
         }
+
+        //fill sizes by direction
+        FillSizesByDirection(plotNo);
+        //}
 
         return plotNo;
 
