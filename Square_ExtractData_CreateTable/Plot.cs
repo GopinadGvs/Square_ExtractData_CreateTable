@@ -30,7 +30,7 @@ namespace Square_ExtractData_CreateTable
         public List<SurveyNo> _ParentSurveyNos = new List<SurveyNo>();
         public bool IsPlotArea;
         public bool IsMortgageArea;
-        public bool IsUtilityArea;
+        public bool IsAmenity;
         public Point3dCollection _PolylinePoints = new Point3dCollection();
         public Point3d Center;
         public List<Point3d> eastPoints = new List<Point3d>();
