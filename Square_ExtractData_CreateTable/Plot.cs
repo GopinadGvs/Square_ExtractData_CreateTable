@@ -42,10 +42,10 @@ namespace Square_ExtractData_CreateTable
         public List<Point3d> westPoints = new List<Point3d>();
         public List<Point3d> northPoints = new List<Point3d>();
 
-        public List<LineSegment2d> eastLineSegment = new List<LineSegment2d>();
-        public List<LineSegment2d> southLineSegment = new List<LineSegment2d>();
-        public List<LineSegment2d> westLineSegment = new List<LineSegment2d>();
-        public List<LineSegment2d> northLineSegment = new List<LineSegment2d>();
+        public List<LineSegment3d> eastLineSegment = new List<LineSegment3d>();
+        public List<LineSegment3d> southLineSegment = new List<LineSegment3d>();
+        public List<LineSegment3d> westLineSegment = new List<LineSegment3d>();
+        public List<LineSegment3d> northLineSegment = new List<LineSegment3d>();
 
 
         public List<Point3d> MortgagePoints = new List<Point3d>();

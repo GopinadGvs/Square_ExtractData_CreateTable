@@ -703,45 +703,91 @@ public class MyCommands
             if (polyline.GetLineSegmentAt(i).Length > 0.5)
             {
                 //ToDo -> Loop through start and end points of line
+                Point3d vertex1 = polyline.GetLineSegmentAt(i).StartPoint;
+                Point3d vertex2 = polyline.GetLineSegmentAt(i).EndPoint;
 
-                Point3d vertex = polyline.GetPoint3dAt(i);
+                Vector3d direction1 = vertex1 - myObject.Center;
+                Vector3d direction2 = vertex2 - myObject.Center;
 
-                Vector3d direction = vertex - myObject.Center;
-
-                if (direction.Y > 0)
+                if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y > 0))
                 {
-                    myObject.northPoints.Add(vertex);
-                }
-                else if (direction.Y < 0)
-                {
-                    myObject.southPoints.Add(vertex);
+                    myObject.northLineSegment.Add(polyline.GetLineSegmentAt(i));
+                    myObject.northPoints.Add(vertex1);
+                    myObject.northPoints.Add(vertex2);
                 }
 
-                if (direction.X > 0)
+                if ((direction1.X < 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0) ||
+                    (direction2.X < 0 && direction2.Y < 0) && (direction1.X > 0 && direction1.Y < 0))
                 {
-                    myObject.eastPoints.Add(vertex);
+                    myObject.southLineSegment.Add(polyline.GetLineSegmentAt(i));
+                    myObject.southPoints.Add(vertex1);
+                    myObject.southPoints.Add(vertex2);
                 }
-                else if (direction.X < 0)
+
+                if ((direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y < 0) ||
+                    (direction2.X > 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y < 0))
                 {
-                    myObject.westPoints.Add(vertex);
+                    myObject.eastLineSegment.Add(polyline.GetLineSegmentAt(i));
+                    myObject.eastPoints.Add(vertex1);
+                    myObject.eastPoints.Add(vertex2);
                 }
+
+                if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0) ||
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X < 0 && direction1.Y < 0))
+                {
+                    myObject.westLineSegment.Add(polyline.GetLineSegmentAt(i));
+                    myObject.westPoints.Add(vertex1);
+                    myObject.westPoints.Add(vertex2);
+                }
+
+                #region Old Logic to collect all direction points
+                //Point3d vertex = polyline.GetPoint3dAt(i);
+                //Vector3d direction = vertex - myObject.Center;
+                //List<Point3d> points = new List<Point3d>() { vertex1, vertex2 };
+
+                //foreach (Point3d point in points)
+                //{
+                //    Vector3d direction = point - myObject.Center;
+
+                //    if (direction.Y > 0)
+                //    {
+                //        myObject.northPoints.Add(point);
+                //    }
+                //    else if (direction.Y < 0)
+                //    {
+                //        myObject.southPoints.Add(point);
+                //    }
+
+                //    if (direction.X > 0)
+                //    {
+                //        myObject.eastPoints.Add(point);
+                //    }
+                //    else if (direction.X < 0)
+                //    {
+                //        myObject.westPoints.Add(point);
+                //    }
+                //}
+                #endregion
             }
         }
 
-        //ToDo -> Issue with Circular curves
+        #region Old Logic to filter all direction points
 
-        // Convert the dynamic lists to List<Point3d> and then process them
-        List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
-        List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
-        List<Point3d> eastPoints = ((IEnumerable<Point3d>)myObject.eastPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
-        List<Point3d> westPoints = ((IEnumerable<Point3d>)myObject.westPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        ////ToDo -> Issue with Circular curves
+        //// Convert the dynamic lists to List<Point3d> and then process them
+        //List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        //List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        //List<Point3d> eastPoints = ((IEnumerable<Point3d>)myObject.eastPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
+        //List<Point3d> westPoints = ((IEnumerable<Point3d>)myObject.westPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
 
-        // Assign the processed lists back to the dynamic object
-        myObject.northPoints = northPoints;
-        myObject.southPoints = southPoints;
-        myObject.eastPoints = eastPoints;
-        myObject.westPoints = westPoints;
+        //// Assign the processed lists back to the dynamic object
+        //myObject.northPoints = northPoints;
+        //myObject.southPoints = southPoints;
+        //myObject.eastPoints = eastPoints;
+        //myObject.westPoints = westPoints;
 
+        #endregion
     }
 
     private SelectionFilter CreateSelectionFilterByStartTypeAndLayer(string startType, string Layer)
