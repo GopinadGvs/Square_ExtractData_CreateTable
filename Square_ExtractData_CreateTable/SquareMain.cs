@@ -173,6 +173,7 @@ public class MyCommands
                                                         plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
 
                                                     }
+
                                                     surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                                 }
                                             }
@@ -235,7 +236,7 @@ public class MyCommands
                                     {
                                         if (acSSObjPoly != null)
                                         {
-                                            Amenity amenityPlotNo = new Amenity(); //create new amenity PlotNo object
+                                            Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
 
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
 
@@ -258,6 +259,7 @@ public class MyCommands
                                                     else
                                                     {
                                                         amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                        amenityPlotNo.IsAmenity = true;
 
                                                     }
                                                     surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
@@ -282,7 +284,7 @@ public class MyCommands
                                     {
                                         if (acSSObjZeroPoly != null)
                                         {
-                                            Amenity amenityPlotNo = new Amenity(); //create new amenity PlotNo object
+                                            Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
 
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
@@ -299,6 +301,7 @@ public class MyCommands
                                                 else
                                                 {
                                                     amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                    amenityPlotNo.IsAmenity = true;
 
                                                 }
                                                 surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
@@ -321,29 +324,21 @@ public class MyCommands
             acTrans.Commit();
         }
 
-        // Select, Distinct, and Sort (using comparer to sort strings like 1,10,2,20,20A,3,30,30C,4)
         var uniquePlots = surveyNos
-            .SelectMany(x => x._PlotNos)
-            .Distinct()
-            .OrderBy(x => x, new AlphanumericPlotComparer())
-            .ToList();
+                            .SelectMany(x => x._PlotNos)
+                            .GroupBy(y => y._PlotNo)
+                            .Select(g => g.First())
+                            .OrderBy(x => x, new AlphanumericPlotComparer())
+                            .ToList();
 
         var uniqueAmenityPlots = surveyNos
             .SelectMany(x => x._AmenityPlots)
-            .Distinct()
+            .GroupBy(y => y._PlotNo)
+            .Select(g => g.First())
             .OrderBy(x => x, new AlphanumericPlotComparer())
             .ToList();
 
         var combinedPlots = uniquePlots.Concat(uniqueAmenityPlots).Distinct().ToList();
-
-        //foreach (var item in uniquePlots)
-        //{
-        //    if (mortgagePlots.Contains(item._PlotNo))
-        //    {
-        //        item.IsMortgageArea = true;
-        //        item._MortgageArea = item._Area;
-        //    }
-        //}
 
         foreach (var item in combinedPlots)
         {
@@ -531,7 +526,7 @@ public class MyCommands
             sw.WriteLine("Plot Number,East,South,West,North,Survey No,Plot Area, Mortgage Plots, Amenity Plots");
             //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
 
-            foreach (var item in uniquePlots)
+            foreach (var item in combinedPlots)
             {
                 sw.WriteLine($"{item._PlotNo}," +
                     $"{item._SizesInEast[0].Text}," +
@@ -737,6 +732,7 @@ public class MyCommands
         plotNo.Center = getCenter(plotNo._Polyline);
         FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
 
+        //fill plot number text assuming text is of single text, area and parent survey No
         PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
 
         if (textSelResult.Status == PromptStatus.OK)
@@ -748,7 +744,21 @@ public class MyCommands
                 plotNo._PlotNo = fval2;
                 plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
                 plotNo._ParentSurveyNos.Add(surveyNo);
-                //FillSizesByDirection(plotNo, acTrans);                    
+            }
+        }
+
+        //fill plot number text assuming text is of multiline text, area and parent survey No
+        PromptSelectionResult textSelResult1 = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("MTEXT", TextLayerName));
+
+        if (textSelResult1.Status == PromptStatus.OK)
+        {
+            MText textEntity = acTrans.GetObject(textSelResult1.Value[0].ObjectId, OpenMode.ForRead) as MText;
+            if (textEntity != null)
+            {
+                string fval2 = textEntity.Text;
+                plotNo._PlotNo = fval2;
+                plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
+                plotNo._ParentSurveyNos.Add(surveyNo);
             }
         }
 

@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Square_ExtractData_CreateTable
 {
-    public class Amenity : Plot
-    {
-        public bool IsAmenity;
-        public Amenity()
-        {
-            IsAmenity = true;
-        }
-    }
+    //public class Amenity : Plot
+    //{
+    //    public bool IsAmenity;
+    //    public Amenity()
+    //    {
+    //        IsAmenity = true;
+    //    }
+    //}
 }

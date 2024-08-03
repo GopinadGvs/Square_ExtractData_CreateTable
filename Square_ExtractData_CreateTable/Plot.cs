@@ -13,6 +13,10 @@ namespace Square_ExtractData_CreateTable
 {
     public class Plot
     {
+        public Plot()
+        {
+            IsAmenity = false;
+        }
         public string _PlotNo;
         public List<SDimension> _SizesInEast = new List<SDimension>();
         public List<SDimension> _SizesInSouth = new List<SDimension>();
