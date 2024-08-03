@@ -697,6 +697,7 @@ public class MyCommands
             myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
         }
 
+        //Fill all line segments in all directions
         for (int i = 0; i < polyline.NumberOfVertices; i++)
         {
             //if (polyline.GetSegmentType(i) == SegmentType.Line)
@@ -773,8 +774,7 @@ public class MyCommands
         }
 
         #region Old Logic to filter all direction points
-
-        ////ToDo -> Issue with Circular curves
+                
         //// Convert the dynamic lists to List<Point3d> and then process them
         //List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
         //List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
@@ -905,6 +905,10 @@ public class MyCommands
 
     private void FillSizesByDirection(Plot plotNo)
     {
+        //filling sizes by direction based on available dimensions
+        //-> you can use polyline.length also instead of dimension
+        //-> you can change dimension type to text if text is placed for dimension
+
         for (int i = 0; i < plotNo._AllDims.Count; i++)
         {
             Point3d vertex = plotNo._AllDims[i].position;
@@ -929,13 +933,13 @@ public class MyCommands
                 plotNo._SizesInWest.Add(plotNo._AllDims[i]);
             }
         }
+        
+        plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.northLineSegment[0].MidPoint)).Take(2).ToList();
+        plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.southLineSegment[0].MidPoint)).Take(2).ToList();
+        plotNo._SizesInEast = plotNo._SizesInEast.OrderBy(p => p.position.DistanceTo(plotNo.eastLineSegment[0].MidPoint)).Take(2).ToList();
+        plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(p => p.position.DistanceTo(plotNo.westLineSegment[0].MidPoint)).Take(2).ToList();
 
-        //ToDo -> Issue with Circular curves
-
-        plotNo._SizesInNorth = plotNo._SizesInNorth.OrderByDescending(x => x.position.Y).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(x => x.position.Y).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInEast = plotNo._SizesInEast.OrderByDescending(x => x.position.X).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(x => x.position.X).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        //plotNo._SizesInNorth = plotNo._SizesInNorth.OrderByDescending(x => x.position.Y).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
 
         //plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
         //plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
