@@ -367,5 +367,58 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+
+        #region Sum of area with points array as input
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Geometry;
+
+        //public double CalculateSumOfAreas(Point3d[][] polygons)
+        //    {
+        //        double totalArea = 0.0;
+
+        //        // Get the current document and database
+        //        Document doc = Application.DocumentManager.MdiActiveDocument;
+        //        Database db = doc.Database;
+
+        //        // Start a transaction
+        //        using (Transaction trans = db.TransactionManager.StartTransaction())
+        //        {
+        //            // Open the BlockTable for read
+        //            BlockTable blockTable = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+        //            foreach (Point3d[] points in polygons)
+        //            {
+        //                // Create a Polyline
+        //                using (LWPOLYLINE polyline = new LWPOLYLINE())
+        //                {
+        //                    // Add points to the polyline
+        //                    for (int i = 0; i < points.Length; i++)
+        //                    {
+        //                        polyline.AddVertexAt(i, new Point2d(points[i].X, points[i].Y), 0, 0, 0);
+        //                    }
+        //                    polyline.Closed = true; // Close the polyline to form a closed polygon
+
+        //                    // Add the polyline to the current space
+        //                    BlockTableRecord btr = (BlockTableRecord)trans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+        //                    btr.AppendEntity(polyline);
+        //                    trans.AddNewlyCreatedDBObject(polyline, true);
+
+        //                    // Calculate the area of the polyline
+        //                    double area = polyline.Area;
+        //                    totalArea += area;
+        //                }
+        //            }
+
+        //            // Commit the transaction
+        //            trans.Commit();
+        //        }
+
+        //        return totalArea;
+        //    }
+
+        #endregion
+
     }
 }

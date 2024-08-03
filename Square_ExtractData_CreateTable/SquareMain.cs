@@ -20,6 +20,9 @@ public class MyCommands
     public void SIP()
     {
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+        LogWriter.LogWrite(acDoc.Name);
+
         Database acCurDb = acDoc.Database;
         /*Editor*/
         ed = acDoc.Editor;
@@ -519,7 +522,15 @@ public class MyCommands
 
 
         // Write data to CSV
-        string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
+
+        DateTime datetime = DateTime.Now;
+        string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
+            datetime.Date, datetime.Month, datetime.Year,
+            datetime.Hour, datetime.Minute, datetime.Second, datetime.Millisecond);
+
+
+        string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId + ".csv" }"
+        );
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {

@@ -63,6 +63,7 @@
     <Compile Include="ExtractData.cs" />
     <Compile Include="LayerUtils.cs" />
     <Compile Include="LineUtils.cs" />
+    <Compile Include="LogWriter.cs" />
     <Compile Include="Plot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SDimension.cs" />
