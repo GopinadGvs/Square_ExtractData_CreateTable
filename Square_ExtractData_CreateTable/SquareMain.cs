@@ -525,8 +525,10 @@ public class MyCommands
 
         DateTime datetime = DateTime.Now;
         string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
-            datetime.Date, datetime.Month, datetime.Year,
+            datetime.Day, datetime.Month, datetime.Year,
             datetime.Hour, datetime.Minute, datetime.Second, datetime.Millisecond);
+
+        //System.Windows.Forms.MessageBox.Show(uniqueId);
 
 
         string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId + ".csv" }"
@@ -693,30 +695,38 @@ public class MyCommands
         for (int i = 0; i < polyline.NumberOfVertices; i++)
         {
             myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
-
-            Point3d vertex = polyline.GetPoint3dAt(i);
-
-            Vector3d direction = vertex - myObject.Center;
-
-            if (direction.Y > 0)
-            {
-                myObject.northPoints.Add(vertex);
-            }
-            else if (direction.Y < 0)
-            {
-                myObject.southPoints.Add(vertex);
-            }
-
-            if (direction.X > 0)
-            {
-                myObject.eastPoints.Add(vertex);
-            }
-            else if (direction.X < 0)
-            {
-                myObject.westPoints.Add(vertex);
-            }
         }
 
+        for (int i = 0; i < polyline.NumberOfVertices; i++)
+        {
+            //if (polyline.GetSegmentType(i) == SegmentType.Line)
+            if (polyline.GetLineSegmentAt(i).Length > 0.5)
+            {
+                //ToDo -> Loop through start and end points of line
+
+                Point3d vertex = polyline.GetPoint3dAt(i);
+
+                Vector3d direction = vertex - myObject.Center;
+
+                if (direction.Y > 0)
+                {
+                    myObject.northPoints.Add(vertex);
+                }
+                else if (direction.Y < 0)
+                {
+                    myObject.southPoints.Add(vertex);
+                }
+
+                if (direction.X > 0)
+                {
+                    myObject.eastPoints.Add(vertex);
+                }
+                else if (direction.X < 0)
+                {
+                    myObject.westPoints.Add(vertex);
+                }
+            }
+        }
 
         //ToDo -> Issue with Circular curves
 
@@ -876,10 +886,15 @@ public class MyCommands
 
         //ToDo -> Issue with Circular curves
 
-        plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInEast = plotNo._SizesInEast.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
-        plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInNorth = plotNo._SizesInNorth.OrderByDescending(x => x.position.Y).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(x => x.position.Y).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInEast = plotNo._SizesInEast.OrderByDescending(x => x.position.X).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(x => x.position.X).Take(3).ToList().OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+
+        //plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        //plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        //plotNo._SizesInEast = plotNo._SizesInEast.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
+        //plotNo._SizesInWest = plotNo._SizesInWest.OrderBy(p => p.position.DistanceTo(plotNo.Center)).Take(2).ToList();
 
     }
 
