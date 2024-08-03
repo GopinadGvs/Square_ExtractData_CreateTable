@@ -161,7 +161,7 @@ public class MyCommands
 
                                                 if (uniquePoints.Count > 1)
                                                 {
-                                                    // ToDo Add new logic here
+                                                    // new logic added
                                                     var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
                                                     (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
@@ -173,6 +173,7 @@ public class MyCommands
 
                                                     else
                                                     {
+                                                        //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                         plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
 
                                                     }
@@ -204,7 +205,7 @@ public class MyCommands
                                             Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
                                             if (acPoly2 != null)
                                             {
-                                                // ToDo Add new logic here
+                                                // new logic added
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
                                                 (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
@@ -216,6 +217,7 @@ public class MyCommands
 
                                                 else
                                                 {
+                                                    //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                     plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
 
                                                 }
@@ -261,6 +263,7 @@ public class MyCommands
 
                                                     else
                                                     {
+                                                        //considering dimensions from layer "_Amenity_DIMENSION"
                                                         amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
                                                         amenityPlotNo.IsAmenity = true;
 
@@ -303,6 +306,7 @@ public class MyCommands
 
                                                 else
                                                 {
+                                                    //considering dimensions from layer "_Amenity_DIMENSION"                                                    
                                                     amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
                                                     amenityPlotNo.IsAmenity = true;
 
@@ -697,13 +701,14 @@ public class MyCommands
             myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
         }
 
+        //ToDo - need to add multiple line segments if line is split into multiple segments to handle multiple dimensions
+
         //Fill all line segments in all directions
         for (int i = 0; i < polyline.NumberOfVertices; i++)
         {
             //if (polyline.GetSegmentType(i) == SegmentType.Line)
             if (polyline.GetLineSegmentAt(i).Length > 0.5)
             {
-                //ToDo -> Loop through start and end points of line
                 Point3d vertex1 = polyline.GetLineSegmentAt(i).StartPoint;
                 Point3d vertex2 = polyline.GetLineSegmentAt(i).EndPoint;
 
@@ -746,6 +751,8 @@ public class MyCommands
                 //Point3d vertex = polyline.GetPoint3dAt(i);
                 //Vector3d direction = vertex - myObject.Center;
                 //List<Point3d> points = new List<Point3d>() { vertex1, vertex2 };
+
+                //Looping through start and end points of line
 
                 //foreach (Point3d point in points)
                 //{
@@ -802,7 +809,7 @@ public class MyCommands
 
     private dynamic FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, dynamic plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName, string dimensionLayerName)
     {
-        // ToDo Add new logic here
+        // new logic added
         //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
         //(x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
@@ -881,7 +888,7 @@ public class MyCommands
 
     private void FillMortgageObject(List<SurveyNo> surveyNos, Polyline acPoly2, Mortgage plotNo, SurveyNo surveyNo, Transaction acTrans)
     {
-        // ToDo Add new logic here
+        // new logic added
         var existingMortgagePlotNos = surveyNos.SelectMany(x => x._MortgagePlotNos).Where
         (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
@@ -934,6 +941,8 @@ public class MyCommands
             }
         }
         
+        //ToDo - need to add multiple dimensions if line is split into multiple segments
+
         plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.northLineSegment[0].MidPoint)).Take(2).ToList();
         plotNo._SizesInSouth = plotNo._SizesInSouth.OrderBy(p => p.position.DistanceTo(plotNo.southLineSegment[0].MidPoint)).Take(2).ToList();
         plotNo._SizesInEast = plotNo._SizesInEast.OrderBy(p => p.position.DistanceTo(plotNo.eastLineSegment[0].MidPoint)).Take(2).ToList();
