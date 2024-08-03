@@ -524,7 +524,6 @@ public class MyCommands
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
             sw.WriteLine("Plot Number,East,South,West,North,Survey No,Plot Area, Mortgage Plots, Amenity Plots");
-            //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
 
             foreach (var item in combinedPlots)
             {
@@ -534,22 +533,42 @@ public class MyCommands
                     $"{item._SizesInWest[0].Text}," +
                     $"{item._SizesInNorth[0].Text}," +
                     $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
-                    $"{item._PlotArea.ToString()}," +
-                    $"{item._MortgageArea.ToString()}," +
-                    $"{item._AmenityArea.ToString()}"
-                    //+
-                    //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
-                    //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
-                    //$"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
+                    $"{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}," +
+                    $"{(/*item._MortgageArea == 0 ? "" : */item._MortgageArea.ToString())}," +
+                    $"{(/*item._AmenityArea == 0 ? "" : */item._AmenityArea.ToString())}"
                     );
             }
+
+            sw.WriteLine($"," +
+                   $"," +
+                   $"," +
+                   $"," +
+                   $"," +
+                   $"," +
+                   $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum().ToString()}," +
+                   $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum().ToString()}," +
+                   $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum().ToString()}"
+                   );
         }
+
+
+        #region Test write
+
+        //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
+
+        //+
+        //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
+        //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
+        //$"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
+
+        #endregion
+
 
         //System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
         System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
