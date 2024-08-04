@@ -420,5 +420,67 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region Check whether point is inside polyline or not
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Geometry;
+        //using Autodesk.AutoCAD.Runtime;
+
+        //public bool IsPointInsidePolyline(Point3d point, Polyline polyline)
+        //    {
+        //        // Convert Point3d to Point2d
+        //        Point2d pt2d = new Point2d(point.X, point.Y);
+
+        //        // Check if the polyline is closed and if the point is inside it
+        //        if (polyline.Closed)
+        //        {
+        //            return polyline.Contains(pt2d);
+        //        }
+        //        else
+        //        {
+        //            return false; // Open polylines don't define closed areas
+        //        }
+        //    }
+
+        //    [CommandMethod("TestPointInPolyline")]
+        //    public void TestPointInPolyline()
+        //    {
+        //        // Get the current document and database
+        //        Document doc = Application.DocumentManager.MdiActiveDocument;
+        //        Database db = doc.Database;
+
+        //        // Start a transaction
+        //        using (Transaction trans = db.TransactionManager.StartTransaction())
+        //        {
+        //            // Open the BlockTable for read
+        //            BlockTable blockTable = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+        //            // Open the ModelSpace for read
+        //            BlockTableRecord modelSpace = (BlockTableRecord)trans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForRead);
+
+        //            // Example point to test
+        //            Point3d testPoint = new Point3d(10, 10, 0);
+
+        //            // Iterate through entities in ModelSpace
+        //            foreach (ObjectId objId in modelSpace)
+        //            {
+        //                DBObject dbObj = trans.GetObject(objId, OpenMode.ForRead);
+        //                if (dbObj is Polyline polyline)
+        //                {
+        //                    // Check if the point is inside the polyline
+        //                    bool isInside = IsPointInsidePolyline(testPoint, polyline);
+        //                    doc.Editor.WriteMessage($"\nPoint {testPoint} is inside polyline: {isInside}");
+        //                }
+        //            }
+
+        //            // Commit the transaction
+        //            trans.Commit();
+        //        }
+        //    }
+
+
+        #endregion
+
     }
 }

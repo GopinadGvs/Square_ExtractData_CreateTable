@@ -583,6 +583,12 @@ public class MyCommands
 
             foreach (var item in combinedPlots)
             {
+                List<string> combinedText = new List<string>();
+                foreach (SurveyNo svno in item._ParentSurveyNos)
+                {
+                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + "Area" + "-" + svno.LandLordName }");
+                }
+
                 sw.WriteLine($"{item._PlotNo}," +
                     $"{item._SizesInEast[0].Text}," +
                     $"{item._SizesInSouth[0].Text}," +
@@ -591,7 +597,8 @@ public class MyCommands
                     //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
                     $"{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}," +
                     $"{(/*item._MortgageArea == 0 ? "" : */item._MortgageArea.ToString())}," +
-                    $"{(/*item._AmenityArea == 0 ? "" : */item._AmenityArea.ToString())}"
+                    $"{(/*item._AmenityArea == 0 ? "" : */item._AmenityArea.ToString())}," +
+                    $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}"
                     );
             }
 
