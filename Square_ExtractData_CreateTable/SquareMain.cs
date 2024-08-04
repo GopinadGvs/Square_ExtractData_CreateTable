@@ -589,35 +589,39 @@ public class MyCommands
                     combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + "Area" + "-" + svno.LandLordName }");
                 }
 
-                sw.WriteLine($"{item._PlotNo}," +
+                string textValue1 = $"{item._PlotNo}," +
                     $"{item._SizesInEast[0].Text}," +
                     $"{item._SizesInSouth[0].Text}," +
                     $"{item._SizesInWest[0].Text}," +
                     $"{item._SizesInNorth[0].Text}," +
-                    //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
-                    $"{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}," +
-                    $"{(/*item._MortgageArea == 0 ? "" : */item._MortgageArea.ToString())}," +
-                    $"{(/*item._AmenityArea == 0 ? "" : */item._AmenityArea.ToString())}," +
-                    $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}"
-                    );
+                    String.Format("{0:0.00}", item._PlotArea) + "," +
+                    String.Format("{0:0.00}", item._MortgageArea) + "," +
+                    String.Format("{0:0.00}", item._AmenityArea) + "," +
+                    $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}";
+
+                sw.WriteLine(textValue1);
             }
 
-            sw.WriteLine($"," +
+            string textValue = $"," +
                    $"," +
                    $"," +
                    $"," +
                    $"," +
-                   //$"," +
-                   $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum().ToString()}," +
-                   $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum().ToString()}," +
-                   $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum().ToString()}"
-                   );
+                   $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}," +
+                   $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}," +
+                   $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
+
+            sw.WriteLine(textValue);
         }
 
 
         #region Test write
 
         //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
+
+        //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
+
+        //{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}
 
         //+
         //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
