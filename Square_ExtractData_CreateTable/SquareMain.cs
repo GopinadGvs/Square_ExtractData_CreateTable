@@ -43,6 +43,9 @@ public class MyCommands
         List<Mortgage> mortgages = new List<Mortgage>();
         List<Roadline> roadlines = new List<Roadline>();
 
+        Dictionary<ObjectId, string> roadlineDict = new Dictionary<ObjectId, string>();
+        Dictionary<ObjectId, string> plotlineDict = new Dictionary<ObjectId, string>();
+
 
         // Get all LWPOLYLINE entities on _SurveyNo layer
         using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
@@ -161,7 +164,10 @@ public class MyCommands
                 }
             }
 
-            mortgagePlots = mortgages.SelectMany(x => x._PlotNos).Distinct().ToList();
+            foreach (var item in roadlines)
+            {
+                roadlineDict.Add(item._Polyline.ObjectId, item._RoadText);
+            }
 
             #endregion
 
@@ -498,6 +504,15 @@ public class MyCommands
             .ToList();
 
         var combinedPlots = uniquePlots.Concat(uniqueAmenityPlots).Distinct().ToList();
+
+
+        foreach (var item in combinedPlots)
+        {
+            plotlineDict.Add(item._Polyline.ObjectId, item._PlotNo);
+        }
+
+
+
 
         foreach (var item in combinedPlots)
         {
