@@ -51,5 +51,7 @@ namespace Square_ExtractData_CreateTable
         public List<Point3d> MortgagePoints = new List<Point3d>();
 
         public List<SDimension> _AllDims = new List<SDimension>();
+
+        public List<double> AreaBySurveyNo = new List<double>();
     }
 }

@@ -15,6 +15,7 @@ public class MyCommands
 {
     private static Editor ed = null;
     List<string> mortgagePlots = new List<string>();
+    private static int AreaDecimals = 2;
 
     [CommandMethod("MSIP")]
     public void SIP()
@@ -74,22 +75,34 @@ public class MyCommands
                             }
 
                             //get plot text inside mortgage
-                            PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(mortgage._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
-
-                            if (acSSPromptText.Status == PromptStatus.OK)
+                            List<string> plotsInsideMortgage = GetListTextFromLayer(acTrans, mortgage._PolylinePoints, "TEXT", "_IndivSubPlot");
+                            if (plotsInsideMortgage.Count > 0)
                             {
-                                SelectionSet acSSetTexts = acSSPromptText.Value;
-
-                                foreach (SelectedObject acSSetText in acSSetTexts)
-                                {
-                                    if (acSSetText != null)
-                                    {
-                                        DBText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as DBText;
-                                        string val2 = acText.TextString;
-                                        mortgage._PlotNos.Add(val2); //add plot number to mortgage plots
-                                    }
-                                }
+                                mortgage._PlotNos.AddRange(plotsInsideMortgage);
                             }
+                            else
+                            {
+                                mortgage._PlotNos.AddRange(GetListTextFromLayer(acTrans, mortgage._PolylinePoints, "MTEXT", "_IndivSubPlot"));
+                            }
+
+                            #region Old code
+                            //PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(mortgage._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
+
+                            //if (acSSPromptText.Status == PromptStatus.OK)
+                            //{
+                            //    SelectionSet acSSetTexts = acSSPromptText.Value;
+
+                            //    foreach (SelectedObject acSSetText in acSSetTexts)
+                            //    {
+                            //        if (acSSetText != null)
+                            //        {
+                            //            DBText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as DBText;
+                            //            string val2 = acText.TextString;
+                            //            mortgage._PlotNos.Add(val2); //add plot number to mortgage plots
+                            //        }
+                            //    }
+                            //}
+                            #endregion
                         }
                         mortgages.Add(mortgage);
                     }
@@ -128,82 +141,65 @@ public class MyCommands
                                 surveyNo._PolylinePoints.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            //Get SurveyNo Text info & Fill Plot Objects
-                            PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_SurveyNo"));
+                            #region Fill Text information inside SurveyNo Layer
 
-                            if (acSSPromptText.Status == PromptStatus.OK)
+                            //Get SurveyNo Text info
+                            string surveyNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_SurveyNo");
+                            if (!string.IsNullOrEmpty(surveyNoText))
                             {
-                                SelectionSet acSSetText = acSSPromptText.Value;
-                                DBText acText = acTrans.GetObject(acSSetText[0].ObjectId, OpenMode.ForRead) as DBText;
-                                string val2 = acText.TextString;
-                                surveyNo._SurveyNo = val2; //assign surveyNo
+                                surveyNo._SurveyNo = surveyNoText;//assign surveyNo
+                            }
+                            else
+                            {
+                                surveyNo._SurveyNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_SurveyNo");
+                            }
 
-                                #region Collect & Fill IndivSubPlot data using Cross Polygon                                
+                            //Get DocNo Text info
+                            string DocNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_DocNo");
+                            if (!string.IsNullOrEmpty(DocNoText))
+                            {
+                                surveyNo.DocumentNo = DocNoText;//assign DocNo
+                            }
+                            else
+                            {
+                                surveyNo.DocumentNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_DocNo");
+                            }
 
-                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
+                            //Get LandLord Text info
+                            string LandLordText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_LandLord");
+                            if (!string.IsNullOrEmpty(LandLordText))
+                            {
+                                surveyNo.LandLordName = LandLordText;//assign LandLordName
+                            }
+                            else
+                            {
+                                surveyNo.LandLordName = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_LandLord");
+                            }
 
-                                if (acSSPromptPoly.Status == PromptStatus.OK)
+                            #endregion
+
+                            #region Collect & Fill IndivSubPlot data using Cross Polygon                                
+
+                            PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
+
+                            if (acSSPromptPoly.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetPoly = acSSPromptPoly.Value;
+
+                                foreach (SelectedObject acSSObjPoly in acSSetPoly)
                                 {
-                                    SelectionSet acSSetPoly = acSSPromptPoly.Value;
-
-                                    foreach (SelectedObject acSSObjPoly in acSSetPoly)
+                                    if (acSSObjPoly != null)
                                     {
-                                        if (acSSObjPoly != null)
+                                        Plot plotNo = new Plot(); //create new PlotNo object
+
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                        if (acPoly2 != null)
                                         {
-                                            Plot plotNo = new Plot(); //create new PlotNo object
+                                            List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
+                                            List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
-
-                                            if (acPoly2 != null)
-                                            {
-                                                List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
-                                                List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
-
-                                                if (uniquePoints.Count > 1)
-                                                {
-                                                    // new logic added
-                                                    var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
-                                                    (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
-
-                                                    if (existingPlotNos.Count > 0)
-                                                    {
-                                                        plotNo = existingPlotNos[0];
-                                                        plotNo._ParentSurveyNos.Add(surveyNo);
-                                                    }
-
-                                                    else
-                                                    {
-                                                        //considering dimensions from layer "_IndivSubPlot_DIMENSION"
-                                                        plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
-
-                                                    }
-
-                                                    surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                #endregion
-
-                                #region Collect & Fill IndivSubPlot data using Window Polygon
-
-                                // Using WindowPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
-
-                                if (acSSPromptZeroPoly.Status == PromptStatus.OK)
-                                {
-                                    SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
-
-                                    foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
-                                    {
-                                        if (acSSObjZeroPoly != null)
-                                        {
-                                            Plot plotNo = new Plot(); //create new PlotNo object
-
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
-                                            if (acPoly2 != null)
+                                            if (uniquePoints.Count > 1)
                                             {
                                                 // new logic added
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -221,82 +217,83 @@ public class MyCommands
                                                     plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
 
                                                 }
+
                                                 surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                             }
                                         }
                                     }
                                 }
+                            }
 
-                                #endregion
+                            #endregion
 
-                                #region Collect & Fill Amenity data using Cross Polygon                                
+                            #region Collect & Fill IndivSubPlot data using Window Polygon
 
-                                PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
+                            // Using WindowPolygon selection to find intersections
+                            PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
 
-                                if (acSSPromptPoly1.Status == PromptStatus.OK)
+                            if (acSSPromptZeroPoly.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
+
+                                foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
                                 {
-                                    SelectionSet acSSetPoly = acSSPromptPoly1.Value;
-
-                                    foreach (SelectedObject acSSObjPoly in acSSetPoly)
+                                    if (acSSObjZeroPoly != null)
                                     {
-                                        if (acSSObjPoly != null)
+                                        Plot plotNo = new Plot(); //create new PlotNo object
+
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
+                                        if (acPoly2 != null)
                                         {
-                                            Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
+                                            // new logic added
+                                            var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
+                                            (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
-
-                                            if (acPoly2 != null)
+                                            if (existingPlotNos.Count > 0)
                                             {
-                                                List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
-                                                List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
-
-                                                if (uniquePoints.Count > 1)
-                                                {
-                                                    var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
-                                                (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
-
-                                                    if (existingPlotNos.Count > 0)
-                                                    {
-                                                        amenityPlotNo = existingPlotNos[0];
-                                                        amenityPlotNo._ParentSurveyNos.Add(surveyNo);
-                                                    }
-
-                                                    else
-                                                    {
-                                                        //considering dimensions from layer "_Amenity_DIMENSION"
-                                                        amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
-                                                        amenityPlotNo.IsAmenity = true;
-
-                                                    }
-                                                    surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
-                                                }
+                                                plotNo = existingPlotNos[0];
+                                                plotNo._ParentSurveyNos.Add(surveyNo);
                                             }
+
+                                            else
+                                            {
+                                                //considering dimensions from layer "_IndivSubPlot_DIMENSION"
+                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+
+                                            }
+                                            surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                         }
                                     }
                                 }
+                            }
 
-                                #endregion
+                            #endregion
 
-                                #region Collect & Fill Amenity data using Window Polygon
+                            #region Collect & Fill Amenity data using Cross Polygon                                
 
-                                // Using WindowPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
+                            PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
 
-                                if (acSSPromptZeroPoly2.Status == PromptStatus.OK)
+                            if (acSSPromptPoly1.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetPoly = acSSPromptPoly1.Value;
+
+                                foreach (SelectedObject acSSObjPoly in acSSetPoly)
                                 {
-                                    SelectionSet acSSetZeroPoly = acSSPromptZeroPoly2.Value;
-
-                                    foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
+                                    if (acSSObjPoly != null)
                                     {
-                                        if (acSSObjZeroPoly != null)
-                                        {
-                                            Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
+                                        Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
 
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
-                                            if (acPoly2 != null)
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                        if (acPoly2 != null)
+                                        {
+                                            List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
+                                            List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
+
+                                            if (uniquePoints.Count > 1)
                                             {
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
-                                               (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+                                            (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
 
                                                 if (existingPlotNos.Count > 0)
                                                 {
@@ -306,7 +303,7 @@ public class MyCommands
 
                                                 else
                                                 {
-                                                    //considering dimensions from layer "_Amenity_DIMENSION"                                                    
+                                                    //considering dimensions from layer "_Amenity_DIMENSION"
                                                     amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
                                                     amenityPlotNo.IsAmenity = true;
 
@@ -316,9 +313,51 @@ public class MyCommands
                                         }
                                     }
                                 }
-
-                                #endregion
                             }
+
+                            #endregion
+
+                            #region Collect & Fill Amenity data using Window Polygon
+
+                            // Using WindowPolygon selection to find intersections
+                            PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
+
+                            if (acSSPromptZeroPoly2.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetZeroPoly = acSSPromptZeroPoly2.Value;
+
+                                foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
+                                {
+                                    if (acSSObjZeroPoly != null)
+                                    {
+                                        Plot amenityPlotNo = new Plot(); //create new amenity PlotNo object
+
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
+                                        if (acPoly2 != null)
+                                        {
+                                            var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
+                                           (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
+
+                                            if (existingPlotNos.Count > 0)
+                                            {
+                                                amenityPlotNo = existingPlotNos[0];
+                                                amenityPlotNo._ParentSurveyNos.Add(surveyNo);
+                                            }
+
+                                            else
+                                            {
+                                                //considering dimensions from layer "_Amenity_DIMENSION"                                                    
+                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                amenityPlotNo.IsAmenity = true;
+
+                                            }
+                                            surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
+                                        }
+                                    }
+                                }
+                            }
+
+                            #endregion
                         }
 
                         surveyNos.Add(surveyNo); //add surveyNo to list
@@ -540,7 +579,7 @@ public class MyCommands
 
         using (StreamWriter sw = new StreamWriter(csvFileNew))
         {
-            sw.WriteLine("Plot Number,East,South,West,North,Survey No,Plot Area, Mortgage Plots, Amenity Plots");
+            sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name");
 
             foreach (var item in combinedPlots)
             {
@@ -549,7 +588,7 @@ public class MyCommands
                     $"{item._SizesInSouth[0].Text}," +
                     $"{item._SizesInWest[0].Text}," +
                     $"{item._SizesInNorth[0].Text}," +
-                    $"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
+                    //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
                     $"{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}," +
                     $"{(/*item._MortgageArea == 0 ? "" : */item._MortgageArea.ToString())}," +
                     $"{(/*item._AmenityArea == 0 ? "" : */item._AmenityArea.ToString())}"
@@ -561,7 +600,7 @@ public class MyCommands
                    $"," +
                    $"," +
                    $"," +
-                   $"," +
+                   //$"," +
                    $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum().ToString()}," +
                    $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum().ToString()}," +
                    $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum().ToString()}"
@@ -648,7 +687,7 @@ public class MyCommands
         return centerPoint;
     }
 
-    private void FillAllPointsAndByDirection(Polyline polyline, dynamic myObject)
+    private void FillLineSegmentsAndPointsByDirection(Polyline polyline, Plot myObject)
     {
         #region OldLogic
 
@@ -695,13 +734,8 @@ public class MyCommands
 
         #endregion
 
-        // Iterate through the polyline vertices
-        for (int i = 0; i < polyline.NumberOfVertices; i++)
-        {
-            myObject._PolylinePoints.Add(polyline.GetPoint3dAt(i));
-        }
-
-        //ToDo - need to add multiple line segments if line is split into multiple segments to handle multiple dimensions
+        //ToDo - need to add multiple line segments if line is split into multiple segments to handle multiple dimensions (Need to include
+        //angle logic to identify correct direction of line segment ex: x > +ve & Y > +ve can be in east or north 
 
         //Fill all line segments in all directions
         for (int i = 0; i < polyline.NumberOfVertices; i++)
@@ -781,7 +815,7 @@ public class MyCommands
         }
 
         #region Old Logic to filter all direction points
-                
+
         //// Convert the dynamic lists to List<Point3d> and then process them
         //List<Point3d> northPoints = ((IEnumerable<Point3d>)myObject.northPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
         //List<Point3d> southPoints = ((IEnumerable<Point3d>)myObject.southPoints).OrderBy(p => p.DistanceTo((Point3d)myObject.Center)).Take(2).ToList();
@@ -807,7 +841,18 @@ public class MyCommands
         return acSelFtr;
     }
 
-    private dynamic FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, dynamic plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName, string dimensionLayerName)
+    private SelectionFilter CreateSelectionFilterByStartTypeAndLayer(string startType1, string startType2, string Layer)
+    {
+        TypedValue[] Filter = { new TypedValue((int)DxfCode.Start, startType1),
+                                new TypedValue((int)DxfCode.Start, startType2),
+                                new TypedValue((int)DxfCode.LayerName, Layer)
+                              };
+
+        SelectionFilter acSelFtr = new SelectionFilter(Filter);
+        return acSelFtr;
+    }
+
+    private Plot FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName, string dimensionLayerName)
     {
         // new logic added
         //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -823,37 +868,59 @@ public class MyCommands
         //{
         plotNo._Polyline = acPoly2; //assign polyline
         plotNo.Center = getCenter(plotNo._Polyline);
-        FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
 
+        //Collect all Points
+        for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+        {
+            plotNo._PolylinePoints.Add(acPoly2.GetPoint3dAt(i));
+        }
+
+        //fill plot number text, area and parent survey No
+        string plotNoText = GetTextFromLayer(acTrans, plotNo._PolylinePoints, "TEXT", TextLayerName);
+        if (!string.IsNullOrEmpty(plotNoText))
+        {
+            plotNo._PlotNo = plotNoText;//assign plotNo Text
+            plotNo._Area = Math.Round(plotNo._Polyline.Area, AreaDecimals);
+            plotNo._ParentSurveyNos.Add(surveyNo);
+        }
+        else
+        {
+            plotNo._PlotNo = GetTextFromLayer(acTrans, plotNo._PolylinePoints, "MTEXT", TextLayerName);//assign plotNo Text
+            plotNo._Area = Math.Round(plotNo._Polyline.Area, AreaDecimals);
+            plotNo._ParentSurveyNos.Add(surveyNo);
+        }
+
+        #region Old Code
         //fill plot number text assuming text is of single text, area and parent survey No
-        PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
+        //PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
 
-        if (textSelResult.Status == PromptStatus.OK)
-        {
-            DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
-            if (textEntity != null)
-            {
-                string fval2 = textEntity.TextString;
-                plotNo._PlotNo = fval2;
-                plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
-                plotNo._ParentSurveyNos.Add(surveyNo);
-            }
-        }
+        //if (textSelResult.Status == PromptStatus.OK)
+        //{
+        //    DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+        //    if (textEntity != null)
+        //    {
+        //        string fval2 = textEntity.TextString;
+        //        plotNo._PlotNo = fval2;
+        //        plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
+        //        plotNo._ParentSurveyNos.Add(surveyNo);
+        //    }
+        //}
 
-        //fill plot number text assuming text is of multiline text, area and parent survey No
-        PromptSelectionResult textSelResult1 = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("MTEXT", TextLayerName));
+        ////fill plot number text assuming text is of multiline text, area and parent survey No
+        //PromptSelectionResult textSelResult1 = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("MTEXT", TextLayerName));
 
-        if (textSelResult1.Status == PromptStatus.OK)
-        {
-            MText textEntity = acTrans.GetObject(textSelResult1.Value[0].ObjectId, OpenMode.ForRead) as MText;
-            if (textEntity != null)
-            {
-                string fval2 = textEntity.Text;
-                plotNo._PlotNo = fval2;
-                plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
-                plotNo._ParentSurveyNos.Add(surveyNo);
-            }
-        }
+        //if (textSelResult1.Status == PromptStatus.OK)
+        //{
+        //    MText textEntity = acTrans.GetObject(textSelResult1.Value[0].ObjectId, OpenMode.ForRead) as MText;
+        //    if (textEntity != null)
+        //    {
+        //        string fval2 = textEntity.Text;
+        //        plotNo._PlotNo = fval2;
+        //        plotNo._Area = Math.Round(plotNo._Polyline.Area, 3);
+        //        plotNo._ParentSurveyNos.Add(surveyNo);
+        //    }
+        //}
+        #endregion
 
         //get all dimensions of plot and fill in plot object
         PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
@@ -878,6 +945,7 @@ public class MyCommands
         }
 
         //fill sizes by direction
+        FillLineSegmentsAndPointsByDirection(plotNo._Polyline, plotNo);
         FillSizesByDirection(plotNo);
         //}
 
@@ -903,7 +971,7 @@ public class MyCommands
         {
             plotNo._Polyline = acPoly2; //assign polyline
             plotNo.Center = getCenter(plotNo._Polyline);
-            FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
+            //FillAllPointsAndByDirection(plotNo._Polyline, plotNo);
         }
 
         surveyNo._MortgagePlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -940,7 +1008,7 @@ public class MyCommands
                 plotNo._SizesInWest.Add(plotNo._AllDims[i]);
             }
         }
-        
+
         //ToDo - need to add multiple dimensions if line is split into multiple segments
 
         plotNo._SizesInNorth = plotNo._SizesInNorth.OrderBy(p => p.position.DistanceTo(plotNo.northLineSegment[0].MidPoint)).Take(2).ToList();
@@ -981,6 +1049,83 @@ public class MyCommands
 
         return "";
     }
+
+    private string GetTextFromLayer(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
+    {
+        PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer(textType, layerName));
+
+        if (acSSPromptText.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSetText = acSSPromptText.Value;
+            string val2;
+            try
+            {
+                DBText acText = acTrans.GetObject(acSSetText[0].ObjectId, OpenMode.ForRead) as DBText;
+                val2 = acText.TextString;
+            }
+
+            catch
+            {
+                MText acText = acTrans.GetObject(acSSetText[0].ObjectId, OpenMode.ForRead) as MText;
+                val2 = acText.Text;
+            }
+
+            return val2;
+        }
+
+        return "";
+    }
+
+    private List<string> GetListTextFromLayer(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
+    {
+        List<string> collection = new List<string>();
+
+        PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer(textType, layerName));
+
+        if (acSSPromptText.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSetTexts = acSSPromptText.Value;
+
+            foreach (SelectedObject acSSetText in acSSetTexts)
+            {
+                if (acSSetText != null)
+                {
+                    string val2;
+                    try
+                    {
+                        DBText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as DBText;
+                        val2 = acText.TextString;
+                    }
+
+                    catch
+                    {
+                        MText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as MText;
+                        val2 = acText.Text;
+                    }
+
+                    collection.Add(val2); //add to list
+                }
+            }
+        }
+
+        return collection;
+    }
+
+    //private string GetTextFromLayer2(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
+    //{
+    //    PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer(textType, layerName));
+
+    //    if (acSSPromptText.Status == PromptStatus.OK)
+    //    {
+    //        SelectionSet acSSetText = acSSPromptText.Value;
+    //        MText acText = acTrans.GetObject(acSSetText[0].ObjectId, OpenMode.ForRead) as MText;
+    //        string val2 = acText.Text;
+    //        return val2;
+    //    }
+
+    //    return "";
+    //}
+
 }
 
 //Fill Mortgages
