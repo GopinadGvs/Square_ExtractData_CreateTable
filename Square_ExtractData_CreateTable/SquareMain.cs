@@ -41,6 +41,8 @@ public class MyCommands
 
         List<SurveyNo> surveyNos = new List<SurveyNo>();
         List<Mortgage> mortgages = new List<Mortgage>();
+        List<Roadline> roadlines = new List<Roadline>();
+
 
         // Get all LWPOLYLINE entities on _SurveyNo layer
         using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
@@ -107,6 +109,54 @@ public class MyCommands
                             #endregion
                         }
                         mortgages.Add(mortgage);
+                    }
+                }
+            }
+
+            mortgagePlots = mortgages.SelectMany(x => x._PlotNos).Distinct().ToList();
+
+            #endregion
+
+            #region Logic to get roadlines & road text Dictionary
+
+            PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_InternalRoad"));
+
+            if (roadPrompt.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSet = roadPrompt.Value;
+
+                foreach (SelectedObject acSSObj in acSSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Roadline Roadline = new Roadline(); //create new SurveyNo object
+
+                        Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                        Roadline._Polyline = acPoly; //assign polyline
+
+                        if (acPoly != null)
+                        {
+                            Roadline.Center = getCenter(Roadline._Polyline);
+
+                            //Collect all Points
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                Roadline._PolylinePoints.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            //get road text inside Roadline
+                            string roadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, "TEXT", "_InternalRoad");
+                            if (!string.IsNullOrEmpty(roadText))
+                            {
+                                Roadline._RoadText = roadText;
+                            }
+                            else
+                            {
+                                Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, "MTEXT", "_InternalRoad");
+                            }
+                        }
+                        roadlines.Add(Roadline);
                     }
                 }
             }
@@ -946,6 +996,10 @@ public class MyCommands
                 #endregion
             }
         }
+
+        //ToDo - fill all direction informations
+
+
 
         #region Old Logic to filter all direction points
 
