@@ -209,6 +209,19 @@ public class MyCommands
                                                 {
                                                     plotNo = existingPlotNos[0];
                                                     plotNo._ParentSurveyNos.Add(surveyNo);
+
+                                                    //collect all points inside surveyno & intersecting points of plot polygon
+                                                    List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
+
+                                                    foreach (Point3d point in plotNo._PolylinePoints)
+                                                    {
+                                                        if(IsPointInsidePolyline(point, acPoly))
+                                                            InsideAndIntersectingPoints.Add(point);                                                        
+                                                    }
+
+                                                    InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
+
+                                                    plotNo.pointsInSurveyNo.Add(surveyNo, InsideAndIntersectingPoints);
                                                 }
 
                                                 else
@@ -216,6 +229,18 @@ public class MyCommands
                                                     //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                     plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
 
+                                                    //collect all points inside surveyno & intersecting points of plot polygon
+                                                    List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
+
+                                                    foreach (Point3d point in plotNo._PolylinePoints)
+                                                    {
+                                                        if (IsPointInsidePolyline(point, acPoly))
+                                                            InsideAndIntersectingPoints.Add(point);
+                                                    }
+
+                                                    InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
+
+                                                    plotNo.pointsInSurveyNo.Add(surveyNo, uniquePoints);
                                                 }
 
                                                 surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -1121,6 +1146,52 @@ public class MyCommands
 
         return collection;
     }
+
+    public bool IsPointInsidePolyline(Point3d point, Polyline polyline)
+    {
+        // Convert Point3d to Point2d
+        Point2d pt2d = new Point2d(point.X, point.Y);
+
+        // Ensure the polyline is closed
+        if (!polyline.Closed)
+            return false;
+
+        // Convert polyline vertices to Point2d
+        List<Point2d> vertices = new List<Point2d>();
+        for (int i = 0; i < polyline.NumberOfVertices; i++)
+        {
+            Point2d vertex = polyline.GetPoint2dAt(i);
+            vertices.Add(vertex);
+        }
+
+        // Perform the ray-casting algorithm
+        return IsPointInPolygon(pt2d, vertices);
+    }
+
+    private bool IsPointInPolygon(Point2d point, List<Point2d> vertices)
+    {
+        int n = vertices.Count;
+        bool inside = false;
+
+        double px = point.X;
+        double py = point.Y;
+
+        for (int i = 0, j = n - 1; i < n; j = i++)
+        {
+            double viX = vertices[i].X;
+            double viY = vertices[i].Y;
+            double vjX = vertices[j].X;
+            double vjY = vertices[j].Y;
+
+            bool intersect = ((viY > py) != (vjY > py)) &&
+                             (px < (vjX - viX) * (py - viY) / (vjY - viY) + viX);
+            if (intersect)
+                inside = !inside;
+        }
+
+        return inside;
+    }
+
 
     //private string GetTextFromLayer2(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
     //{
