@@ -52,8 +52,7 @@ namespace Square_ExtractData_CreateTable
 
         public List<SDimension> _AllDims = new List<SDimension>();
 
-        public List<double> AreaBySurveyNo = new List<double>();
-
         public Dictionary<SurveyNo, List<Point3d>> pointsInSurveyNo = new Dictionary<SurveyNo, List<Point3d>>();
+        public Dictionary<SurveyNo, double> AreaInSurveyNo = new Dictionary<SurveyNo, double>();
     }
 }

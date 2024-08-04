@@ -482,5 +482,93 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region sum of area with point array as input, sort them to form a proper closed polygon
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Geometry;
+        //using Autodesk.AutoCAD.Runtime;
+        //using System;
+        //using System.Collections.Generic;
+        //using System.Linq;
+
+        //public class PolylineAreaCalculator
+        //    {
+        //        public double CalculateAreaFromPoints(Point3d[] points)
+        //        {
+        //            // Sort the points to form a proper closed polyline
+        //            List<Point3d> sortedPoints = SortPoints(points);
+
+        //            // Create a closed polyline from the sorted points
+        //            Polyline polyline = CreateClosedPolyline(sortedPoints);
+
+        //            // Calculate the area of the polyline
+        //            double area = polyline.Area;
+
+        //            return area;
+        //        }
+
+        //        private List<Point3d> SortPoints(Point3d[] points)
+        //        {
+        //            // This is a simple example and may not handle all cases
+        //            // For complex cases, consider using computational geometry libraries
+        //            // For now, we'll assume points are approximately ordered correctly
+
+        //            // Convert to Point2d for sorting
+        //            List<Point2d> point2dList = points.Select(p => new Point2d(p.X, p.Y)).ToList();
+
+        //            // Perform a sort based on polar angle from centroid
+        //            Point2d centroid = new Point2d(point2dList.Average(p => p.X), point2dList.Average(p => p.Y));
+        //            point2dList.Sort((p1, p2) => ComparePolarAngles(p1, p2, centroid));
+
+        //            // Convert back to Point3d
+        //            List<Point3d> sortedPoints = point2dList.Select(p => new Point3d(p.X, p.Y, 0)).ToList();
+
+        //            return sortedPoints;
+        //        }
+
+        //        private int ComparePolarAngles(Point2d p1, Point2d p2, Point2d centroid)
+        //        {
+        //            double angle1 = Math.Atan2(p1.Y - centroid.Y, p1.X - centroid.X);
+        //            double angle2 = Math.Atan2(p2.Y - centroid.Y, p2.X - centroid.X);
+        //            return angle1.CompareTo(angle2);
+        //        }
+
+        //        private Polyline CreateClosedPolyline(List<Point3d> points)
+        //        {
+        //            Polyline polyline = new Polyline();
+
+        //            // Add points to polyline
+        //            for (int i = 0; i < points.Count; i++)
+        //            {
+        //                Point2d pt2d = new Point2d(points[i].X, points[i].Y);
+        //                polyline.AddVertexAt(i, pt2d, 0, 0, 0);
+        //            }
+
+        //            polyline.Closed = true; // Close the polyline
+
+        //            return polyline;
+        //        }
+
+        //        [CommandMethod("CalculateAreaFromPoints")]
+        //        public void CalculateAreaFromPointsCommand()
+        //        {
+        //            // Example points
+        //            Point3d[] points = new Point3d[]
+        //            {
+        //            new Point3d(0, 0, 0),
+        //            new Point3d(10, 0, 0),
+        //            new Point3d(10, 10, 0),
+        //            new Point3d(0, 10, 0)
+        //            };
+
+        //            double area = CalculateAreaFromPoints(points);
+        //            Application.ShowAlertDialog($"Calculated Area: {area}");
+        //        }
+        //    }
+
+
+        #endregion
+
     }
 }

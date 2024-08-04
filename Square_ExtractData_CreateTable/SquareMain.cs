@@ -215,13 +215,14 @@ public class MyCommands
 
                                                     foreach (Point3d point in plotNo._PolylinePoints)
                                                     {
-                                                        if(IsPointInsidePolyline(point, acPoly))
-                                                            InsideAndIntersectingPoints.Add(point);                                                        
+                                                        if (IsPointInsidePolyline(point, acPoly))
+                                                            InsideAndIntersectingPoints.Add(point);
                                                     }
 
                                                     InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
-
                                                     plotNo.pointsInSurveyNo.Add(surveyNo, InsideAndIntersectingPoints);
+                                                    double areainSurveyNo = CalculateArea(InsideAndIntersectingPoints);
+                                                    plotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
                                                 }
 
                                                 else
@@ -239,8 +240,9 @@ public class MyCommands
                                                     }
 
                                                     InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
-
-                                                    plotNo.pointsInSurveyNo.Add(surveyNo, uniquePoints);
+                                                    plotNo.pointsInSurveyNo.Add(surveyNo, InsideAndIntersectingPoints);
+                                                    double areainSurveyNo = CalculateArea(InsideAndIntersectingPoints);
+                                                    plotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
                                                 }
 
                                                 surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -278,13 +280,14 @@ public class MyCommands
                                             {
                                                 plotNo = existingPlotNos[0];
                                                 plotNo._ParentSurveyNos.Add(surveyNo);
+                                                //ToDo
                                             }
 
                                             else
                                             {
                                                 //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                 plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
-
+                                                //ToDo
                                             }
                                             surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                         }
@@ -611,7 +614,7 @@ public class MyCommands
                 List<string> combinedText = new List<string>();
                 foreach (SurveyNo svno in item._ParentSurveyNos)
                 {
-                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + "Area" + "-" + svno.LandLordName }");
+                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
                 }
 
                 string textValue1 = $"{item._PlotNo}," +
@@ -669,6 +672,63 @@ public class MyCommands
         //ed.Command("_-layer", "OFF", "_SurveyNo", "");
 
         ed.WriteMessage("\nProcess complete.");
+    }
+
+    private double CalculateArea(List<Point3d> points)
+    {
+        // Sort the points to form a proper closed polyline
+        List<Point3d> sortedPoints = SortPoints(points.ToArray());
+
+        // Create a closed polyline from the sorted points
+        Polyline polyline = CreateClosedPolyline(sortedPoints);
+
+        // Calculate the area of the polyline
+        double area = polyline.Area;
+
+        return area;
+    }
+
+    private Polyline CreateClosedPolyline(List<Point3d> points)
+    {
+        Polyline polyline = new Polyline();
+
+        // Add points to polyline
+        for (int i = 0; i < points.Count; i++)
+        {
+            Point2d pt2d = new Point2d(points[i].X, points[i].Y);
+            polyline.AddVertexAt(i, pt2d, 0, 0, 0);
+        }
+
+        polyline.Closed = true; // Close the polyline
+
+        return polyline;
+    }
+
+
+    private List<Point3d> SortPoints(Point3d[] points)
+    {
+        // This is a simple example and may not handle all cases
+        // For complex cases, consider using computational geometry libraries
+        // For now, we'll assume points are approximately ordered correctly
+
+        // Convert to Point2d for sorting
+        List<Point2d> point2dList = points.Select(p => new Point2d(p.X, p.Y)).ToList();
+
+        // Perform a sort based on polar angle from centroid
+        Point2d centroid = new Point2d(point2dList.Average(p => p.X), point2dList.Average(p => p.Y));
+        point2dList.Sort((p1, p2) => ComparePolarAngles(p1, p2, centroid));
+
+        // Convert back to Point3d
+        List<Point3d> sortedPoints = point2dList.Select(p => new Point3d(p.X, p.Y, 0)).ToList();
+
+        return sortedPoints;
+    }
+
+    private int ComparePolarAngles(Point2d p1, Point2d p2, Point2d centroid)
+    {
+        double angle1 = Math.Atan2(p1.Y - centroid.Y, p1.X - centroid.X);
+        double angle2 = Math.Atan2(p2.Y - centroid.Y, p2.X - centroid.X);
+        return angle1.CompareTo(angle2);
     }
 
     private List<Point3d> GetIntersections(Polyline poly1, Polyline poly2)
