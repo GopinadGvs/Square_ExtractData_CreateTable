@@ -16,6 +16,8 @@ public class MyCommands
     private static Editor ed = null;
     List<string> mortgagePlots = new List<string>();
     private static int AreaDecimals = 2;
+    private static int uniquePointsIdentifier = 1;
+    private static double minArea = 1.0;
 
     [CommandMethod("MSIP")]
     public void SIP()
@@ -199,7 +201,7 @@ public class MyCommands
                                             List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
                                             List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            if (uniquePoints.Count > 1)
+                                            if (uniquePoints.Count > uniquePointsIdentifier)
                                             {
                                                 // new logic added
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -321,7 +323,7 @@ public class MyCommands
                                             List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
                                             List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            if (uniquePoints.Count > 1)
+                                            if (uniquePoints.Count > uniquePointsIdentifier)
                                             {
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
                                             (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
@@ -647,7 +649,9 @@ public class MyCommands
                 List<string> combinedText = new List<string>();
                 foreach (SurveyNo svno in item._ParentSurveyNos)
                 {
-                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
+                    //condition to eliminate 0 areas in some survey no's ex: plot no.65
+                    if (item.AreaInSurveyNo[svno] > minArea)
+                        combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
                 }
 
                 string textValue1 = $"{item._PlotNo}," +
