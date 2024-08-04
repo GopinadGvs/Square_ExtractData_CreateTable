@@ -281,6 +281,8 @@ public class MyCommands
                                                 plotNo = existingPlotNos[0];
                                                 plotNo._ParentSurveyNos.Add(surveyNo);
                                                 //ToDo
+                                                //plotNo.pointsInSurveyNo.Add(surveyNo,plotNo._PolylinePoints);
+                                                plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
 
                                             else
@@ -288,6 +290,7 @@ public class MyCommands
                                                 //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                 plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
                                                 //ToDo
+                                                plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
                                             surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
                                         }
@@ -327,6 +330,20 @@ public class MyCommands
                                                 {
                                                     amenityPlotNo = existingPlotNos[0];
                                                     amenityPlotNo._ParentSurveyNos.Add(surveyNo);
+
+                                                    //collect all points inside surveyno & intersecting points of plot polygon
+                                                    List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
+
+                                                    foreach (Point3d point in amenityPlotNo._PolylinePoints)
+                                                    {
+                                                        if (IsPointInsidePolyline(point, acPoly))
+                                                            InsideAndIntersectingPoints.Add(point);
+                                                    }
+
+                                                    InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
+                                                    amenityPlotNo.pointsInSurveyNo.Add(surveyNo, InsideAndIntersectingPoints);
+                                                    double areainSurveyNo = CalculateArea(InsideAndIntersectingPoints);
+                                                    amenityPlotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
                                                 }
 
                                                 else
@@ -334,6 +351,20 @@ public class MyCommands
                                                     //considering dimensions from layer "_Amenity_DIMENSION"
                                                     amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
                                                     amenityPlotNo.IsAmenity = true;
+
+                                                    //collect all points inside surveyno & intersecting points of plot polygon
+                                                    List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
+
+                                                    foreach (Point3d point in amenityPlotNo._PolylinePoints)
+                                                    {
+                                                        if (IsPointInsidePolyline(point, acPoly))
+                                                            InsideAndIntersectingPoints.Add(point);
+                                                    }
+
+                                                    InsideAndIntersectingPoints = InsideAndIntersectingPoints.Concat(uniquePoints).Distinct().ToList();
+                                                    amenityPlotNo.pointsInSurveyNo.Add(surveyNo, InsideAndIntersectingPoints);
+                                                    double areainSurveyNo = CalculateArea(InsideAndIntersectingPoints);
+                                                    amenityPlotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
 
                                                 }
                                                 surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
@@ -370,6 +401,7 @@ public class MyCommands
                                             {
                                                 amenityPlotNo = existingPlotNos[0];
                                                 amenityPlotNo._ParentSurveyNos.Add(surveyNo);
+                                                amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
                                             }
 
                                             else
@@ -377,6 +409,7 @@ public class MyCommands
                                                 //considering dimensions from layer "_Amenity_DIMENSION"                                                    
                                                 amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
                                                 amenityPlotNo.IsAmenity = true;
+                                                amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
 
                                             }
                                             surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
