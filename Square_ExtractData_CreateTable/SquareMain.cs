@@ -528,17 +528,16 @@ public class MyCommands
                     item._PlotArea = 0;
                 }
 
-                //ToDo
-
+                #region Fill East Side Info
                 List<Point3d> eastPointsCollection = new List<Point3d>();
                 //Point3d point1 = new Point3d(item.eastPoints[0].X + 0.5, item.eastPoints[0].Y - 2, 0);
                 //Point3d point2 = new Point3d(item.eastPoints[1].X + 0.5, item.eastPoints[1].Y - 2, 0);
                 //Point3d point3 = new Point3d(item.eastPoints[0].X, item.eastPoints[0].Y - 2, 0);
                 //Point3d point4 = new Point3d(item.eastPoints[1].X, item.eastPoints[1].Y - 2, 0);
 
-                Point3d point1 = new Point3d(item.eastLineSegment[0].MidPoint.X + 0.5, item.eastLineSegment[0].MidPoint.Y + 0.5, 0);
-                Point3d point2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
-                eastPointsCollection.AddRange(new List<Point3d> { point1, point2/*, point3, point4*/ });
+                Point3d epoint1 = new Point3d(item.eastLineSegment[0].MidPoint.X + 0.5, item.eastLineSegment[0].MidPoint.Y + 0.5, 0);
+                Point3d epoint2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
+                eastPointsCollection.AddRange(new List<Point3d> { epoint1, epoint2/*, point3, point4*/ });
 
                 List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_InternalRoad");
                 List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_IndivSubPlot");
@@ -563,6 +562,105 @@ public class MyCommands
                     string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
                     item._EastInfo = "Amenity " + value;
                 }
+
+                #endregion
+
+                #region Fill South Side Info
+                List<Point3d> southPointsCollection = new List<Point3d>();
+                Point3d spoint1 = new Point3d(item.southLineSegment[0].MidPoint.X + 0.5, item.southLineSegment[0].MidPoint.Y + 0.5, 0);
+                Point3d spoint2 = new Point3d(item.southLineSegment[0].MidPoint.X - 0.5, item.southLineSegment[0].MidPoint.Y - 0.5, 0);
+                southPointsCollection.AddRange(new List<Point3d> { spoint1, spoint2 });
+
+                List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_InternalRoad");
+                List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_IndivSubPlot");
+                List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_Amenity");
+
+                plotPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                amenityPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+
+                if (roadPolylinesInSouth.Count > 0)
+                {
+                    string value = combinedDict[roadPolylinesInSouth[0].ObjectId];
+                    int len = value.IndexOf(".");
+                    item._SouthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                }
+                else if (plotPolylinesInSouth.Count > 0)
+                {
+                    string value = combinedDict[plotPolylinesInSouth[0].ObjectId];
+                    item._SouthInfo = "Plot " + value;
+                }
+                else if (amenityPolylinesInSouth.Count > 0)
+                {
+                    string value = combinedDict[amenityPolylinesInSouth[0].ObjectId];
+                    item._SouthInfo = "Amenity " + value;
+                }
+
+                #endregion
+
+                #region Fill West Side Info
+                List<Point3d> westPointsCollection = new List<Point3d>();
+                Point3d wpoint1 = new Point3d(item.westLineSegment[0].MidPoint.X + 0.5, item.westLineSegment[0].MidPoint.Y + 0.5, 0);
+                Point3d wpoint2 = new Point3d(item.westLineSegment[0].MidPoint.X - 0.5, item.westLineSegment[0].MidPoint.Y - 0.5, 0);
+                westPointsCollection.AddRange(new List<Point3d> { wpoint1, wpoint2 });
+
+                List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_InternalRoad");
+                List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_IndivSubPlot");
+                List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_Amenity");
+
+                plotPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                amenityPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
+
+                if (roadPolylinesInWest.Count > 0)
+                {
+                    string value = combinedDict[roadPolylinesInWest[0].ObjectId];
+                    int len = value.IndexOf(".");
+                    item._WestInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                }
+                else if (plotPolylinesInWest.Count > 0)
+                {
+                    string value = combinedDict[plotPolylinesInWest[0].ObjectId];
+                    item._WestInfo = "Plot " + value;
+                }
+                else if (amenityPolylinesInWest.Count > 0)
+                {
+                    string value = combinedDict[amenityPolylinesInWest[0].ObjectId];
+                    item._WestInfo = "Amenity " + value;
+                }
+
+                #endregion
+
+                #region Fill North Side Info
+                List<Point3d> northPointsCollection = new List<Point3d>();
+                Point3d npoint1 = new Point3d(item.northLineSegment[0].MidPoint.X + 0.5, item.northLineSegment[0].MidPoint.Y + 0.5, 0);
+                Point3d npoint2 = new Point3d(item.northLineSegment[0].MidPoint.X - 0.5, item.northLineSegment[0].MidPoint.Y - 0.5, 0);
+                northPointsCollection.AddRange(new List<Point3d> { npoint1, npoint2 });
+
+                List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_InternalRoad");
+                List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_IndivSubPlot");
+                List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_Amenity");
+
+                plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+
+                if (roadPolylinesInNorth.Count > 0)
+                {
+                    string value = combinedDict[roadPolylinesInNorth[0].ObjectId];
+                    int len = value.IndexOf(".");
+                    item._NorthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                }
+                else if (plotPolylinesInNorth.Count > 0)
+                {
+                    string value = combinedDict[plotPolylinesInNorth[0].ObjectId];
+                    item._NorthInfo = "Plot " + value;
+                }
+                else if (amenityPolylinesInNorth.Count > 0)
+                {
+                    string value = combinedDict[amenityPolylinesInNorth[0].ObjectId];
+                    item._NorthInfo = "Amenity " + value;
+                }
+
+                #endregion
+
             }
 
 
@@ -740,7 +838,7 @@ public class MyCommands
 
             using (StreamWriter sw = new StreamWriter(csvFileNew))
             {
-                sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name,East");
+                sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name,East,South,West,North");
 
                 foreach (var item in combinedPlots)
                 {
@@ -761,7 +859,10 @@ public class MyCommands
                         String.Format("{0:0.00}", item._MortgageArea) + "," +
                         String.Format("{0:0.00}", item._AmenityArea) + "," +
                         $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}," +
-                        $"{item._EastInfo}";
+                        $"{item._EastInfo}," +
+                        $"{item._SouthInfo}," +
+                        $"{item._WestInfo}," +
+                        $"{item._NorthInfo}";
 
                     sw.WriteLine(textValue1);
                 }
