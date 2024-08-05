@@ -570,5 +570,75 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region Angle of a line
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Geometry;
+        //using Autodesk.AutoCAD.Runtime;
+        //using System;
+
+        //public class LineAngleCalculator
+        //    {
+        //        public double CalculateLineAngle(Line line)
+        //        {
+        //            // Get the direction vector of the line
+        //            Vector3d direction = line.Delta;
+
+        //            // Convert the direction vector to 2D by ignoring the Z component
+        //            double x = direction.X;
+        //            double y = direction.Y;
+
+        //            // Calculate the angle between the direction vector and the X-axis
+        //            double angleRadians = Math.Atan2(y, x);
+
+        //            // Convert the angle from radians to degrees
+        //            double angleDegrees = angleRadians * (180.0 / Math.PI);
+
+        //            // Normalize the angle to be in the range [0, 360) degrees
+        //            if (angleDegrees < 0)
+        //            {
+        //                angleDegrees += 360;
+        //            }
+
+        //            return angleDegrees;
+        //        }
+
+        //        [CommandMethod("GetLineAngle")]
+        //        public void GetLineAngleCommand()
+        //        {
+        //            Document doc = Application.DocumentManager.MdiActiveDocument;
+        //            Database db = doc.Database;
+        //            Editor ed = doc.Editor;
+
+        //            // Prompt user to select a line
+        //            PromptEntityOptions opt = new PromptEntityOptions("\nSelect a line: ");
+        //            opt.SetRejectMessage("\nEntity must be a line.");
+        //            opt.AddAllowedClass(typeof(Line), false);
+
+        //            PromptEntityResult res = ed.GetEntity(opt);
+        //            if (res.Status != PromptStatus.OK)
+        //                return;
+
+        //            using (Transaction trans = db.TransactionManager.StartTransaction())
+        //            {
+        //                Line line = trans.GetObject(res.ObjectId, OpenMode.ForRead) as Line;
+
+        //                if (line != null)
+        //                {
+        //                    double angle = CalculateLineAngle(line);
+        //                    ed.WriteMessage($"\nThe angle of the line is {angle:F2} degrees.");
+        //                }
+
+        //                trans.Commit();
+        //            }
+        //        }
+        //    }
+
+
+
+
+        #endregion
+
     }
 }

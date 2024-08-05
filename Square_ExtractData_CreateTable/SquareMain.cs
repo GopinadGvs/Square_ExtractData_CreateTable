@@ -998,6 +998,27 @@ public class MyCommands
         return angle1.CompareTo(angle2);
     }
 
+    public double CalculateAngleWithAxis(Point3d startPoint, Point3d endPoint, Vector3d axis)
+    {
+        // Calculate the direction vector of the line segment
+        Vector3d direction = endPoint - startPoint;
+
+        // Normalize the direction and axis vectors
+        direction = direction.GetNormal();
+        axis = axis.GetNormal();
+
+        // Calculate the dot product
+        double dotProduct = direction.DotProduct(axis);
+
+        // Calculate the angle in radians
+        double angleRadians = Math.Acos(dotProduct);
+
+        // Convert the angle from radians to degrees
+        double angleDegrees = angleRadians * (180.0 / Math.PI);
+
+        return angleDegrees;
+    }
+
     private List<Point3d> GetIntersections(Polyline poly1, Polyline poly2)
     {
         List<Point3d> intersectionPoints = new List<Point3d>();
@@ -1129,8 +1150,20 @@ public class MyCommands
                 }
 
                 if ((direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y < 0) ||
-                    (direction2.X > 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y < 0))
+                    (direction2.X > 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y < 0) ||
+                    (direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
+                    (direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
                 {
+                    double angle = CalculateAngleWithAxis(vertex1, vertex2, Vector3d.XAxis);
+                    System.Diagnostics.Debug.Print("East Start\n");
+                    System.Diagnostics.Debug.Print("East " + angle + "\n");
+
+                    if (angle >= 90 && angle <= 180)
+                    {
+
+                    }
+
+
                     myObject.eastLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.eastPoints.Add(vertex1);
                     myObject.eastPoints.Add(vertex2);
@@ -1176,10 +1209,6 @@ public class MyCommands
                 #endregion
             }
         }
-
-        //ToDo - fill all direction informations
-
-
 
         #region Old Logic to filter all direction points
 
