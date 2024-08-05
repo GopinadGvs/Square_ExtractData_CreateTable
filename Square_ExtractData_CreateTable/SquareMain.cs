@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Data;
+using ExcelToPDF_Test;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -19,10 +21,15 @@ public class MyCommands
     private static int uniquePointsIdentifier = 1;
     private static double minArea = 1.0;
 
-    [CommandMethod("MSIP")]
+    [CommandMethod("MExport")]
     public void SIP()
     {
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+        //Form1 frm = new Form1();
+        //frm.ShowDialog();
+
+        //frm.toolStripProgressBar1.Value = 100 / 11; 
 
         LogWriter.LogWrite(acDoc.Name);
 
@@ -36,6 +43,18 @@ public class MyCommands
         // Turn on and thaw layers
         //ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
 
+        //ed.WriteMessage("Displaying Layers...");
+
+        List<string> layersList = new List<string>() { "_SurveyNo", "_IndivSubPlot", "_IndivSubPlot_DIMENSION",
+        "_MortgageArea", "_Amenity", "_Amenity_DIMENSION", "_DocNo", "_LandLord", "_InternalRoad"};
+
+        // Turn on, unlock and thaw layers
+        foreach (var layerName in layersList)
+        {
+            ed.Command("_-layer", "t", layerName, "ON", layerName, "U", layerName, "");
+        }
+
+        //ed.Command("_-layer", "t", "_IndivSubPlot", "ON", "_IndivSubPlot", "U", "_IndivSubPlot", "");
         //List<(string, ObjectId)> snoPno = new List<(string, ObjectId)>(); -> old
         //List<(string, string)> snoPnoVal = new List<(string, string)>(); -> old
 
@@ -54,6 +73,7 @@ public class MyCommands
             BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
             #region Logic to get mortgage plot numbers list
+            //ed.WriteMessage("Collecting Mortgage information...");
 
             PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_MortgageArea"));
 
@@ -121,6 +141,7 @@ public class MyCommands
             #endregion
 
             #region Logic to get roadlines & road text Dictionary
+            //ed.WriteMessage("Collecting Roadlines information...");
 
             PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_InternalRoad"));
 
@@ -172,6 +193,9 @@ public class MyCommands
             #endregion
 
             #region Process SurveyNo Polylines
+
+            //ed.WriteMessage("Collecting Survey Numbers...");
+
 
             PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_SurveyNo"));
 
@@ -235,6 +259,8 @@ public class MyCommands
                             }
 
                             #endregion
+
+                            //ed.WriteMessage("Collecting Plot Numbers...");
 
                             #region Collect & Fill IndivSubPlot data using Cross Polygon                                
 
@@ -354,6 +380,8 @@ public class MyCommands
                             }
 
                             #endregion
+
+                            //ed.WriteMessage("Collecting Amenity Information...");
 
                             #region Collect & Fill Amenity data using Cross Polygon                                
 
@@ -510,6 +538,7 @@ public class MyCommands
 
             Dictionary<ObjectId, string> combinedDict = plotlineDict.Concat(roadlineDict).ToDictionary(x => x.Key, y => y.Value);
 
+
             //filter area based on Mortgage & Amenity
             foreach (var item in combinedPlots)
             {
@@ -529,6 +558,8 @@ public class MyCommands
                 }
 
                 #region Fill East Side Info
+                //ed.WriteMessage("Filling East information...");
+
                 List<Point3d> eastPointsCollection = new List<Point3d>();
                 //Point3d point1 = new Point3d(item.eastPoints[0].X + 0.5, item.eastPoints[0].Y - 2, 0);
                 //Point3d point2 = new Point3d(item.eastPoints[1].X + 0.5, item.eastPoints[1].Y - 2, 0);
@@ -545,27 +576,36 @@ public class MyCommands
 
                 plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                try
+                {
+                    if (roadPolylinesInEast.Count > 0)
+                    {
+                        string value = combinedDict[roadPolylinesInEast[0].ObjectId];
+                        int len = value.IndexOf(".");
+                        item._EastInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    }
+                    else if (plotPolylinesInEast.Count > 0)
+                    {
+                        string value = combinedDict[plotPolylinesInEast[0].ObjectId];
+                        item._EastInfo = "Plot " + value;
+                    }
+                    else if (amenityPolylinesInEast.Count > 0)
+                    {
+                        string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
+                        item._EastInfo = "Amenity " + value;
+                    }
+                }
 
-                if (roadPolylinesInEast.Count > 0)
+                catch (System.Exception ee)
                 {
-                    string value = combinedDict[roadPolylinesInEast[0].ObjectId];
-                    int len = value.IndexOf(".");
-                    item._EastInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
-                }
-                else if (plotPolylinesInEast.Count > 0)
-                {
-                    string value = combinedDict[plotPolylinesInEast[0].ObjectId];
-                    item._EastInfo = "Plot " + value;
-                }
-                else if (amenityPolylinesInEast.Count > 0)
-                {
-                    string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
-                    item._EastInfo = "Amenity " + value;
+                    //key not available in dictionary
                 }
 
                 #endregion
 
                 #region Fill South Side Info
+                //ed.WriteMessage("Filling South information...");
+
                 List<Point3d> southPointsCollection = new List<Point3d>();
                 Point3d spoint1 = new Point3d(item.southLineSegment[0].MidPoint.X + 0.5, item.southLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d spoint2 = new Point3d(item.southLineSegment[0].MidPoint.X - 0.5, item.southLineSegment[0].MidPoint.Y - 0.5, 0);
@@ -577,27 +617,37 @@ public class MyCommands
 
                 plotPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                try
+                {
 
-                if (roadPolylinesInSouth.Count > 0)
-                {
-                    string value = combinedDict[roadPolylinesInSouth[0].ObjectId];
-                    int len = value.IndexOf(".");
-                    item._SouthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    if (roadPolylinesInSouth.Count > 0)
+                    {
+                        string value = combinedDict[roadPolylinesInSouth[0].ObjectId];
+                        int len = value.IndexOf(".");
+                        item._SouthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    }
+                    else if (plotPolylinesInSouth.Count > 0)
+                    {
+                        string value = combinedDict[plotPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = "Plot " + value;
+                    }
+                    else if (amenityPolylinesInSouth.Count > 0)
+                    {
+                        string value = combinedDict[amenityPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = "Amenity " + value;
+                    }
                 }
-                else if (plotPolylinesInSouth.Count > 0)
+
+                catch (System.Exception ee)
                 {
-                    string value = combinedDict[plotPolylinesInSouth[0].ObjectId];
-                    item._SouthInfo = "Plot " + value;
-                }
-                else if (amenityPolylinesInSouth.Count > 0)
-                {
-                    string value = combinedDict[amenityPolylinesInSouth[0].ObjectId];
-                    item._SouthInfo = "Amenity " + value;
+                    //key not available in dictionary
                 }
 
                 #endregion
 
                 #region Fill West Side Info
+                //ed.WriteMessage("Filling West information...");
+
                 List<Point3d> westPointsCollection = new List<Point3d>();
                 Point3d wpoint1 = new Point3d(item.westLineSegment[0].MidPoint.X + 0.5, item.westLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d wpoint2 = new Point3d(item.westLineSegment[0].MidPoint.X - 0.5, item.westLineSegment[0].MidPoint.Y - 0.5, 0);
@@ -610,26 +660,37 @@ public class MyCommands
                 plotPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
 
-                if (roadPolylinesInWest.Count > 0)
+                try
                 {
-                    string value = combinedDict[roadPolylinesInWest[0].ObjectId];
-                    int len = value.IndexOf(".");
-                    item._WestInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+
+                    if (roadPolylinesInWest.Count > 0)
+                    {
+                        string value = combinedDict[roadPolylinesInWest[0].ObjectId];
+                        int len = value.IndexOf(".");
+                        item._WestInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    }
+                    else if (plotPolylinesInWest.Count > 0)
+                    {
+                        string value = combinedDict[plotPolylinesInWest[0].ObjectId];
+                        item._WestInfo = "Plot " + value;
+                    }
+                    else if (amenityPolylinesInWest.Count > 0)
+                    {
+                        string value = combinedDict[amenityPolylinesInWest[0].ObjectId];
+                        item._WestInfo = "Amenity " + value;
+                    }
                 }
-                else if (plotPolylinesInWest.Count > 0)
+
+                catch (System.Exception ee)
                 {
-                    string value = combinedDict[plotPolylinesInWest[0].ObjectId];
-                    item._WestInfo = "Plot " + value;
-                }
-                else if (amenityPolylinesInWest.Count > 0)
-                {
-                    string value = combinedDict[amenityPolylinesInWest[0].ObjectId];
-                    item._WestInfo = "Amenity " + value;
+                    //key not available in dictionary
                 }
 
                 #endregion
 
                 #region Fill North Side Info
+                //ed.WriteMessage("Filling North information...");
+
                 List<Point3d> northPointsCollection = new List<Point3d>();
                 Point3d npoint1 = new Point3d(item.northLineSegment[0].MidPoint.X + 0.5, item.northLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d npoint2 = new Point3d(item.northLineSegment[0].MidPoint.X - 0.5, item.northLineSegment[0].MidPoint.Y - 0.5, 0);
@@ -642,21 +703,29 @@ public class MyCommands
                 plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
 
-                if (roadPolylinesInNorth.Count > 0)
+                try
                 {
-                    string value = combinedDict[roadPolylinesInNorth[0].ObjectId];
-                    int len = value.IndexOf(".");
-                    item._NorthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    if (roadPolylinesInNorth.Count > 0)
+                    {
+                        string value = combinedDict[roadPolylinesInNorth[0].ObjectId];
+                        int len = value.IndexOf(".");
+                        item._NorthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                    }
+                    else if (plotPolylinesInNorth.Count > 0)
+                    {
+                        string value = combinedDict[plotPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = "Plot " + value;
+                    }
+                    else if (amenityPolylinesInNorth.Count > 0)
+                    {
+                        string value = combinedDict[amenityPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = "Amenity " + value;
+                    }
                 }
-                else if (plotPolylinesInNorth.Count > 0)
+
+                catch (System.Exception ee)
                 {
-                    string value = combinedDict[plotPolylinesInNorth[0].ObjectId];
-                    item._NorthInfo = "Plot " + value;
-                }
-                else if (amenityPolylinesInNorth.Count > 0)
-                {
-                    string value = combinedDict[amenityPolylinesInNorth[0].ObjectId];
-                    item._NorthInfo = "Amenity " + value;
+                    //key not available in dictionary
                 }
 
                 #endregion
@@ -832,53 +901,20 @@ public class MyCommands
 
             //System.Windows.Forms.MessageBox.Show(uniqueId);
 
+            string fullfileName = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId}");
 
-            string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId + ".csv" }"
-            );
+            string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId}") + ".csv";
 
-            using (StreamWriter sw = new StreamWriter(csvFileNew))
-            {
-                sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name,East,South,West,North");
+            string prefix = Path.GetFileNameWithoutExtension(acCurDb.Filename);
+            string folderPath = Path.GetDirectoryName(acCurDb.Filename) + "_";
 
-                foreach (var item in combinedPlots)
-                {
-                    List<string> combinedText = new List<string>();
-                    foreach (SurveyNo svno in item._ParentSurveyNos)
-                    {
-                        //condition to eliminate 0 areas in some survey no's ex: plot no.65
-                        if (item.AreaInSurveyNo[svno] > minArea)
-                            combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
-                    }
+            //WritetoCSV(csvFileNew, combinedPlots);
 
-                    string textValue1 = $"{item._PlotNo}," +
-                        $"{item._SizesInEast[0].Text}," +
-                        $"{item._SizesInSouth[0].Text}," +
-                        $"{item._SizesInWest[0].Text}," +
-                        $"{item._SizesInNorth[0].Text}," +
-                        String.Format("{0:0.00}", item._PlotArea) + "," +
-                        String.Format("{0:0.00}", item._MortgageArea) + "," +
-                        String.Format("{0:0.00}", item._AmenityArea) + "," +
-                        $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}," +
-                        $"{item._EastInfo}," +
-                        $"{item._SouthInfo}," +
-                        $"{item._WestInfo}," +
-                        $"{item._NorthInfo}";
+            ed.WriteMessage("Generating Report...");
 
-                    sw.WriteLine(textValue1);
-                }
+            WritetoExcel(prefix, folderPath, combinedPlots);
 
-                string textValue = $"," +
-                       $"," +
-                       $"," +
-                       $"," +
-                       $"," +
-                       $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}," +
-                       $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}," +
-                       $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
-
-                sw.WriteLine(textValue);
-            }
-
+            //frm.Close();
 
             #region Test write
 
@@ -903,7 +939,7 @@ public class MyCommands
 
 
             //System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
-            System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
+            //System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
 
             // Turn off _SurveyNo layer
             //ed.Command("_-layer", "OFF", "_SurveyNo", "");
@@ -913,6 +949,142 @@ public class MyCommands
             acTrans.Commit();
         }
     }
+
+    private void WritetoCSV(string csvFileNew, List<Plot> combinedPlots)
+    {
+        using (StreamWriter sw = new StreamWriter(csvFileNew))
+        {
+            sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name,East,South,West,North");
+
+            foreach (var item in combinedPlots)
+            {
+                List<string> combinedText = new List<string>();
+                foreach (SurveyNo svno in item._ParentSurveyNos)
+                {
+                    //condition to eliminate 0 areas in some survey no's ex: plot no.65
+                    if (item.AreaInSurveyNo[svno] > minArea)
+                        combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
+                }
+
+                string textValue1 = $"{item._PlotNo}," +
+                    $"{item._SizesInEast[0].Text}," +
+                    $"{item._SizesInSouth[0].Text}," +
+                    $"{item._SizesInWest[0].Text}," +
+                    $"{item._SizesInNorth[0].Text}," +
+                    String.Format("{0:0.00}", item._PlotArea) + "," +
+                    String.Format("{0:0.00}", item._MortgageArea) + "," +
+                    String.Format("{0:0.00}", item._AmenityArea) + "," +
+                    $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}," +
+                    $"{item._EastInfo}," +
+                    $"{item._SouthInfo}," +
+                    $"{item._WestInfo}," +
+                    $"{item._NorthInfo}";
+
+                sw.WriteLine(textValue1);
+            }
+
+            string textValue = $"," +
+                   $"," +
+                   $"," +
+                   $"," +
+                   $"," +
+                   $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}," +
+                   $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}," +
+                   $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
+
+            sw.WriteLine(textValue);
+        }
+    }
+
+    private void WritetoExcel(string prefix, string path, List<Plot> combinedPlots)
+    {
+        //VctDataTableRepository repo = new VctDataTableRepository();
+        //repo.TemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
+        //repo.Prefix = prefix;
+        //repo.SavePath = path;
+        //if (!Directory.Exists(repo.SavePath))
+        //    Directory.CreateDirectory(repo.SavePath);
+        //repo.MergePdf = true;
+        //repo.OpenExcelAfterGenerate = true;
+        //repo.OpenPdfAfterGenerate = true;
+
+        System.Data.DataTable dt1 = new System.Data.DataTable();
+        dt1.Columns.Add("Plot Number");
+        dt1.Columns.Add("East");
+        dt1.Columns.Add("South");
+        dt1.Columns.Add("West");
+        dt1.Columns.Add("North");
+        dt1.Columns.Add("Plot Area");
+        dt1.Columns.Add("Mortgage Plots");
+        dt1.Columns.Add("Amenity Plots");
+        dt1.Columns.Add("Doc.No/R.S.No./Area/Name");
+        dt1.Columns.Add("EastI");
+        dt1.Columns.Add("SouthI");
+        dt1.Columns.Add("WestI");
+        dt1.Columns.Add("NorthI");
+
+        foreach (var item in combinedPlots)
+        {
+            List<string> combinedText = new List<string>();
+            foreach (SurveyNo svno in item._ParentSurveyNos)
+            {
+                //condition to eliminate 0 areas in some survey no's ex: plot no.65
+                if (item.AreaInSurveyNo[svno] > minArea)
+                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
+            }
+
+            dt1.Rows.Add(new object[] { $"{item._PlotNo}" ,
+                $"{item._SizesInEast[0].Text}" ,
+                $"{item._SizesInSouth[0].Text}" ,
+                $"{item._SizesInWest[0].Text}" ,
+                $"{item._SizesInNorth[0].Text}" ,
+                String.Format("{0:0.00}", item._PlotArea),
+                String.Format("{0:0.00}", item._MortgageArea),
+                String.Format("{0:0.00}", item._AmenityArea),
+                $"{Convert.ToString(string.Join(", ", combinedText.ToArray()))}" ,
+                $"{item._EastInfo}" ,
+                $"{item._SouthInfo}" ,
+                $"{item._WestInfo}" ,
+                $"{item._NorthInfo}" });
+        }
+
+        dt1.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}" ,
+               $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
+               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
+
+        TestPDF.WritetoExcel2(prefix, path, dt1);
+
+
+        //dt1.Rows.Add(new object[] { "James Bond, LLC", 120, "Garrison" });
+        //dt1.Rows.Add(new object[] { "LLC", 10, "Gar" });
+        //dt1.Rows.Add(new object[] { "Bond, LLC", 10, "Gar" });
+
+        //var highlighter = new StyleSettings()
+        //{
+        //    BackColor = new HighlightColor() { B = 144, G = 238, R = 144 }
+        //};
+
+        //VctDataTable dataTable1 = new VctDataTable(dt1)
+        //{
+        //    SheetName = "Meters",
+        //    PrintHeader = false,
+        //    StartRow = 3
+        //};
+
+        ////dataTable1.Rows[0].Cells[0].UpdateSettings = true;
+        ////dataTable1.Rows[0].Cells[0].Settings = highlighter;
+        ////dataTable1.Rows[2].Cells[2].UpdateSettings = true;
+        ////dataTable1.Rows[2].Cells[2].Settings = highlighter;
+
+        //repo.VctDataTables.Add(dataTable1);
+        //repo.GenerateReport(true);
+    }
+
 
     private List<Polyline> GetPolylinesUsingCrossPolygon(List<Point3d> points, Transaction acTrans, string LayerName)
     {
@@ -1134,9 +1306,9 @@ public class MyCommands
                 Vector3d direction2 = vertex2 - myObject.Center;
 
                 if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
-                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y > 0) ||
-                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
-                    (direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0))
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y > 0))
+                //|| (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
+                //(direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0))
                 {
                     myObject.northLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.northPoints.Add(vertex1);
@@ -1144,9 +1316,10 @@ public class MyCommands
                 }
 
                 if ((direction1.X < 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0) ||
-                    (direction2.X < 0 && direction2.Y < 0) && (direction1.X > 0 && direction1.Y < 0) ||
-                    (direction1.X < 0 && direction1.Y < 0) && (direction2.X < 0 && direction2.Y < 0) ||
-                    (direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
+                    (direction2.X < 0 && direction2.Y < 0) && (direction1.X > 0 && direction1.Y < 0))
+                //    ||
+                //    (direction1.X < 0 && direction1.Y < 0) && (direction2.X < 0 && direction2.Y < 0) ||
+                //    (direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
                 {
                     myObject.southLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.southPoints.Add(vertex1);
@@ -1154,29 +1327,29 @@ public class MyCommands
                 }
 
                 if ((direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y < 0) ||
-                    (direction2.X > 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y < 0) ||
-                    (direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
-                    (direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
+                    (direction2.X > 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y < 0))
+                //||
+                //(direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
+                //(direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
                 {
-                    double angle = CalculateAngleWithAxis(vertex1, vertex2, Vector3d.XAxis);
-                    System.Diagnostics.Debug.Print("East Start\n");
-                    System.Diagnostics.Debug.Print("East " + angle + "\n");
+                    //double angle = CalculateAngleWithAxis(vertex1, vertex2, Vector3d.XAxis);
+                    //System.Diagnostics.Debug.Print("East Start\n");
+                    //System.Diagnostics.Debug.Print("East " + angle + "\n");
 
-                    if (angle >= 90 && angle <= 180)
-                    {
+                    //if (angle >= 90 && angle <= 180)
+                    //{
 
-                    }
-
-
+                    //}
                     myObject.eastLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.eastPoints.Add(vertex1);
                     myObject.eastPoints.Add(vertex2);
                 }
 
                 if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0) ||
-                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X < 0 && direction1.Y < 0) ||
-                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
-                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0))
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X < 0 && direction1.Y < 0))
+                //||
+                //(direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
+                //(direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0))
                 {
                     myObject.westLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.westPoints.Add(vertex1);

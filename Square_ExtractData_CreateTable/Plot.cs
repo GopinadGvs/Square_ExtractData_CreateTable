@@ -26,10 +26,10 @@ namespace Square_ExtractData_CreateTable
         public double _PlotArea;
         public double _MortgageArea;
         public double _AmenityArea;
-        public string _EastInfo;
-        public string _SouthInfo;
-        public string _WestInfo;
-        public string _NorthInfo;
+        public string _EastInfo = "-";
+        public string _SouthInfo = "-";
+        public string _WestInfo = "-";
+        public string _NorthInfo = "-";
         public Polyline _Polyline;
         public List<SurveyNo> _ParentSurveyNos = new List<SurveyNo>();
         public bool IsPlotArea;
@@ -46,7 +46,6 @@ namespace Square_ExtractData_CreateTable
         public List<LineSegment3d> southLineSegment = new List<LineSegment3d>();
         public List<LineSegment3d> westLineSegment = new List<LineSegment3d>();
         public List<LineSegment3d> northLineSegment = new List<LineSegment3d>();
-
 
         public List<Point3d> MortgagePoints = new List<Point3d>();
 

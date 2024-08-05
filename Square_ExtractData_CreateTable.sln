@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.33529.622
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Square_ExtractData_CreateTable", "Square_ExtractData_CreateTable\Square_ExtractData_CreateTable.csproj", "{E61AF68E-44D3-4E1D-9865-9081E81EEE51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelToPDF", "ExcelToPDF\ExcelToPDF.csproj", "{74C9E6CC-3A0D-4E78-A694-5D9713B74FB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E61AF68E-44D3-4E1D-9865-9081E81EEE51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E61AF68E-44D3-4E1D-9865-9081E81EEE51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E61AF68E-44D3-4E1D-9865-9081E81EEE51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C9E6CC-3A0D-4E78-A694-5D9713B74FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C9E6CC-3A0D-4E78-A694-5D9713B74FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C9E6CC-3A0D-4E78-A694-5D9713B74FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C9E6CC-3A0D-4E78-A694-5D9713B74FB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
