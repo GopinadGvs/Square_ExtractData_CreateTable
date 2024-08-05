@@ -531,27 +531,37 @@ public class MyCommands
                 //ToDo
 
                 List<Point3d> eastPointsCollection = new List<Point3d>();
-                Point3d point1 = new Point3d(item.eastPoints[0].X - 0.5, item.eastPoints[0].Y, 0);
-                Point3d point2 = new Point3d(item.eastPoints[1].X - 0.5, item.eastPoints[1].Y, 0);
-                eastPointsCollection.Add(point1);
-                eastPointsCollection.Add(point2);
-                eastPointsCollection.AddRange(item.eastPoints);
+                //Point3d point1 = new Point3d(item.eastPoints[0].X + 0.5, item.eastPoints[0].Y - 2, 0);
+                //Point3d point2 = new Point3d(item.eastPoints[1].X + 0.5, item.eastPoints[1].Y - 2, 0);
+                //Point3d point3 = new Point3d(item.eastPoints[0].X, item.eastPoints[0].Y - 2, 0);
+                //Point3d point4 = new Point3d(item.eastPoints[1].X, item.eastPoints[1].Y - 2, 0);
+
+                Point3d point1 = new Point3d(item.eastLineSegment[0].MidPoint.X + 0.5, item.eastLineSegment[0].MidPoint.Y + 0.5, 0);
+                Point3d point2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
+                eastPointsCollection.AddRange(new List<Point3d> { point1, point2/*, point3, point4*/ });
 
                 List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_InternalRoad");
                 List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_IndivSubPlot");
                 List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_Amenity");
 
+                plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
+
                 if (roadPolylinesInEast.Count > 0)
                 {
-                    item._EastInfo = combinedDict[roadPolylinesInEast[0].ObjectId];
+                    string value = combinedDict[roadPolylinesInEast[0].ObjectId];
+
+                    item._EastInfo = "Road " + value.Substring(0, value.IndexOf("."));
                 }
-                if (plotPolylinesInEast.Count > 0)
+                else if (plotPolylinesInEast.Count > 0)
                 {
-                    item._EastInfo = combinedDict[plotPolylinesInEast[0].ObjectId];
+                    string value = combinedDict[plotPolylinesInEast[0].ObjectId];
+                    item._EastInfo = "Plot " + value;
                 }
-                if (amenityPolylinesInEast.Count > 0)
+                else if (amenityPolylinesInEast.Count > 0)
                 {
-                    item._EastInfo = combinedDict[amenityPolylinesInEast[0].ObjectId];
+                    string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
+                    item._EastInfo = "Amenity " + value;
                 }
             }
 
@@ -750,7 +760,7 @@ public class MyCommands
                         String.Format("{0:0.00}", item._PlotArea) + "," +
                         String.Format("{0:0.00}", item._MortgageArea) + "," +
                         String.Format("{0:0.00}", item._AmenityArea) + "," +
-                        $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}" +
+                        $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}," +
                         $"{item._EastInfo}";
 
                     sw.WriteLine(textValue1);
@@ -807,7 +817,7 @@ public class MyCommands
     {
         List<Polyline> polylines = new List<Polyline>();
 
-        PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(new Point3dCollection(SortPoints(points.ToArray()).ToArray()), CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", LayerName));
+        PromptSelectionResult acSSPromptPoly = ed.SelectCrossingWindow(/*new Point3dCollection(SortPoints(points.ToArray()).ToArray())*/ points[0], points[1], CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", LayerName));
 
         if (acSSPromptPoly.Status == PromptStatus.OK)
         {
