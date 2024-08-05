@@ -908,7 +908,7 @@ public class MyCommands
             string prefix = Path.GetFileNameWithoutExtension(acCurDb.Filename);
             string folderPath = Path.GetDirectoryName(acCurDb.Filename) + "_";
 
-            //WritetoCSV(csvFileNew, combinedPlots);
+            WritetoCSV(csvFileNew, combinedPlots);
 
             ed.WriteMessage("Generating Report...");
 
