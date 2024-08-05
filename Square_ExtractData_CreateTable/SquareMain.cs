@@ -138,7 +138,7 @@ public class MyCommands
 
                         Roadline._Polyline = acPoly; //assign polyline
 
-                        if (acPoly != null)
+                        if (acPoly != null && acPoly.Closed) //take only closed polylines for roadline
                         {
                             Roadline.Center = getCenter(Roadline._Polyline);
 
@@ -338,8 +338,6 @@ public class MyCommands
                                             {
                                                 plotNo = existingPlotNos[0];
                                                 plotNo._ParentSurveyNos.Add(surveyNo);
-                                                //ToDo
-                                                //plotNo.pointsInSurveyNo.Add(surveyNo,plotNo._PolylinePoints);
                                                 plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
 
@@ -347,7 +345,6 @@ public class MyCommands
                                             {
                                                 //considering dimensions from layer "_IndivSubPlot_DIMENSION"
                                                 plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
-                                                //ToDo
                                                 plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
                                             surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -486,294 +483,351 @@ public class MyCommands
 
             #endregion
 
-            acTrans.Commit();
-        }
+            //    acTrans.Commit();
+            //}
 
-        var uniquePlots = surveyNos
-                            .SelectMany(x => x._PlotNos)
-                            .GroupBy(y => y._PlotNo)
-                            .Select(g => g.First())
-                            .OrderBy(x => x, new AlphanumericPlotComparer())
-                            .ToList();
+            var uniquePlots = surveyNos
+                                .SelectMany(x => x._PlotNos)
+                                .GroupBy(y => y._PlotNo)
+                                .Select(g => g.First())
+                                .OrderBy(x => x, new AlphanumericPlotComparer())
+                                .ToList();
 
-        var uniqueAmenityPlots = surveyNos
-            .SelectMany(x => x._AmenityPlots)
-            .GroupBy(y => y._PlotNo)
-            .Select(g => g.First())
-            .OrderBy(x => x, new AlphanumericPlotComparer())
-            .ToList();
+            var uniqueAmenityPlots = surveyNos
+                .SelectMany(x => x._AmenityPlots)
+                .GroupBy(y => y._PlotNo)
+                .Select(g => g.First())
+                .OrderBy(x => x, new AlphanumericPlotComparer())
+                .ToList();
 
-        var combinedPlots = uniquePlots.Concat(uniqueAmenityPlots).Distinct().ToList();
+            var combinedPlots = uniquePlots.Concat(uniqueAmenityPlots).Distinct().ToList();
 
-
-        foreach (var item in combinedPlots)
-        {
-            plotlineDict.Add(item._Polyline.ObjectId, item._PlotNo);
-        }
-
-
-
-
-        foreach (var item in combinedPlots)
-        {
-            item._PlotArea = item._Area;
-
-            if (mortgagePlots.Contains(item._PlotNo))
-            {
-                item.IsMortgageArea = true;
-                item._MortgageArea = item._Area;
-                item._PlotArea = 0;
-            }
-
-            if (item.IsAmenity)
-            {
-                item._AmenityArea = item._Area;
-                item._PlotArea = 0;
-            }
-        }
-
-
-        #region Old logics
-
-        //// Get unique snoPno values and sort
-        //var snoPnoUnique = snoPno.Distinct().OrderBy(x => x.Item1).ToList();
-
-        //foreach (var val in snoPnoUnique)
-        //{
-        //    using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-        //    {
-        //        Entity ent = acTrans.GetObject(val.Item2, OpenMode.ForRead) as Entity;
-        //        if (ent is Polyline poly)
-        //        {
-        //            Point3dCollection fpts = new Point3dCollection();
-        //            for (int i = 0; i < poly.NumberOfVertices; i++)
-        //            {
-        //                fpts.Add(poly.GetPoint3dAt(i));
-        //            }
-
-        //            // Perform a selection using the window polygon method with the extracted points
-        //            TypedValue[] textFilter = {
-        //                new TypedValue((int)DxfCode.Start, "TEXT"),
-        //                new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
-        //            };
-        //            SelectionFilter textSelFilter = new SelectionFilter(textFilter);
-        //            PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
-
-        //            if (textSelResult.Status == PromptStatus.OK)
-        //            {
-        //                DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
-        //                if (textEntity != null)
-        //                {
-        //                    string fval2 = textEntity.TextString;
-        //                    snoPnoVal.Add((fval2, val.Item1));
-        //                }
-        //            }
-        //        }
-
-        //        acTrans.Commit();
-        //    }
-        //}
-
-        //snoPnoVal = snoPnoVal.OrderBy(x => int.Parse(x.Item1)).ToList();
-
-        //// Additional logic for _IndivSubPlot layer
-        //List<(ObjectId, string)> ispAllData = new List<(ObjectId, string)>();
-        //List<string> ispItemname = new List<string>();
-        //List<string> ispSno = new List<string>();
-
-        //using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-        //{
-        //    TypedValue[] acTypValArIndiv = new TypedValue[]
-        //    {
-        //        new TypedValue((int)DxfCode.Start, "LWPOLYLINE"),
-        //        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
-        //    };
-        //    SelectionFilter acSelFtrIndiv = new SelectionFilter(acTypValArIndiv);
-        //    PromptSelectionResult acSSPromptIndiv = ed.SelectAll(acSelFtrIndiv);
-
-        //    if (acSSPromptIndiv.Status == PromptStatus.OK)
-        //    {
-        //        SelectionSet acSSetIndiv = acSSPromptIndiv.Value;
-
-        //        foreach (SelectedObject acSSObjIndiv in acSSetIndiv)
-        //        {
-        //            if (acSSObjIndiv != null)
-        //            {
-        //                Polyline acPolyIndiv = acTrans.GetObject(acSSObjIndiv.ObjectId, OpenMode.ForRead) as Polyline;
-
-        //                if (acPolyIndiv != null)
-        //                {
-        //                    Point3dCollection ptsIndiv = new Point3dCollection();
-        //                    for (int i = 0; i < acPolyIndiv.NumberOfVertices; i++)
-        //                    {
-        //                        ptsIndiv.Add(acPolyIndiv.GetPoint3dAt(i));
-        //                    }
-
-        //                    // Find text entity on _IndivSubPlot layer
-        //                    TypedValue[] acTypValArTextIndiv = new TypedValue[]
-        //                    {
-        //                        new TypedValue((int)DxfCode.Start, "TEXT"),
-        //                        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
-        //                    };
-        //                    SelectionFilter acSelFtrTextIndiv = new SelectionFilter(acTypValArTextIndiv);
-        //                    PromptSelectionResult acSSPromptTextIndiv = ed.SelectCrossingPolygon(ptsIndiv, acSelFtrTextIndiv);
-
-        //                    if (acSSPromptTextIndiv.Status == PromptStatus.OK)
-        //                    {
-        //                        SelectionSet acSSetTextIndiv = acSSPromptTextIndiv.Value;
-        //                        DBText acTextIndiv = acTrans.GetObject(acSSetTextIndiv[0].ObjectId, OpenMode.ForRead) as DBText;
-        //                        string val2Indiv = acTextIndiv.TextString;
-
-        //                        ispItemname.Add(acPolyIndiv.ObjectId.ToString());
-        //                        ispSno.Add(val2Indiv);
-        //                        ispAllData.Add((acPolyIndiv.ObjectId, val2Indiv));
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    acTrans.Commit();
-        //}
-
-        //ispSno = ispSno.OrderBy(x => int.Parse(x)).ToList();
-
-        //List<(string, string)> ispSvnoData = new List<(string, string)>();
-
-        //foreach (var val in ispSno)
-        //{
-        //    var pts1 = snoPnoVal.Where(x => x.Item1 == val).Select(x => x.Item2).ToList();
-
-        //    string ispSvno;
-        //    if (pts1.Count > 1)
-        //    {
-        //        ispSvno = string.Join("|", pts1);
-        //    }
-        //    else
-        //    {
-        //        ispSvno = pts1.FirstOrDefault();
-        //    }
-
-        //    ispSvnoData.Add((val, ispSvno));
-        //}
-
-        // Write data to CSV
-        //string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
-
-        //using (StreamWriter sw = new StreamWriter(csvFileNew))
-        //{
-        //    sw.WriteLine("Plot Number,Survey No");
-        //    foreach (var itm in ispSvnoData)
-        //    {
-        //        sw.WriteLine($"{itm.Item1},{itm.Item2}");
-        //    }
-        //}
-
-        #endregion
-
-        #region Save Excel New Dictionary
-
-        //Dictionary<string, string> plotNoVsSurveyNo = new Dictionary<string, string>();
-        //foreach (var item in uniquePlots)
-        //{
-        //    plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));
-        //}
-
-        //string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
-        //using (StreamWriter sw = new StreamWriter(csvFileNew))
-        //{
-        //    sw.WriteLine("Plot Number,Survey No,Center");
-        //    foreach (var itm in plotNoVsSurveyNo)
-        //    {
-        //        sw.WriteLine($"{itm.Key},{itm.Value}");
-        //    }
-        //}
-
-        #endregion
-
-
-        // Write data to CSV
-
-        DateTime datetime = DateTime.Now;
-        string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
-            datetime.Day, datetime.Month, datetime.Year,
-            datetime.Hour, datetime.Minute, datetime.Second, datetime.Millisecond);
-
-        //System.Windows.Forms.MessageBox.Show(uniqueId);
-
-
-        string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId + ".csv" }"
-        );
-
-        using (StreamWriter sw = new StreamWriter(csvFileNew))
-        {
-            sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name");
 
             foreach (var item in combinedPlots)
             {
-                List<string> combinedText = new List<string>();
-                foreach (SurveyNo svno in item._ParentSurveyNos)
-                {
-                    //condition to eliminate 0 areas in some survey no's ex: plot no.65
-                    if (item.AreaInSurveyNo[svno] > minArea)
-                        combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
-                }
-
-                string textValue1 = $"{item._PlotNo}," +
-                    $"{item._SizesInEast[0].Text}," +
-                    $"{item._SizesInSouth[0].Text}," +
-                    $"{item._SizesInWest[0].Text}," +
-                    $"{item._SizesInNorth[0].Text}," +
-                    String.Format("{0:0.00}", item._PlotArea) + "," +
-                    String.Format("{0:0.00}", item._MortgageArea) + "," +
-                    String.Format("{0:0.00}", item._AmenityArea) + "," +
-                    $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}";
-
-                sw.WriteLine(textValue1);
+                plotlineDict.Add(item._Polyline.ObjectId, item._PlotNo);
             }
 
-            string textValue = $"," +
-                   $"," +
-                   $"," +
-                   $"," +
-                   $"," +
-                   $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}," +
-                   $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}," +
-                   $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
+            Dictionary<ObjectId, string> combinedDict = plotlineDict.Concat(roadlineDict).ToDictionary(x => x.Key, y => y.Value);
 
-            sw.WriteLine(textValue);
+            //filter area based on Mortgage & Amenity
+            foreach (var item in combinedPlots)
+            {
+                item._PlotArea = item._Area;
+
+                if (mortgagePlots.Contains(item._PlotNo))
+                {
+                    item.IsMortgageArea = true;
+                    item._MortgageArea = item._Area;
+                    item._PlotArea = 0;
+                }
+
+                if (item.IsAmenity)
+                {
+                    item._AmenityArea = item._Area;
+                    item._PlotArea = 0;
+                }
+
+                //ToDo
+
+                List<Point3d> eastPointsCollection = new List<Point3d>();
+                Point3d point1 = new Point3d(item.eastPoints[0].X - 0.5, item.eastPoints[0].Y, 0);
+                Point3d point2 = new Point3d(item.eastPoints[1].X - 0.5, item.eastPoints[1].Y, 0);
+                eastPointsCollection.Add(point1);
+                eastPointsCollection.Add(point2);
+                eastPointsCollection.AddRange(item.eastPoints);
+
+                List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_InternalRoad");
+                List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_IndivSubPlot");
+                List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_Amenity");
+
+                if (roadPolylinesInEast.Count > 0)
+                {
+                    item._EastInfo = combinedDict[roadPolylinesInEast[0].ObjectId];
+                }
+                if (plotPolylinesInEast.Count > 0)
+                {
+                    item._EastInfo = combinedDict[plotPolylinesInEast[0].ObjectId];
+                }
+                if (amenityPolylinesInEast.Count > 0)
+                {
+                    item._EastInfo = combinedDict[amenityPolylinesInEast[0].ObjectId];
+                }
+            }
+
+
+            #region Old logics
+
+            //// Get unique snoPno values and sort
+            //var snoPnoUnique = snoPno.Distinct().OrderBy(x => x.Item1).ToList();
+
+            //foreach (var val in snoPnoUnique)
+            //{
+            //    using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            //    {
+            //        Entity ent = acTrans.GetObject(val.Item2, OpenMode.ForRead) as Entity;
+            //        if (ent is Polyline poly)
+            //        {
+            //            Point3dCollection fpts = new Point3dCollection();
+            //            for (int i = 0; i < poly.NumberOfVertices; i++)
+            //            {
+            //                fpts.Add(poly.GetPoint3dAt(i));
+            //            }
+
+            //            // Perform a selection using the window polygon method with the extracted points
+            //            TypedValue[] textFilter = {
+            //                new TypedValue((int)DxfCode.Start, "TEXT"),
+            //                new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //            };
+            //            SelectionFilter textSelFilter = new SelectionFilter(textFilter);
+            //            PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
+
+            //            if (textSelResult.Status == PromptStatus.OK)
+            //            {
+            //                DBText textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as DBText;
+            //                if (textEntity != null)
+            //                {
+            //                    string fval2 = textEntity.TextString;
+            //                    snoPnoVal.Add((fval2, val.Item1));
+            //                }
+            //            }
+            //        }
+
+            //        acTrans.Commit();
+            //    }
+            //}
+
+            //snoPnoVal = snoPnoVal.OrderBy(x => int.Parse(x.Item1)).ToList();
+
+            //// Additional logic for _IndivSubPlot layer
+            //List<(ObjectId, string)> ispAllData = new List<(ObjectId, string)>();
+            //List<string> ispItemname = new List<string>();
+            //List<string> ispSno = new List<string>();
+
+            //using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            //{
+            //    TypedValue[] acTypValArIndiv = new TypedValue[]
+            //    {
+            //        new TypedValue((int)DxfCode.Start, "LWPOLYLINE"),
+            //        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //    };
+            //    SelectionFilter acSelFtrIndiv = new SelectionFilter(acTypValArIndiv);
+            //    PromptSelectionResult acSSPromptIndiv = ed.SelectAll(acSelFtrIndiv);
+
+            //    if (acSSPromptIndiv.Status == PromptStatus.OK)
+            //    {
+            //        SelectionSet acSSetIndiv = acSSPromptIndiv.Value;
+
+            //        foreach (SelectedObject acSSObjIndiv in acSSetIndiv)
+            //        {
+            //            if (acSSObjIndiv != null)
+            //            {
+            //                Polyline acPolyIndiv = acTrans.GetObject(acSSObjIndiv.ObjectId, OpenMode.ForRead) as Polyline;
+
+            //                if (acPolyIndiv != null)
+            //                {
+            //                    Point3dCollection ptsIndiv = new Point3dCollection();
+            //                    for (int i = 0; i < acPolyIndiv.NumberOfVertices; i++)
+            //                    {
+            //                        ptsIndiv.Add(acPolyIndiv.GetPoint3dAt(i));
+            //                    }
+
+            //                    // Find text entity on _IndivSubPlot layer
+            //                    TypedValue[] acTypValArTextIndiv = new TypedValue[]
+            //                    {
+            //                        new TypedValue((int)DxfCode.Start, "TEXT"),
+            //                        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //                    };
+            //                    SelectionFilter acSelFtrTextIndiv = new SelectionFilter(acTypValArTextIndiv);
+            //                    PromptSelectionResult acSSPromptTextIndiv = ed.SelectCrossingPolygon(ptsIndiv, acSelFtrTextIndiv);
+
+            //                    if (acSSPromptTextIndiv.Status == PromptStatus.OK)
+            //                    {
+            //                        SelectionSet acSSetTextIndiv = acSSPromptTextIndiv.Value;
+            //                        DBText acTextIndiv = acTrans.GetObject(acSSetTextIndiv[0].ObjectId, OpenMode.ForRead) as DBText;
+            //                        string val2Indiv = acTextIndiv.TextString;
+
+            //                        ispItemname.Add(acPolyIndiv.ObjectId.ToString());
+            //                        ispSno.Add(val2Indiv);
+            //                        ispAllData.Add((acPolyIndiv.ObjectId, val2Indiv));
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    acTrans.Commit();
+            //}
+
+            //ispSno = ispSno.OrderBy(x => int.Parse(x)).ToList();
+
+            //List<(string, string)> ispSvnoData = new List<(string, string)>();
+
+            //foreach (var val in ispSno)
+            //{
+            //    var pts1 = snoPnoVal.Where(x => x.Item1 == val).Select(x => x.Item2).ToList();
+
+            //    string ispSvno;
+            //    if (pts1.Count > 1)
+            //    {
+            //        ispSvno = string.Join("|", pts1);
+            //    }
+            //    else
+            //    {
+            //        ispSvno = pts1.FirstOrDefault();
+            //    }
+
+            //    ispSvnoData.Add((val, ispSvno));
+            //}
+
+            // Write data to CSV
+            //string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
+
+            //using (StreamWriter sw = new StreamWriter(csvFileNew))
+            //{
+            //    sw.WriteLine("Plot Number,Survey No");
+            //    foreach (var itm in ispSvnoData)
+            //    {
+            //        sw.WriteLine($"{itm.Item1},{itm.Item2}");
+            //    }
+            //}
+
+            #endregion
+
+            #region Save Excel New Dictionary
+
+            //Dictionary<string, string> plotNoVsSurveyNo = new Dictionary<string, string>();
+            //foreach (var item in uniquePlots)
+            //{
+            //    plotNoVsSurveyNo.Add(item._PlotNo, string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()));
+            //}
+
+            //string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".csv");
+            //using (StreamWriter sw = new StreamWriter(csvFileNew))
+            //{
+            //    sw.WriteLine("Plot Number,Survey No,Center");
+            //    foreach (var itm in plotNoVsSurveyNo)
+            //    {
+            //        sw.WriteLine($"{itm.Key},{itm.Value}");
+            //    }
+            //}
+
+            #endregion
+
+
+            // Write data to CSV
+
+            DateTime datetime = DateTime.Now;
+            string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
+                datetime.Day, datetime.Month, datetime.Year,
+                datetime.Hour, datetime.Minute, datetime.Second, datetime.Millisecond);
+
+            //System.Windows.Forms.MessageBox.Show(uniqueId);
+
+
+            string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId + ".csv" }"
+            );
+
+            using (StreamWriter sw = new StreamWriter(csvFileNew))
+            {
+                sw.WriteLine("Plot Number,East,South,West,North,Plot Area, Mortgage Plots, Amenity Plots,Doc.No/R.S.No./Area/Name,East");
+
+                foreach (var item in combinedPlots)
+                {
+                    List<string> combinedText = new List<string>();
+                    foreach (SurveyNo svno in item._ParentSurveyNos)
+                    {
+                        //condition to eliminate 0 areas in some survey no's ex: plot no.65
+                        if (item.AreaInSurveyNo[svno] > minArea)
+                            combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
+                    }
+
+                    string textValue1 = $"{item._PlotNo}," +
+                        $"{item._SizesInEast[0].Text}," +
+                        $"{item._SizesInSouth[0].Text}," +
+                        $"{item._SizesInWest[0].Text}," +
+                        $"{item._SizesInNorth[0].Text}," +
+                        String.Format("{0:0.00}", item._PlotArea) + "," +
+                        String.Format("{0:0.00}", item._MortgageArea) + "," +
+                        String.Format("{0:0.00}", item._AmenityArea) + "," +
+                        $"{Convert.ToString(string.Join("|", combinedText.ToArray()))}" +
+                        $"{item._EastInfo}";
+
+                    sw.WriteLine(textValue1);
+                }
+
+                string textValue = $"," +
+                       $"," +
+                       $"," +
+                       $"," +
+                       $"," +
+                       $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}," +
+                       $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}," +
+                       $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
+
+                sw.WriteLine(textValue);
+            }
+
+
+            #region Test write
+
+            //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
+
+            //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
+
+            //{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}
+
+            //+
+            //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
+            //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
+            //$"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
+
+            #endregion
+
+
+            //System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
+            System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
+
+            // Turn off _SurveyNo layer
+            //ed.Command("_-layer", "OFF", "_SurveyNo", "");
+
+            ed.WriteMessage("\nProcess complete.");
+
+            acTrans.Commit();
+        }
+    }
+
+    private List<Polyline> GetPolylinesUsingCrossPolygon(List<Point3d> points, Transaction acTrans, string LayerName)
+    {
+        List<Polyline> polylines = new List<Polyline>();
+
+        PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(new Point3dCollection(SortPoints(points.ToArray()).ToArray()), CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", LayerName));
+
+        if (acSSPromptPoly.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSetPoly = acSSPromptPoly.Value;
+
+            foreach (SelectedObject acSSObjPoly in acSSetPoly)
+            {
+                if (acSSObjPoly != null)
+                {
+                    Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                    if (acPoly2 != null && acPoly2.Closed)
+                    {
+                        polylines.Add(acPoly2);
+                    }
+                }
+            }
         }
 
-
-        #region Test write
-
-        //sw.WriteLine("Plot Number,East,South,West,North,Survey No,Center,EP1,EP2,SP1,SP2,WP1,WP2,NP1,NP2");
-
-        //$"{Convert.ToString(string.Join("|", item._ParentSurveyNos.Select(x => x._SurveyNo).ToArray()))}," +
-
-        //{(/*item._PlotArea == 0 ? "" : */item._PlotArea.ToString())}
-
-        //+
-        //$"{Convert.ToString(Math.Round(item.Center[0], 2) + "|" + Math.Round(item.Center[1]))}," +
-        //$"{Convert.ToString(Math.Round(item.eastPoints[0][0], 2) + "|" + Math.Round(item.eastPoints[0][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.eastPoints[1][0], 2) + "|" + Math.Round(item.eastPoints[1][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.southPoints[0][0], 2) + "|" + Math.Round(item.southPoints[0][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.southPoints[1][0], 2) + "|" + Math.Round(item.southPoints[1][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.westPoints[0][0], 2) + "|" + Math.Round(item.westPoints[0][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.westPoints[1][0], 2) + "|" + Math.Round(item.westPoints[1][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.northPoints[0][0], 2) + "|" + Math.Round(item.northPoints[0][1], 2))}," +
-        //$"{Convert.ToString(Math.Round(item.northPoints[1][0], 2) + "|" + Math.Round(item.northPoints[1][1], 2))}"
-
-        #endregion
-
-
-        //System.Diagnostics.Process.Start("notepad.exe", csvFileNew);
-        System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
-
-        // Turn off _SurveyNo layer
-        //ed.Command("_-layer", "OFF", "_SurveyNo", "");
-
-        ed.WriteMessage("\nProcess complete.");
+        return polylines;
     }
 
     private double CalculateArea(List<Point3d> points)
