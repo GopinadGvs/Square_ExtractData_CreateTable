@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Template\Square_Excel_Template.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExcelToPDF\ExcelToPDF.csproj">
