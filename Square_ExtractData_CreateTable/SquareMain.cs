@@ -905,8 +905,8 @@ public class MyCommands
 
             string csvFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + $"{"_" + uniqueId}") + ".csv";
 
-            string prefix = Path.GetFileNameWithoutExtension(acCurDb.Filename);
-            string folderPath = Path.GetDirectoryName(acCurDb.Filename) + "_";
+            string prefix = Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_";
+            string folderPath = Path.GetDirectoryName(acCurDb.Filename);
 
             WritetoCSV(csvFileNew, combinedPlots);
 
