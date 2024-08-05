@@ -24,6 +24,9 @@ public class MyCommands
     [CommandMethod("MExport")]
     public void SIP()
     {
+        if (IsLicenseExpired())
+            return;
+
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
 
         //Form1 frm = new Form1();
@@ -948,6 +951,26 @@ public class MyCommands
 
             acTrans.Commit();
         }
+    }
+
+    public bool IsLicenseExpired()
+    {
+        // Retrieve the expiry date from the registry
+        RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\SquarePlanner");
+        if (key != null)
+        {
+            string expiryDateString = key.GetValue("Expiry") as string;
+            if (DateTime.TryParse(expiryDateString, out DateTime expiryDate))
+            {
+                // Check if the current date is past the expiry date
+                if (DateTime.Now > expiryDate)
+                {
+                    return true; // License has expired
+                }
+                return false; // License is still valid
+            }
+        }
+        return true; // Default to expired if there's an issue
     }
 
     private void WritetoCSV(string csvFileNew, List<Plot> combinedPlots)
