@@ -640,7 +640,7 @@ public class MyCommands
                 List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_Amenity");
 
                 plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
-                plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
+                amenityPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
 
                 if (roadPolylinesInNorth.Count > 0)
                 {
