@@ -550,8 +550,8 @@ public class MyCommands
                 if (roadPolylinesInEast.Count > 0)
                 {
                     string value = combinedDict[roadPolylinesInEast[0].ObjectId];
-
-                    item._EastInfo = "Road " + value.Substring(0, value.IndexOf("."));
+                    int len = value.IndexOf(".");
+                    item._EastInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
                 }
                 else if (plotPolylinesInEast.Count > 0)
                 {
