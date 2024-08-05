@@ -1134,7 +1134,9 @@ public class MyCommands
                 Vector3d direction2 = vertex2 - myObject.Center;
 
                 if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0) ||
-                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y > 0))
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X > 0 && direction1.Y > 0) ||
+                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
+                    (direction1.X > 0 && direction1.Y > 0) && (direction2.X > 0 && direction2.Y > 0))
                 {
                     myObject.northLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.northPoints.Add(vertex1);
@@ -1142,7 +1144,9 @@ public class MyCommands
                 }
 
                 if ((direction1.X < 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0) ||
-                    (direction2.X < 0 && direction2.Y < 0) && (direction1.X > 0 && direction1.Y < 0))
+                    (direction2.X < 0 && direction2.Y < 0) && (direction1.X > 0 && direction1.Y < 0) ||
+                    (direction1.X < 0 && direction1.Y < 0) && (direction2.X < 0 && direction2.Y < 0) ||
+                    (direction1.X > 0 && direction1.Y < 0) && (direction2.X > 0 && direction2.Y < 0))
                 {
                     myObject.southLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.southPoints.Add(vertex1);
@@ -1170,7 +1174,9 @@ public class MyCommands
                 }
 
                 if ((direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0) ||
-                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X < 0 && direction1.Y < 0))
+                    (direction2.X < 0 && direction2.Y > 0) && (direction1.X < 0 && direction1.Y < 0) ||
+                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y > 0) ||
+                    (direction1.X < 0 && direction1.Y > 0) && (direction2.X < 0 && direction2.Y < 0))
                 {
                     myObject.westLineSegment.Add(polyline.GetLineSegmentAt(i));
                     myObject.westPoints.Add(vertex1);
