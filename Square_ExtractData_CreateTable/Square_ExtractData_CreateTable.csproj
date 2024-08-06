@@ -35,15 +35,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="accoremgd">
-      <HintPath>..\..\Extlib\accoremgd.dll</HintPath>
+      <HintPath>AutoCADSupport\accoremgd.dll</HintPath>
     </Reference>
-    <Reference Include="acdbmgd, Version=18.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Extlib\acdbmgd.dll</HintPath>
+    <Reference Include="acdbmgd">
+      <HintPath>AutoCADSupport\acdbmgd.dll</HintPath>
     </Reference>
-    <Reference Include="acmgd, Version=18.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Extlib\acmgd.dll</HintPath>
+    <Reference Include="acmgd">
+      <HintPath>AutoCADSupport\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream">
       <HintPath>ExtLib\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>

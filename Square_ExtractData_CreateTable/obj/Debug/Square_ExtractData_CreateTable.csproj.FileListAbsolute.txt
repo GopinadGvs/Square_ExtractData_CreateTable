@@ -21,3 +21,6 @@ E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_Cr
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\ExcelToPDF_Test.exe.config
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.Form1.resources
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.csproj.GenerateResource.cache
+E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\accoremgd.dll
+E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\acdbmgd.dll
+E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\acmgd.dll
