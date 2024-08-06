@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Square_ExtractData_CreateTable</RootNamespace>
-    <AssemblyName>SIP</AssemblyName>
+    <AssemblyName>MExport</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -42,6 +42,23 @@
     </Reference>
     <Reference Include="acmgd">
       <HintPath>AutoCADSupport\acmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="EPPlus, Version=5.0.3.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ExtLib\EPPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="EPPlus.Interfaces">
+      <HintPath>ExtLib\EPPlus.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="EPPlus.System.Drawing">
+      <HintPath>ExtLib\EPPlus.System.Drawing.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelandPDFReportLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ExtLib\ExcelandPDFReportLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelExport_Obsolete">
+      <HintPath>ExtLib\ExcelExport_Obsolete.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream">
       <HintPath>ExtLib\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
@@ -96,16 +113,11 @@
     <Compile Include="SquareMain.cs" />
     <Compile Include="Mortgage.cs" />
     <Compile Include="SurveyNo.cs" />
+    <Compile Include="WritetoExcelAndPDF.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Template\Square_Excel_Template.xlsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ExcelToPDF\ExcelToPDF.csproj">
-      <Project>{74c9e6cc-3a0d-4e78-a694-5d9713b74fb7}</Project>
-      <Name>ExcelToPDF</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Form1.resx">

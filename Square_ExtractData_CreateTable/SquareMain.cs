@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Data;
-using ExcelToPDF_Test;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -1080,7 +1079,7 @@ public class MyCommands
                $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
 
-        TestPDF.WritetoExcel2(prefix, path, dt1);
+        WritetoExcelAndPDF.WritetoExcel2(prefix, path, dt1);
 
 
         //dt1.Rows.Add(new object[] { "James Bond, LLC", 120, "Garrison" });
