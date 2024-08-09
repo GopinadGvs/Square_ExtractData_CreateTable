@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Data;
+using System.Runtime.InteropServices;
+using System.Threading;
+using Square_ExtractData_CreateTable.ViewModel;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -20,7 +23,47 @@ public class MyCommands
     private static int uniquePointsIdentifier = 1;
     private static double minArea = 1.0;
 
-    [CommandMethod("MExport")]
+    //public Form1 frm;
+    //private Thread cadThread1;
+    //public MyWPF myWpfForm;
+    //public static ViewModelObject viewModel;
+
+    [CommandMethod("PB")]
+
+    public void ProgressBarManaged()
+
+    {
+        ProgressMeter pm = new ProgressMeter();
+
+        pm.Start("Testing Progress Bar");
+
+        pm.SetLimit(100);
+
+        // Now our lengthy operation
+
+        for (int i = 0; i <= 100; i++)
+
+        {
+            System.Threading.Thread.Sleep(5);
+
+            // Increment Progress Meter...
+
+            pm.MeterProgress();
+
+            // This allows AutoCAD to repaint
+
+            System.Windows.Forms.Application.DoEvents();
+
+        }
+
+        pm.Stop();
+
+    }
+
+
+    [CommandMethod("MEE")]
+    //[CommandMethod("MExport")]
+
     public void SIP()
     {
         if (IsLicenseExpired())
@@ -28,10 +71,22 @@ public class MyCommands
 
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
 
-        //Form1 frm = new Form1();
-        //frm.ShowDialog();
+        //viewModel = new ViewModelObject();
+        //myWpfForm = new MyWPF(viewModel);
+        //frm = new Form1(viewModel);
 
-        //frm.toolStripProgressBar1.Value = 100 / 11; 
+        //viewModel.progressMessage = "started";
+        //viewModel.progressValue = 10;
+
+        //viewModel = new ViewModel();
+        //{
+        //    ShowUI = ShowUI,
+        //};
+
+        //cadThread1 = new Thread(ShowUI);
+        //cadThread1.Start();
+
+        //UpdateProgressMessage(0);
 
         LogWriter.LogWrite(acDoc.Name);
 
@@ -46,6 +101,14 @@ public class MyCommands
         //ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
 
         //ed.WriteMessage("Displaying Layers...");
+
+        //viewModel.progressMessage = "Displaying";
+        //viewModel.progressValue = 20;
+        //UpdateProgressMessage(10, "Displaying Layers...");
+
+        ProgressMeter pm = new ProgressMeter();
+        pm.Start("Export to Excel In Progress....");
+        pm.SetLimit(100);
 
         List<string> layersList = new List<string>() { "_SurveyNo", "_IndivSubPlot", "_IndivSubPlot_DIMENSION",
         "_MortgageArea", "_Amenity", "_Amenity_DIMENSION", "_DocNo", "_LandLord", "_InternalRoad"};
@@ -68,6 +131,7 @@ public class MyCommands
         Dictionary<ObjectId, string> plotlineDict = new Dictionary<ObjectId, string>();
 
 
+
         // Get all LWPOLYLINE entities on _SurveyNo layer
         using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
         {
@@ -76,6 +140,11 @@ public class MyCommands
 
             #region Logic to get mortgage plot numbers list
             //ed.WriteMessage("Collecting Mortgage information...");
+
+            //UpdateProgressMessage(20, "Collecting Mortgage information...");
+            //CloseProgress();
+
+            UpdateAutoCADProgressBar(pm);
 
             PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_MortgageArea"));
 
@@ -144,6 +213,7 @@ public class MyCommands
 
             #region Logic to get roadlines & road text Dictionary
             //ed.WriteMessage("Collecting Roadlines information...");
+            UpdateAutoCADProgressBar(pm);
 
             PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_InternalRoad"));
 
@@ -197,7 +267,7 @@ public class MyCommands
             #region Process SurveyNo Polylines
 
             //ed.WriteMessage("Collecting Survey Numbers...");
-
+            UpdateAutoCADProgressBar(pm);
 
             PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_SurveyNo"));
 
@@ -533,6 +603,8 @@ public class MyCommands
             var combinedPlots = uniquePlots.Concat(uniqueAmenityPlots).Distinct().ToList();
 
 
+            UpdateAutoCADProgressBar(pm);
+
             foreach (var item in combinedPlots)
             {
                 plotlineDict.Add(item._Polyline.ObjectId, item._PlotNo);
@@ -540,6 +612,7 @@ public class MyCommands
 
             Dictionary<ObjectId, string> combinedDict = plotlineDict.Concat(roadlineDict).ToDictionary(x => x.Key, y => y.Value);
 
+            UpdateAutoCADProgressBar(pm);
 
             //filter area based on Mortgage & Amenity
             foreach (var item in combinedPlots)
@@ -896,6 +969,8 @@ public class MyCommands
 
             // Write data to CSV
 
+            UpdateAutoCADProgressBar(pm);
+
             DateTime datetime = DateTime.Now;
             string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
                 datetime.Day, datetime.Month, datetime.Year,
@@ -915,8 +990,6 @@ public class MyCommands
             ed.WriteMessage("Generating Report...");
 
             WritetoExcel(prefix, folderPath, combinedPlots);
-
-            //frm.Close();
 
             #region Test write
 
@@ -946,6 +1019,11 @@ public class MyCommands
             // Turn off _SurveyNo layer
             //ed.Command("_-layer", "OFF", "_SurveyNo", "");
 
+            //CloseProgress();
+
+            UpdateAutoCADProgressBar(pm);
+            CloseAutoCADProgress(pm);
+
             ed.WriteMessage("\nProcess complete.");
 
             acTrans.Commit();
@@ -970,6 +1048,46 @@ public class MyCommands
             }
         }
         return true; // Default to expired if there's an issue
+    }
+
+    public void ShowUI()
+    {
+        //frm.TopMost = true;
+        //frm.ShowDialog();
+        //myWpfForm.Show();
+    }
+
+    public void UpdateProgressMessage(int value, string text = "Square Program Started...")
+    {
+        //frm.toolStripStatusLabel1.Text = text;
+        //System.Threading.Thread.Sleep(5);
+        //frm.toolStripProgressBar1.Value = value;
+    }
+
+    private void CloseProgress()
+    {
+        //cadThread1?.Abort();
+    }
+
+    private void UpdateAutoCADProgressBar(ProgressMeter pm)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            System.Threading.Thread.Sleep(5);
+
+            // Increment Progress Meter...
+
+            pm.MeterProgress();
+
+            // This allows AutoCAD to repaint
+
+            System.Windows.Forms.Application.DoEvents();
+        }
+    }
+
+    private void CloseAutoCADProgress(ProgressMeter pm)
+    {
+        pm.Stop();
     }
 
     private void WritetoCSV(string csvFileNew, List<Plot> combinedPlots)

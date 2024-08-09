@@ -1,0 +1,14 @@
+﻿<Window x:Class="Square_ExtractData_CreateTable.MyWPF"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Square_ExtractData_CreateTable"
+             mc:Ignorable="d" d:DesignWidth="800" Height="100"
+        Title="Square Planers Export Excel Program" Topmost="True" ResizeMode="CanMinimize">
+
+    <Grid>
+        <StatusBar Name="mystatus" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="502" Margin="303,5,5,5"/>
+        <ProgressBar x:Name="myProgress" Value="{Binding progressValue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="70" VerticalAlignment="Top" Width="298"/>
+    </Grid>
+</Window>
