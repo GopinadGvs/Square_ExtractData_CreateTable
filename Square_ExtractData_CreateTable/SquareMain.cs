@@ -835,6 +835,12 @@ public class MyCommands
                 List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.IndivPlotLayer);
                 List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.AmenityLayer);
 
+                List<Polyline> openSpacePolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.OpenSpaceLayer);
+                List<Polyline> utilityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.UtilityLayer);
+                List<Polyline> leftoverlandPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
+                List<Polyline> sideBoundaryPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.SideBoundaryLayer);
+                List<Polyline> mainRoadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.MainRoadLayer);
+
                 plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 try
@@ -854,6 +860,31 @@ public class MyCommands
                     {
                         string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
                         item._EastInfo = FormatAmenityText(value);
+                    }
+                    else if (openSpacePolylinesInEast.Count > 0)
+                    {
+                        string value = openSpaceDict[openSpacePolylinesInEast[0].ObjectId];
+                        item._EastInfo = FormatOpenSpaceText();
+                    }
+                    else if (utilityPolylinesInEast.Count > 0)
+                    {
+                        string value = utilityDict[utilityPolylinesInEast[0].ObjectId];
+                        item._EastInfo = FormatUtilityText();
+                    }
+                    else if (leftoverlandPolylinesInEast.Count > 0)
+                    {
+                        string value = LeftOverLandDict[leftoverlandPolylinesInEast[0].ObjectId];
+                        item._EastInfo = FormatLeftOverOwnerLandText();
+                    }
+                    else if (sideBoundaryPolylinesInEast.Count > 0)
+                    {
+                        string value = SideBoundaryDict[sideBoundaryPolylinesInEast[0].ObjectId];
+                        item._EastInfo = FormatSideBoundaryText();
+                    }
+                    else if (mainRoadPolylinesInEast.Count > 0)
+                    {
+                        string value = MainRoadDict[mainRoadPolylinesInEast[0].ObjectId];
+                        item._EastInfo = FormatMainRoadText();
                     }
                 }
 
@@ -1289,6 +1320,31 @@ public class MyCommands
 
         string formattedtext = "Amenity " + amenityText;
         return formattedtext;
+    }
+
+    public string FormatOpenSpaceText()
+    {
+        return "Open Space";
+    }
+
+    public string FormatUtilityText()
+    {
+        return "Utility";
+    }
+
+    public string FormatLeftOverOwnerLandText()
+    {
+        return "Left Over Land";
+    }
+
+    public string FormatSideBoundaryText()
+    {
+        return "Side Boundary";
+    }
+
+    public string FormatMainRoadText()
+    {
+        return "Main Road";
     }
 
     static List<string> ExtractNumbersFromString(string input)
