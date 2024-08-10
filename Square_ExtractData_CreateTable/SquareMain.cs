@@ -24,13 +24,29 @@ public class MyCommands
     private static int uniquePointsIdentifier = 1;
     private static double minArea = 1.0;
 
+    private static double TotalSiteArea = 0;
+    private static double PlotsArea = 0;
+    //private static double MortgageArea = 0;
+    private static double AmenitiesArea = 0;
+    private static double OpenSpaceArea = 0;
+    private static double UtilityArea = 0;
+    private static double InternalRoadsArea = 0;
+    private static double SplayArea = 0;
+    private static double LeftOverOwnerLandArea = 0;
+    private static double RoadWideningArea = 0;
+    private static double GreenArea = 0;
+
+    private static double VerifiedArea = 0;
+    private static double differenceArea = 0;
+
+
+
     //public Form1 frm;
     //private Thread cadThread1;
     //public MyWPF myWpfForm;
     //public static ViewModelObject viewModel;
 
     [CommandMethod("PB")]
-
     public void ProgressBarManaged()
 
     {
@@ -102,7 +118,7 @@ public class MyCommands
         ed.Command("_.zoom", "_e");
 
         // Turn on and thaw layers
-        //ed.Command("_-layer", "t", "_SurveyNo", "", "ON", "_SurveyNo", "", "t", "_IndivSubPlot", "", "ON", "_IndivSubPlot", "");
+        //ed.Command("_-layer", "t", Constants.SurveyNoLayer, "", "ON", Constants.SurveyNoLayer, "", "t", Constants.IndivPlotLayer, "", "ON", Constants.IndivPlotLayer, "");
 
         //ed.WriteMessage("Displaying Layers...");
 
@@ -114,8 +130,7 @@ public class MyCommands
         pm.Start("Export to Excel In Progress....");
         pm.SetLimit(100);
 
-        List<string> layersList = new List<string>() { "_SurveyNo", "_IndivSubPlot", "_IndivSubPlot_DIMENSION",
-        "_MortgageArea", "_Amenity", "_Amenity_DIMENSION", "_DocNo", "_LandLord", "_InternalRoad"};
+        List<string> layersList = new List<string>() { Constants.SurveyNoLayer, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer, Constants.MortgageLayer, Constants.AmenityLayer, Constants.AmenityDimLayer, Constants.DocNoLayer, Constants.LandLordLayer, Constants.InternalRoadLayer, Constants.PlotLayer, Constants.OpenSpaceLayer, Constants.UtilityLayer, Constants.LeftOverOwnerLandLayer, Constants.SideBoundaryLayer, Constants.MainRoadLayer, Constants.SplayLayer, Constants.RoadWideningLayer, Constants.GreenBufferZoneLayer };
 
         // Turn on, unlock and thaw layers
         foreach (var layerName in layersList)
@@ -123,7 +138,7 @@ public class MyCommands
             ed.Command("_-layer", "t", layerName, "ON", layerName, "U", layerName, "");
         }
 
-        //ed.Command("_-layer", "t", "_IndivSubPlot", "ON", "_IndivSubPlot", "U", "_IndivSubPlot", "");
+        //ed.Command("_-layer", "t", Constants.IndivPlotLayer, "ON", Constants.IndivPlotLayer, "U", Constants.IndivPlotLayer, "");
         //List<(string, ObjectId)> snoPno = new List<(string, ObjectId)>(); -> old
         //List<(string, string)> snoPnoVal = new List<(string, string)>(); -> old
 
@@ -134,13 +149,28 @@ public class MyCommands
         Dictionary<ObjectId, string> roadlineDict = new Dictionary<ObjectId, string>();
         Dictionary<ObjectId, string> plotlineDict = new Dictionary<ObjectId, string>();
 
-
-
         // Get all LWPOLYLINE entities on _SurveyNo layer
         using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
         {
             BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
             BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
+
+            TotalSiteArea = GetAreaByLayer(Constants.PlotLayer, acTrans);
+
+            PlotsArea = GetAreaByLayer(Constants.IndivPlotLayer, acTrans);
+            //MortgageArea = GetAreaByLayer(Constants.MortgageLayer, acTrans);
+            AmenitiesArea = GetAreaByLayer(Constants.AmenityLayer, acTrans);
+            OpenSpaceArea = GetAreaByLayer(Constants.OpenSpaceLayer, acTrans);
+            UtilityArea = GetAreaByLayer(Constants.UtilityLayer, acTrans);
+            InternalRoadsArea = GetAreaByLayer(Constants.InternalRoadLayer, acTrans);
+            SplayArea = GetAreaByLayer(Constants.SplayLayer, acTrans);
+            LeftOverOwnerLandArea = GetAreaByLayer(Constants.LeftOverOwnerLandLayer, acTrans);
+            RoadWideningArea = GetAreaByLayer(Constants.RoadWideningLayer, acTrans);
+            GreenArea = GetAreaByLayer(Constants.GreenBufferZoneLayer, acTrans);
+
+            VerifiedArea = PlotsArea + AmenitiesArea + OpenSpaceArea + UtilityArea + InternalRoadsArea + SplayArea + LeftOverOwnerLandArea + RoadWideningArea + GreenArea;
+
+            differenceArea = TotalSiteArea - VerifiedArea;
 
             #region Logic to get mortgage plot numbers list
             //ed.WriteMessage("Collecting Mortgage information...");
@@ -150,7 +180,8 @@ public class MyCommands
 
             UpdateAutoCADProgressBar(pm);
 
-            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_MortgageArea"));
+
+            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.MortgageLayer));
 
             if (acSSPrompt1.Status == PromptStatus.OK)
             {
@@ -177,18 +208,18 @@ public class MyCommands
                             }
 
                             //get plot text inside mortgage
-                            List<string> plotsInsideMortgage = GetListTextFromLayer(acTrans, mortgage._PolylinePoints, "TEXT", "_IndivSubPlot");
+                            List<string> plotsInsideMortgage = GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.TEXT, Constants.IndivPlotLayer);
                             if (plotsInsideMortgage.Count > 0)
                             {
                                 mortgage._PlotNos.AddRange(plotsInsideMortgage);
                             }
                             else
                             {
-                                mortgage._PlotNos.AddRange(GetListTextFromLayer(acTrans, mortgage._PolylinePoints, "MTEXT", "_IndivSubPlot"));
+                                mortgage._PlotNos.AddRange(GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.MTEXT, Constants.IndivPlotLayer));
                             }
 
                             #region Old code
-                            //PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(mortgage._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", "_IndivSubPlot"));
+                            //PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(mortgage._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.TEXT, Constants.IndivPlotLayer));
 
                             //if (acSSPromptText.Status == PromptStatus.OK)
                             //{
@@ -219,7 +250,7 @@ public class MyCommands
             //ed.WriteMessage("Collecting Roadlines information...");
             UpdateAutoCADProgressBar(pm);
 
-            PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_InternalRoad"));
+            PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.InternalRoadLayer));
 
             if (roadPrompt.Status == PromptStatus.OK)
             {
@@ -246,14 +277,14 @@ public class MyCommands
                             }
 
                             //get road text inside Roadline
-                            string roadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, "TEXT", "_InternalRoad");
+                            string roadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.TEXT, Constants.InternalRoadLayer);
                             if (!string.IsNullOrEmpty(roadText))
                             {
                                 Roadline._RoadText = roadText;
                             }
                             else
                             {
-                                Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, "MTEXT", "_InternalRoad");
+                                Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.MTEXT, Constants.InternalRoadLayer);
                             }
                         }
                         roadlines.Add(Roadline);
@@ -273,7 +304,7 @@ public class MyCommands
             //ed.WriteMessage("Collecting Survey Numbers...");
             UpdateAutoCADProgressBar(pm);
 
-            PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_SurveyNo"));
+            PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
 
             if (acSSPrompt.Status == PromptStatus.OK)
             {
@@ -302,36 +333,37 @@ public class MyCommands
                             #region Fill Text information inside SurveyNo Layer
 
                             //Get SurveyNo Text info
-                            string surveyNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_SurveyNo");
+                            string surveyNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.SurveyNoLayer);
                             if (!string.IsNullOrEmpty(surveyNoText))
                             {
                                 surveyNo._SurveyNo = surveyNoText;//assign surveyNo
                             }
                             else
                             {
-                                surveyNo._SurveyNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_SurveyNo");
+                                surveyNo._SurveyNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.SurveyNoLayer);
                             }
 
                             //Get DocNo Text info
-                            string DocNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_DocNo");
+                            string DocNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.DocNoLayer);
                             if (!string.IsNullOrEmpty(DocNoText))
                             {
                                 surveyNo.DocumentNo = DocNoText;//assign DocNo
                             }
                             else
                             {
-                                surveyNo.DocumentNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_DocNo");
+                                surveyNo.DocumentNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.DocNoLayer);
                             }
 
+
                             //Get LandLord Text info
-                            string LandLordText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "TEXT", "_LandLord");
+                            string LandLordText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.LandLordLayer);
                             if (!string.IsNullOrEmpty(LandLordText))
                             {
                                 surveyNo.LandLordName = LandLordText;//assign LandLordName
                             }
                             else
                             {
-                                surveyNo.LandLordName = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, "MTEXT", "_LandLord");
+                                surveyNo.LandLordName = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.LandLordLayer);
                             }
 
                             #endregion
@@ -340,7 +372,7 @@ public class MyCommands
 
                             #region Collect & Fill IndivSubPlot data using Cross Polygon                                
 
-                            PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
+                            PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlotLayer));
 
                             if (acSSPromptPoly.Status == PromptStatus.OK)
                             {
@@ -387,8 +419,8 @@ public class MyCommands
 
                                                 else
                                                 {
-                                                    //considering dimensions from layer "_IndivSubPlot_DIMENSION"
-                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+                                                    //considering dimensions from layer Constants.IndivPlotDimLayer
+                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer);
 
                                                     //collect all points inside surveyno & intersecting points of plot polygon
                                                     List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
@@ -417,7 +449,7 @@ public class MyCommands
                             #region Collect & Fill IndivSubPlot data using Window Polygon
 
                             // Using WindowPolygon selection to find intersections
-                            PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_IndivSubPlot"));
+                            PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlotLayer));
 
                             if (acSSPromptZeroPoly.Status == PromptStatus.OK)
                             {
@@ -445,8 +477,8 @@ public class MyCommands
 
                                             else
                                             {
-                                                //considering dimensions from layer "_IndivSubPlot_DIMENSION"
-                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, "_IndivSubPlot", "_IndivSubPlot_DIMENSION");
+                                                //considering dimensions from layer Constants.IndivPlotDimLayer
+                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer);
                                                 plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
                                             surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -461,7 +493,7 @@ public class MyCommands
 
                             #region Collect & Fill Amenity data using Cross Polygon                                
 
-                            PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
+                            PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.AmenityLayer));
 
                             if (acSSPromptPoly1.Status == PromptStatus.OK)
                             {
@@ -507,8 +539,8 @@ public class MyCommands
 
                                                 else
                                                 {
-                                                    //considering dimensions from layer "_Amenity_DIMENSION"
-                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                    //considering dimensions from layer Constants.AmenityDimLayer
+                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer, Constants.AmenityDimLayer);
                                                     amenityPlotNo.IsAmenity = true;
 
                                                     //collect all points inside surveyno & intersecting points of plot polygon
@@ -538,7 +570,7 @@ public class MyCommands
                             #region Collect & Fill Amenity data using Window Polygon
 
                             // Using WindowPolygon selection to find intersections
-                            PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_Amenity"));
+                            PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.AmenityLayer));
 
                             if (acSSPromptZeroPoly2.Status == PromptStatus.OK)
                             {
@@ -565,8 +597,8 @@ public class MyCommands
 
                                             else
                                             {
-                                                //considering dimensions from layer "_Amenity_DIMENSION"                                                    
-                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, "_Amenity", "_Amenity_DIMENSION");
+                                                //considering dimensions from layer Constants.AmenityDimLayer                                                    
+                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer, Constants.AmenityDimLayer);
                                                 amenityPlotNo.IsAmenity = true;
                                                 amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
 
@@ -649,9 +681,9 @@ public class MyCommands
                 Point3d epoint2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
                 eastPointsCollection.AddRange(new List<Point3d> { epoint1, epoint2/*, point3, point4*/ });
 
-                List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_InternalRoad");
-                List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_IndivSubPlot");
-                List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, "_Amenity");
+                List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.AmenityLayer);
 
                 plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -690,9 +722,9 @@ public class MyCommands
                 Point3d spoint2 = new Point3d(item.southLineSegment[0].MidPoint.X - 0.5, item.southLineSegment[0].MidPoint.Y - 0.5, 0);
                 southPointsCollection.AddRange(new List<Point3d> { spoint1, spoint2 });
 
-                List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_InternalRoad");
-                List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_IndivSubPlot");
-                List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, "_Amenity");
+                List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.AmenityLayer);
 
                 plotPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -732,9 +764,9 @@ public class MyCommands
                 Point3d wpoint2 = new Point3d(item.westLineSegment[0].MidPoint.X - 0.5, item.westLineSegment[0].MidPoint.Y - 0.5, 0);
                 westPointsCollection.AddRange(new List<Point3d> { wpoint1, wpoint2 });
 
-                List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_InternalRoad");
-                List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_IndivSubPlot");
-                List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, "_Amenity");
+                List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.AmenityLayer);
 
                 plotPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -774,9 +806,9 @@ public class MyCommands
                 Point3d npoint2 = new Point3d(item.northLineSegment[0].MidPoint.X - 0.5, item.northLineSegment[0].MidPoint.Y - 0.5, 0);
                 northPointsCollection.AddRange(new List<Point3d> { npoint1, npoint2 });
 
-                List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_InternalRoad");
-                List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_IndivSubPlot");
-                List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, "_Amenity");
+                List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.AmenityLayer);
 
                 plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -831,8 +863,8 @@ public class MyCommands
 
             //            // Perform a selection using the window polygon method with the extracted points
             //            TypedValue[] textFilter = {
-            //                new TypedValue((int)DxfCode.Start, "TEXT"),
-            //                new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //                new TypedValue((int)DxfCode.Start, Constants.TEXT),
+            //                new TypedValue((int)DxfCode.LayerName, Constants.IndivPlotLayer)
             //            };
             //            SelectionFilter textSelFilter = new SelectionFilter(textFilter);
             //            PromptSelectionResult textSelResult = ed.SelectWindowPolygon(fpts, textSelFilter);
@@ -863,8 +895,8 @@ public class MyCommands
             //{
             //    TypedValue[] acTypValArIndiv = new TypedValue[]
             //    {
-            //        new TypedValue((int)DxfCode.Start, "LWPOLYLINE"),
-            //        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //        new TypedValue((int)DxfCode.Start, Constants.LWPOLYLINE),
+            //        new TypedValue((int)DxfCode.LayerName, Constants.IndivPlotLayer)
             //    };
             //    SelectionFilter acSelFtrIndiv = new SelectionFilter(acTypValArIndiv);
             //    PromptSelectionResult acSSPromptIndiv = ed.SelectAll(acSelFtrIndiv);
@@ -890,8 +922,8 @@ public class MyCommands
             //                    // Find text entity on _IndivSubPlot layer
             //                    TypedValue[] acTypValArTextIndiv = new TypedValue[]
             //                    {
-            //                        new TypedValue((int)DxfCode.Start, "TEXT"),
-            //                        new TypedValue((int)DxfCode.LayerName, "_IndivSubPlot")
+            //                        new TypedValue((int)DxfCode.Start, Constants.TEXT),
+            //                        new TypedValue((int)DxfCode.LayerName, Constants.IndivPlotLayer)
             //                    };
             //                    SelectionFilter acSelFtrTextIndiv = new SelectionFilter(acTypValArTextIndiv);
             //                    PromptSelectionResult acSSPromptTextIndiv = ed.SelectCrossingPolygon(ptsIndiv, acSelFtrTextIndiv);
@@ -1019,7 +1051,7 @@ public class MyCommands
             //System.Diagnostics.Process.Start("Excel.exe", csvFileNew);
 
             // Turn off _SurveyNo layer
-            //ed.Command("_-layer", "OFF", "_SurveyNo", "");
+            //ed.Command("_-layer", "OFF", Constants.SurveyNoLayer, "");
 
             //CloseProgress();
 
@@ -1043,7 +1075,7 @@ public class MyCommands
         //int len = roadText.IndexOf(" ");
         //string formattedtext = roadText.Substring(0, len > 0 ? len : 10).Trim() + " Mts. Road";
 
-        string formattedtext = ExtractNumbers(roadText)[0] + " Mts. Road";
+        string formattedtext = ExtractNumbersFromString(roadText)[0] + " Mts. Road";
         return formattedtext;
     }
 
@@ -1065,7 +1097,7 @@ public class MyCommands
         return formattedtext;
     }
 
-    static List<string> ExtractNumbers(string input)
+    static List<string> ExtractNumbersFromString(string input)
     {
         // Regular expression to match numbers (including decimals)
         Regex regex = new Regex(@"\d+(\.\d+)?");
@@ -1082,7 +1114,6 @@ public class MyCommands
 
         return numbers;
     }
-
 
     public bool IsLicenseExpired()
     {
@@ -1279,12 +1310,11 @@ public class MyCommands
         //repo.GenerateReport(true);
     }
 
-
     private List<Polyline> GetPolylinesUsingCrossPolygon(List<Point3d> points, Transaction acTrans, string LayerName)
     {
         List<Polyline> polylines = new List<Polyline>();
 
-        PromptSelectionResult acSSPromptPoly = ed.SelectCrossingWindow(/*new Point3dCollection(SortPoints(points.ToArray()).ToArray())*/ points[0], points[1], CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", LayerName));
+        PromptSelectionResult acSSPromptPoly = ed.SelectCrossingWindow(/*new Point3dCollection(SortPoints(points.ToArray()).ToArray())*/ points[0], points[1], CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, LayerName));
 
         if (acSSPromptPoly.Status == PromptStatus.OK)
         {
@@ -1336,7 +1366,6 @@ public class MyCommands
 
         return polyline;
     }
-
 
     private List<Point3d> SortPoints(Point3d[] points)
     {
@@ -1645,7 +1674,7 @@ public class MyCommands
         }
 
         //fill plot number text, area and parent survey No
-        string plotNoText = GetTextFromLayer(acTrans, plotNo._PolylinePoints, "TEXT", TextLayerName);
+        string plotNoText = GetTextFromLayer(acTrans, plotNo._PolylinePoints, Constants.TEXT, TextLayerName);
         if (!string.IsNullOrEmpty(plotNoText))
         {
             plotNo._PlotNo = plotNoText;//assign plotNo Text
@@ -1654,14 +1683,14 @@ public class MyCommands
         }
         else
         {
-            plotNo._PlotNo = GetTextFromLayer(acTrans, plotNo._PolylinePoints, "MTEXT", TextLayerName);//assign plotNo Text
+            plotNo._PlotNo = GetTextFromLayer(acTrans, plotNo._PolylinePoints, Constants.MTEXT, TextLayerName);//assign plotNo Text
             plotNo._Area = Math.Round(plotNo._Polyline.Area, AreaDecimals);
             plotNo._ParentSurveyNos.Add(surveyNo);
         }
 
         #region Old Code
         //fill plot number text assuming text is of single text, area and parent survey No
-        //PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("TEXT", TextLayerName));
+        //PromptSelectionResult textSelResult = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.TEXT, TextLayerName));
 
         //if (textSelResult.Status == PromptStatus.OK)
         //{
@@ -1676,7 +1705,7 @@ public class MyCommands
         //}
 
         ////fill plot number text assuming text is of multiline text, area and parent survey No
-        //PromptSelectionResult textSelResult1 = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("MTEXT", TextLayerName));
+        //PromptSelectionResult textSelResult1 = ed.SelectWindowPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.MTEXT, TextLayerName));
 
         //if (textSelResult1.Status == PromptStatus.OK)
         //{
@@ -1746,7 +1775,6 @@ public class MyCommands
         surveyNo._MortgagePlotNos.Add(plotNo); //add plotNo to SurveyNo List
     }
 
-
     private void FillSizesByDirection(Plot plotNo)
     {
         //filling sizes by direction based on available dimensions
@@ -1804,7 +1832,7 @@ public class MyCommands
 
     private string GetSize(Plot plotNo, Transaction acTrans, Point3dCollection point3dCollection)
     {
-        PromptSelectionResult textSelResult = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", "_IndivSubPlot_DIMENSION"));
+        PromptSelectionResult textSelResult = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", Constants.IndivPlotDimLayer));
 
         if (textSelResult.Status == PromptStatus.OK)
         {
@@ -1925,6 +1953,30 @@ public class MyCommands
         return inside;
     }
 
+    public double GetAreaByLayer(string layerName, Transaction acTrans)
+    {
+        double TotalArea = 0;
+
+        PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+        if (acSSPrompt1.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSet = acSSPrompt1.Value;
+
+            foreach (SelectedObject acSSObj in acSSet)
+            {
+                if (acSSObj != null)
+                {
+                    Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                    if (acPoly != null && acPoly.Closed)
+                        TotalArea += acPoly.Area;
+                }
+            }
+        }
+
+        return TotalArea;
+    }
 
     //private string GetTextFromLayer2(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
     //{
@@ -1945,7 +1997,7 @@ public class MyCommands
 
 //Fill Mortgages
 
-//PromptSelectionResult mortgageSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("LWPOLYLINE", "_MortgageArea"));
+//PromptSelectionResult mortgageSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.MortgageLayer));
 
 //if (mortgageSelResult.Status == PromptStatus.OK)
 //{
