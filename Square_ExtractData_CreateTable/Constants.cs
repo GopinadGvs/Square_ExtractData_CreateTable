@@ -10,10 +10,10 @@ namespace Square_ExtractData_CreateTable
     {
         public static string SurveyNoLayer = "_SurveyNo";
         public static string IndivPlotLayer = "_IndivSubPlot";
-        public static string IndivPlotDimLayer = "_IndivSubPlot_DIMENSION";
+        //public static string IndivPlotDimLayer = "_IndivSubPlot_DIMENSION";
         public static string MortgageLayer = "_MortgageArea";
         public static string AmenityLayer = "_Amenity";
-        public static string AmenityDimLayer = "_Amenity_DIMENSION";
+        //public static string AmenityDimLayer = "_Amenity_DIMENSION";
         public static string DocNoLayer = "_DocNo";
         public static string LandLordLayer = "_LandLord";
         public static string InternalRoadLayer = "_InternalRoad";

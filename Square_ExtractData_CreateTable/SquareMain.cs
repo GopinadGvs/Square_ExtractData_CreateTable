@@ -97,10 +97,10 @@ public class MyCommands
         {
             Constants.SurveyNoLayer,
             Constants.IndivPlotLayer,
-            Constants.IndivPlotDimLayer,
+            //Constants.IndivPlotDimLayer,
             Constants.MortgageLayer,
             Constants.AmenityLayer,
-            Constants.AmenityDimLayer,
+            //Constants.AmenityDimLayer,
             Constants.DocNoLayer,
             Constants.LandLordLayer,
             Constants.InternalRoadLayer,
@@ -219,7 +219,27 @@ public class MyCommands
         pm.Start("Export to Excel In Progress....");
         pm.SetLimit(100);
 
-        List<string> layersList = new List<string>() { Constants.SurveyNoLayer, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer, Constants.MortgageLayer, Constants.AmenityLayer, Constants.AmenityDimLayer, Constants.DocNoLayer, Constants.LandLordLayer, Constants.InternalRoadLayer, Constants.PlotLayer, Constants.OpenSpaceLayer, Constants.UtilityLayer, Constants.LeftOverOwnerLandLayer, Constants.SideBoundaryLayer, Constants.MainRoadLayer, Constants.SplayLayer, Constants.RoadWideningLayer, Constants.GreenBufferZoneLayer };
+        List<string> layersList = new List<string>()
+        {
+            Constants.SurveyNoLayer,
+            Constants.IndivPlotLayer,
+            //Constants.IndivPlotDimLayer,
+            Constants.MortgageLayer,
+            Constants.AmenityLayer,
+            //Constants.AmenityDimLayer,
+            Constants.DocNoLayer,
+            Constants.LandLordLayer,
+            Constants.InternalRoadLayer,
+            Constants.PlotLayer,
+            Constants.OpenSpaceLayer,
+            Constants.UtilityLayer,
+            Constants.LeftOverOwnerLandLayer,
+            Constants.SideBoundaryLayer,
+            Constants.MainRoadLayer,
+            Constants.SplayLayer,
+            Constants.RoadWideningLayer,
+            Constants.GreenBufferZoneLayer
+        };
 
         // Turn on, unlock and thaw layers
         foreach (var layerName in layersList)
@@ -570,7 +590,7 @@ public class MyCommands
                                                 else
                                                 {
                                                     //considering dimensions from layer Constants.IndivPlotDimLayer
-                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer);
+                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer/*, Constants.IndivPlotDimLayer*/);
 
                                                     //collect all points inside surveyno & intersecting points of plot polygon
                                                     List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
@@ -628,7 +648,7 @@ public class MyCommands
                                             else
                                             {
                                                 //considering dimensions from layer Constants.IndivPlotDimLayer
-                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer, Constants.IndivPlotDimLayer);
+                                                plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer/*, Constants.IndivPlotDimLayer*/);
                                                 plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
                                             surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
@@ -690,7 +710,7 @@ public class MyCommands
                                                 else
                                                 {
                                                     //considering dimensions from layer Constants.AmenityDimLayer
-                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer, Constants.AmenityDimLayer);
+                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer/*, Constants.AmenityDimLayer*/);
                                                     amenityPlotNo.IsAmenity = true;
 
                                                     //collect all points inside surveyno & intersecting points of plot polygon
@@ -748,7 +768,7 @@ public class MyCommands
                                             else
                                             {
                                                 //considering dimensions from layer Constants.AmenityDimLayer                                                    
-                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer, Constants.AmenityDimLayer);
+                                                amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer/*, Constants.AmenityDimLayer*/);
                                                 amenityPlotNo.IsAmenity = true;
                                                 amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
 
@@ -2003,7 +2023,7 @@ public class MyCommands
         return acSelFtr;
     }
 
-    private Plot FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName, string dimensionLayerName)
+    private Plot FillPlotObject(List<SurveyNo> surveyNos, Polyline acPoly2, Plot plotNo, SurveyNo surveyNo, Transaction acTrans, string TextLayerName/*, string dimensionLayerName*/)
     {
         // new logic added
         //var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -2073,31 +2093,38 @@ public class MyCommands
         //}
         #endregion
 
-        //get all dimensions of plot and fill in plot object
-        PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
+        //ToDo - Test as commenting this method, get all dimensions of plot and fill in plot object
+        //PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
 
-        if (dimSelResult.Status == PromptStatus.OK)
-        {
-            SelectionSet dimSelSet = dimSelResult.Value;
-            foreach (SelectedObject acSSObj in dimSelSet)
-            {
-                if (acSSObj != null)
-                {
-                    Dimension dimEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Dimension;
-                    if (dimEntity != null)
-                    {
-                        string dimValue = dimEntity.DimensionText;
+        //if (dimSelResult.Status == PromptStatus.OK)
+        //{
+        //    SelectionSet dimSelSet = dimSelResult.Value;
+        //    foreach (SelectedObject acSSObj in dimSelSet)
+        //    {
+        //        if (acSSObj != null)
+        //        {
+        //            Dimension dimEntity = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Dimension;
+        //            if (dimEntity != null)
+        //            {
+        //                string dimValue = dimEntity.DimensionText;
 
-                        if (Convert.ToDouble(dimValue) > 0.5)
-                            plotNo._AllDims.Add(new SDimension(dimEntity, dimEntity.DimensionText, dimEntity.TextPosition));
-                    }
-                }
-            }
-        }
+        //                if (Convert.ToDouble(dimValue) > 0.5)
+        //                    plotNo._AllDims.Add(new SDimension(dimEntity, dimEntity.DimensionText, dimEntity.TextPosition));
+        //            }
+        //        }
+        //    }
+        //}
 
         //fill sizes by direction
         FillLineSegmentsAndPointsByDirection(plotNo._Polyline, plotNo);
-        FillSizesByDirection(plotNo);
+
+        //ToDo - Test, as commenting this method - main method responsible for sorting dimensions
+        //FillSizesByDirection(plotNo);
+
+        //ToDo - New method added to get sizes from length itself no need to go for dimension layers
+        FillSizesByLength(plotNo);
+
+
         //}
 
         return plotNo;
@@ -2130,7 +2157,7 @@ public class MyCommands
 
     private void FillSizesByDirection(Plot plotNo)
     {
-        //filling sizes by direction based on available dimensions
+        //ToDo - for your information, filling sizes by direction based on available dimensions
         //-> you can use polyline.length also instead of dimension
         //-> you can change dimension type to text if text is placed for dimension
 
@@ -2175,6 +2202,26 @@ public class MyCommands
 
     }
 
+    private void FillSizesByLength(Plot plotNo)
+    {
+        try
+        {
+            plotNo._SizesInNorth.Add(new SDimension(null, String.Format("{0:0.00}", RoundLengthValue(plotNo.northLineSegment[0].Length)), new Point3d(0, 0, 0)));
+            plotNo._SizesInSouth.Add(new SDimension(null, String.Format("{0:0.00}", RoundLengthValue(plotNo.southLineSegment[0].Length)), new Point3d(0, 0, 0)));
+            plotNo._SizesInEast.Add(new SDimension(null, String.Format("{0:0.00}", RoundLengthValue(plotNo.eastLineSegment[0].Length)), new Point3d(0, 0, 0)));
+            plotNo._SizesInWest.Add(new SDimension(null, String.Format("{0:0.00}", RoundLengthValue(plotNo.westLineSegment[0].Length)), new Point3d(0, 0, 0)));
+        }
+        catch
+        {
+            //error in filling sizes by polyline length
+        }
+    }
+
+    private double RoundLengthValue(double value)
+    {
+        return Math.Round(value, 2);
+    }
+
     private void FillSizesByDirection(Plot plotNo, Transaction acTrans)
     {
         //plotNo._SizeInEast = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.eastPoints.ToArray()));
@@ -2183,22 +2230,22 @@ public class MyCommands
         //plotNo._SizeInNorth = GetSize(plotNo, acTrans, new Point3dCollection(plotNo.northPoints.ToArray()));
     }
 
-    private string GetSize(Plot plotNo, Transaction acTrans, Point3dCollection point3dCollection)
-    {
-        PromptSelectionResult textSelResult = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", Constants.IndivPlotDimLayer));
+    //private string GetSize(Plot plotNo, Transaction acTrans, Point3dCollection point3dCollection)
+    //{
+    //    PromptSelectionResult textSelResult = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", Constants.IndivPlotDimLayer));
 
-        if (textSelResult.Status == PromptStatus.OK)
-        {
-            Dimension textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as Dimension;
-            if (textEntity != null)
-            {
-                string fval2 = textEntity.DimensionText;
-                return fval2;
-            }
-        }
+    //    if (textSelResult.Status == PromptStatus.OK)
+    //    {
+    //        Dimension textEntity = acTrans.GetObject(textSelResult.Value[0].ObjectId, OpenMode.ForRead) as Dimension;
+    //        if (textEntity != null)
+    //        {
+    //            string fval2 = textEntity.DimensionText;
+    //            return fval2;
+    //        }
+    //    }
 
-        return "";
-    }
+    //    return "";
+    //}
 
     private string GetTextFromLayer(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
     {
