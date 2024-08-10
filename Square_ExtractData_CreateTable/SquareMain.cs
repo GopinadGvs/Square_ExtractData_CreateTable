@@ -821,7 +821,7 @@ public class MyCommands
                 #region Fill East Side Info
                 //ed.WriteMessage("Filling East information...");
 
-                List<Point3d> eastPointsCollection = new List<Point3d>();
+                List<Point3d> EastPointsCollection = new List<Point3d>();
                 //Point3d point1 = new Point3d(item.eastPoints[0].X + 0.5, item.eastPoints[0].Y - 2, 0);
                 //Point3d point2 = new Point3d(item.eastPoints[1].X + 0.5, item.eastPoints[1].Y - 2, 0);
                 //Point3d point3 = new Point3d(item.eastPoints[0].X, item.eastPoints[0].Y - 2, 0);
@@ -829,17 +829,17 @@ public class MyCommands
 
                 Point3d epoint1 = new Point3d(item.eastLineSegment[0].MidPoint.X + 0.5, item.eastLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d epoint2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
-                eastPointsCollection.AddRange(new List<Point3d> { epoint1, epoint2/*, point3, point4*/ });
+                EastPointsCollection.AddRange(new List<Point3d> { epoint1, epoint2/*, point3, point4*/ });
 
-                List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.InternalRoadLayer);
-                List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.IndivPlotLayer);
-                List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.AmenityLayer);
+                List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.AmenityLayer);
 
-                List<Polyline> openSpacePolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.OpenSpaceLayer);
-                List<Polyline> utilityPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.UtilityLayer);
-                List<Polyline> leftoverlandPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
-                List<Polyline> sideBoundaryPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.SideBoundaryLayer);
-                List<Polyline> mainRoadPolylinesInEast = GetPolylinesUsingCrossPolygon(eastPointsCollection, acTrans, Constants.MainRoadLayer);
+                List<Polyline> openSpacePolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.OpenSpaceLayer);
+                List<Polyline> utilityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.UtilityLayer);
+                List<Polyline> leftoverlandPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
+                List<Polyline> sideBoundaryPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.SideBoundaryLayer);
+                List<Polyline> mainRoadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.MainRoadLayer);
 
                 plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -898,14 +898,20 @@ public class MyCommands
                 #region Fill South Side Info
                 //ed.WriteMessage("Filling South information...");
 
-                List<Point3d> southPointsCollection = new List<Point3d>();
+                List<Point3d> SouthPointsCollection = new List<Point3d>();
                 Point3d spoint1 = new Point3d(item.southLineSegment[0].MidPoint.X + 0.5, item.southLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d spoint2 = new Point3d(item.southLineSegment[0].MidPoint.X - 0.5, item.southLineSegment[0].MidPoint.Y - 0.5, 0);
-                southPointsCollection.AddRange(new List<Point3d> { spoint1, spoint2 });
+                SouthPointsCollection.AddRange(new List<Point3d> { spoint1, spoint2 });
 
-                List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.InternalRoadLayer);
-                List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.IndivPlotLayer);
-                List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(southPointsCollection, acTrans, Constants.AmenityLayer);
+                List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.AmenityLayer);
+
+                List<Polyline> openSpacePolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.OpenSpaceLayer);
+                List<Polyline> utilityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.UtilityLayer);
+                List<Polyline> leftoverlandPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
+                List<Polyline> sideBoundaryPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.SideBoundaryLayer);
+                List<Polyline> mainRoadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.MainRoadLayer);
 
                 plotPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -928,6 +934,31 @@ public class MyCommands
                         string value = combinedDict[amenityPolylinesInSouth[0].ObjectId];
                         item._SouthInfo = FormatAmenityText(value);
                     }
+                    else if (openSpacePolylinesInSouth.Count > 0)
+                    {
+                        string value = openSpaceDict[openSpacePolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = FormatOpenSpaceText();
+                    }
+                    else if (utilityPolylinesInSouth.Count > 0)
+                    {
+                        string value = utilityDict[utilityPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = FormatUtilityText();
+                    }
+                    else if (leftoverlandPolylinesInSouth.Count > 0)
+                    {
+                        string value = LeftOverLandDict[leftoverlandPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = FormatLeftOverOwnerLandText();
+                    }
+                    else if (sideBoundaryPolylinesInSouth.Count > 0)
+                    {
+                        string value = SideBoundaryDict[sideBoundaryPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = FormatSideBoundaryText();
+                    }
+                    else if (mainRoadPolylinesInSouth.Count > 0)
+                    {
+                        string value = MainRoadDict[mainRoadPolylinesInSouth[0].ObjectId];
+                        item._SouthInfo = FormatMainRoadText();
+                    }
                 }
 
                 catch (System.Exception ee)
@@ -940,14 +971,20 @@ public class MyCommands
                 #region Fill West Side Info
                 //ed.WriteMessage("Filling West information...");
 
-                List<Point3d> westPointsCollection = new List<Point3d>();
+                List<Point3d> WestPointsCollection = new List<Point3d>();
                 Point3d wpoint1 = new Point3d(item.westLineSegment[0].MidPoint.X + 0.5, item.westLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d wpoint2 = new Point3d(item.westLineSegment[0].MidPoint.X - 0.5, item.westLineSegment[0].MidPoint.Y - 0.5, 0);
-                westPointsCollection.AddRange(new List<Point3d> { wpoint1, wpoint2 });
+                WestPointsCollection.AddRange(new List<Point3d> { wpoint1, wpoint2 });
 
-                List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.InternalRoadLayer);
-                List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.IndivPlotLayer);
-                List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(westPointsCollection, acTrans, Constants.AmenityLayer);
+                List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.AmenityLayer);
+
+                List<Polyline> openSpacePolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.OpenSpaceLayer);
+                List<Polyline> utilityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.UtilityLayer);
+                List<Polyline> leftoverlandPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
+                List<Polyline> sideBoundaryPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.SideBoundaryLayer);
+                List<Polyline> mainRoadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.MainRoadLayer);
 
                 plotPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -970,6 +1007,31 @@ public class MyCommands
                         string value = combinedDict[amenityPolylinesInWest[0].ObjectId];
                         item._WestInfo = FormatAmenityText(value);
                     }
+                    else if (openSpacePolylinesInWest.Count > 0)
+                    {
+                        string value = openSpaceDict[openSpacePolylinesInWest[0].ObjectId];
+                        item._WestInfo = FormatOpenSpaceText();
+                    }
+                    else if (utilityPolylinesInWest.Count > 0)
+                    {
+                        string value = utilityDict[utilityPolylinesInWest[0].ObjectId];
+                        item._WestInfo = FormatUtilityText();
+                    }
+                    else if (leftoverlandPolylinesInWest.Count > 0)
+                    {
+                        string value = LeftOverLandDict[leftoverlandPolylinesInWest[0].ObjectId];
+                        item._WestInfo = FormatLeftOverOwnerLandText();
+                    }
+                    else if (sideBoundaryPolylinesInWest.Count > 0)
+                    {
+                        string value = SideBoundaryDict[sideBoundaryPolylinesInWest[0].ObjectId];
+                        item._WestInfo = FormatSideBoundaryText();
+                    }
+                    else if (mainRoadPolylinesInWest.Count > 0)
+                    {
+                        string value = MainRoadDict[mainRoadPolylinesInWest[0].ObjectId];
+                        item._WestInfo = FormatMainRoadText();
+                    }
                 }
 
                 catch (System.Exception ee)
@@ -982,14 +1044,20 @@ public class MyCommands
                 #region Fill North Side Info
                 //ed.WriteMessage("Filling North information...");
 
-                List<Point3d> northPointsCollection = new List<Point3d>();
+                List<Point3d> NorthPointsCollection = new List<Point3d>();
                 Point3d npoint1 = new Point3d(item.northLineSegment[0].MidPoint.X + 0.5, item.northLineSegment[0].MidPoint.Y + 0.5, 0);
                 Point3d npoint2 = new Point3d(item.northLineSegment[0].MidPoint.X - 0.5, item.northLineSegment[0].MidPoint.Y - 0.5, 0);
-                northPointsCollection.AddRange(new List<Point3d> { npoint1, npoint2 });
+                NorthPointsCollection.AddRange(new List<Point3d> { npoint1, npoint2 });
 
-                List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.InternalRoadLayer);
-                List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.IndivPlotLayer);
-                List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(northPointsCollection, acTrans, Constants.AmenityLayer);
+                List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.InternalRoadLayer);
+                List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.IndivPlotLayer);
+                List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.AmenityLayer);
+
+                List<Polyline> openSpacePolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.OpenSpaceLayer);
+                List<Polyline> utilityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.UtilityLayer);
+                List<Polyline> leftoverlandPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
+                List<Polyline> sideBoundaryPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.SideBoundaryLayer);
+                List<Polyline> mainRoadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.MainRoadLayer);
 
                 plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                 amenityPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -1011,6 +1079,31 @@ public class MyCommands
                     {
                         string value = combinedDict[amenityPolylinesInNorth[0].ObjectId];
                         item._NorthInfo = FormatAmenityText(value);
+                    }
+                    else if (openSpacePolylinesInNorth.Count > 0)
+                    {
+                        string value = openSpaceDict[openSpacePolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = FormatOpenSpaceText();
+                    }
+                    else if (utilityPolylinesInNorth.Count > 0)
+                    {
+                        string value = utilityDict[utilityPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = FormatUtilityText();
+                    }
+                    else if (leftoverlandPolylinesInNorth.Count > 0)
+                    {
+                        string value = LeftOverLandDict[leftoverlandPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = FormatLeftOverOwnerLandText();
+                    }
+                    else if (sideBoundaryPolylinesInNorth.Count > 0)
+                    {
+                        string value = SideBoundaryDict[sideBoundaryPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = FormatSideBoundaryText();
+                    }
+                    else if (mainRoadPolylinesInNorth.Count > 0)
+                    {
+                        string value = MainRoadDict[mainRoadPolylinesInNorth[0].ObjectId];
+                        item._NorthInfo = FormatMainRoadText();
                     }
                 }
 
