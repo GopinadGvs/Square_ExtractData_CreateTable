@@ -145,6 +145,8 @@ public class MyCommands
         List<SurveyNo> surveyNos = new List<SurveyNo>();
         List<Mortgage> mortgages = new List<Mortgage>();
         List<Roadline> roadlines = new List<Roadline>();
+        //List<OpenSpace> OpenSpaces = new List<OpenSpace>();
+
 
         Dictionary<ObjectId, string> roadlineDict = new Dictionary<ObjectId, string>();
         Dictionary<ObjectId, string> plotlineDict = new Dictionary<ObjectId, string>();
@@ -260,14 +262,13 @@ public class MyCommands
                 {
                     if (acSSObj != null)
                     {
-                        Roadline Roadline = new Roadline(); //create new SurveyNo object
+                        Roadline Roadline = new Roadline(); //create new roadline object
 
                         Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
 
-                        Roadline._Polyline = acPoly; //assign polyline
-
                         if (acPoly != null && acPoly.Closed) //take only closed polylines for roadline
                         {
+                            Roadline._Polyline = acPoly; //assign polyline
                             Roadline.Center = getCenter(Roadline._Polyline);
 
                             //Collect all Points
@@ -286,8 +287,9 @@ public class MyCommands
                             {
                                 Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.MTEXT, Constants.InternalRoadLayer);
                             }
+
+                            roadlines.Add(Roadline);
                         }
-                        roadlines.Add(Roadline);
                     }
                 }
             }
@@ -298,6 +300,65 @@ public class MyCommands
             }
 
             #endregion
+
+            #region Commented Logic to get openSpaceDict            
+
+            //PromptSelectionResult openSpacePrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.OpenSpaceLayer));
+
+            //if (openSpacePrompt.Status == PromptStatus.OK)
+            //{
+            //    SelectionSet acSSet = openSpacePrompt.Value;
+
+            //    foreach (SelectedObject acSSObj in acSSet)
+            //    {
+            //        if (acSSObj != null)
+            //        {
+            //            OpenSpace openSpace = new OpenSpace(); //create new roadline object
+
+            //            Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+            //            if (acPoly != null && acPoly.Closed) //take only closed polylines for roadline
+            //            {
+            //                openSpace._Polyline = acPoly; //assign polyline
+            //                openSpace.Center = getCenter(openSpace._Polyline);
+
+            //                //Collect all Points
+            //                for (int i = 0; i < acPoly.NumberOfVertices; i++)
+            //                {
+            //                    openSpace._PolylinePoints.Add(acPoly.GetPoint3dAt(i));
+            //                }
+
+            //                //get road text inside Roadline
+            //                string roadText = GetTextFromLayer(acTrans, openSpace._PolylinePoints, Constants.TEXT, Constants.InternalRoadLayer);
+            //                if (!string.IsNullOrEmpty(roadText))
+            //                {
+            //                    openSpace._OpenSpaceText = roadText;
+            //                }
+            //                else
+            //                {
+            //                    openSpace._OpenSpaceText = GetTextFromLayer(acTrans, openSpace._PolylinePoints, Constants.MTEXT, Constants.InternalRoadLayer);
+            //                }
+
+            //                OpenSpaces.Add(openSpace);
+            //            }
+            //        }
+            //    }
+            //}
+
+            //foreach (var item in OpenSpaces)
+            //{
+            //    openSpaceDict.Add(item._Polyline.ObjectId, item._OpenSpaceText);
+            //}
+
+            #endregion
+
+            Dictionary<ObjectId, string> openSpaceDict = GetObjectIdAndTextDictionary(Constants.OpenSpaceLayer, acTrans);
+            Dictionary<ObjectId, string> utilityDict = GetObjectIdAndTextDictionary(Constants.UtilityLayer, acTrans);
+            Dictionary<ObjectId, string> LeftOverLandDict = GetObjectIdAndTextDictionary(Constants.LeftOverOwnerLandLayer, acTrans);
+            Dictionary<ObjectId, string> SideBoundaryDict = GetObjectIdAndTextDictionary(Constants.SideBoundaryLayer, acTrans);
+            Dictionary<ObjectId, string> MainRoadDict = GetObjectIdAndTextDictionary(Constants.MainRoadLayer, acTrans);
+
+            //ToDo
 
             #region Process SurveyNo Polylines
 
@@ -1067,6 +1128,50 @@ public class MyCommands
         }
     }
 
+    public Dictionary<ObjectId, string> GetObjectIdAndTextDictionary(string layerName, Transaction acTrans)
+    {
+        Dictionary<ObjectId, string> myDict = new Dictionary<ObjectId, string>();
+
+        PromptSelectionResult openSpacePrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+        if (openSpacePrompt.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSet = openSpacePrompt.Value;
+
+            foreach (SelectedObject acSSObj in acSSet)
+            {
+                if (acSSObj != null)
+                {
+                    Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                    if (acPoly != null && acPoly.Closed) //take only closed polylines for roadline
+                    {
+                        Point3dCollection point3DCollection = new Point3dCollection();
+
+                        //Collect all Points
+                        for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                        {
+                            point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                        }
+
+                        //get road text inside Roadline
+                        string roadText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.InternalRoadLayer);
+                        if (!string.IsNullOrEmpty(roadText))
+                        {
+                            myDict.Add(acPoly.ObjectId, roadText);
+                        }
+                        else
+                        {
+                            myDict.Add(acPoly.ObjectId, GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.InternalRoadLayer));
+                        }
+                    }
+                }
+            }
+        }
+
+        return myDict;
+    }
+
     public string FormatRoadText(string roadText)
     {
         if (string.IsNullOrEmpty(roadText))
@@ -1218,6 +1323,9 @@ public class MyCommands
                    $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}";
 
             sw.WriteLine(textValue);
+
+            sw.WriteLine($",,,,,Total Site Area : " + TotalSiteArea);
+
         }
     }
 
@@ -1281,6 +1389,13 @@ public class MyCommands
                $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
+
+        dt1.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"Total Site Area : {TotalSiteArea}" });
 
         WritetoExcelAndPDF.WritetoExcel2(prefix, path, dt1);
 

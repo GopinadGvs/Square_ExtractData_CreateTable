@@ -688,5 +688,63 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region Check and create a Layer with color
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Runtime;
+        //using Autodesk.AutoCAD.Colors;
+
+        //public class LayerManager
+        //    {
+        //        [CommandMethod("CheckOrCreateLayer")]
+        //        public void CheckOrCreateLayer()
+        //        {
+        //            // Get the current database and transaction manager
+        //            Database db = HostApplicationServices.WorkingDatabase;
+        //            TransactionManager tm = db.TransactionManager;
+
+        //            using (Transaction tr = tm.StartTransaction())
+        //            {
+        //                // Open the LayerTable for read
+        //                LayerTable layerTable = (LayerTable)tr.GetObject(db.LayerTableId, OpenMode.ForRead);
+
+        //                // Check if the "_DocNo" layer exists
+        //                bool layerExists = layerTable.Has("_DocNo");
+
+        //                if (!layerExists)
+        //                {
+        //                    // Create a new layer table record for "_DocNo"
+        //                    LayerTableRecord layerTableRecord = new LayerTableRecord
+        //                    {
+        //                        Name = "_DocNo",
+        //                        Color = Color.FromRgb(255, 0, 0) // Red color
+        //                    };
+
+        //                    // Upgrade the LayerTable to write
+        //                    layerTable.UpgradeOpen();
+
+        //                    // Add the new layer to the LayerTable
+        //                    layerTable.Add(layerTableRecord);
+
+        //                    // Add the new LayerTableRecord to the transaction
+        //                    tr.AddNewlyCreatedDBObject(layerTableRecord, true);
+
+        //                    // Commit the transaction
+        //                    tr.Commit();
+
+        //                    // Inform the user
+        //                    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nLayer '_DocNo' has been created with red color.");
+        //                }
+        //                else
+        //                {
+        //                    // Inform the user
+        //                    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nLayer '_DocNo' already exists.");
+        //                }
+        //            }
+        //        }
+        //    }
+
+        #endregion
+
     }
 }
