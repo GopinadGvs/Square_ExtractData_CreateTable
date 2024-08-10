@@ -53,5 +53,7 @@ namespace Square_ExtractData_CreateTable
 
         public Dictionary<SurveyNo, List<Point3d>> pointsInSurveyNo = new Dictionary<SurveyNo, List<Point3d>>();
         public Dictionary<SurveyNo, double> AreaInSurveyNo = new Dictionary<SurveyNo, double>();
+
+        public bool IsRoadAvailable = false;
     }
 }

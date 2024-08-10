@@ -640,5 +640,53 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        #region Extract Number from string
+
+        //        using System;
+        //using System.Collections.Generic;
+        //using System.Text.RegularExpressions;
+
+        //namespace QuickConsole
+        //    {
+        //        class Program
+        //        {
+        //            static void Main()
+        //            {
+        //                // Sample strings
+        //                string[] inputs = { "12Meters road", "12 Mts. Road", "6 feet road" };
+
+        //                foreach (var input in inputs)
+        //                {
+        //                    // Extract numbers from the string
+        //                    List<string> numbers = ExtractNumbers(input);
+        //                    Console.WriteLine($"Input: {input}");
+        //                    Console.WriteLine($"Extracted Numbers: {string.Join(", ", numbers)}");
+        //                    Console.WriteLine();
+        //                }
+        //            }
+
+        //            static List<string> ExtractNumbers(string input)
+        //            {
+        //                // Regular expression to match numbers (including decimals)
+        //                Regex regex = new Regex(@"\d+(\.\d+)?");
+
+        //                // Find all matches
+        //                MatchCollection matches = regex.Matches(input);
+
+        //                // Collect all matches into a list of strings
+        //                List<string> numbers = new List<string>();
+        //                foreach (Match match in matches)
+        //                {
+        //                    numbers.Add(match.Value);
+        //                }
+
+        //                return numbers;
+        //            }
+        //        }
+        //    }
+
+
+        #endregion
+
     }
 }

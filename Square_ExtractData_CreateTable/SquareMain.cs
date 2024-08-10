@@ -12,6 +12,7 @@ using System.Data;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Square_ExtractData_CreateTable.ViewModel;
+using System.Text.RegularExpressions;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -656,18 +657,18 @@ public class MyCommands
                     if (roadPolylinesInEast.Count > 0)
                     {
                         string value = combinedDict[roadPolylinesInEast[0].ObjectId];
-                        int len = value.IndexOf(".");
-                        item._EastInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                        item._EastInfo = FormatRoadText(value);
+                        item.IsRoadAvailable = true;
                     }
                     else if (plotPolylinesInEast.Count > 0)
                     {
                         string value = combinedDict[plotPolylinesInEast[0].ObjectId];
-                        item._EastInfo = "Plot " + value;
+                        item._EastInfo = FormatPlotText(value);
                     }
                     else if (amenityPolylinesInEast.Count > 0)
                     {
                         string value = combinedDict[amenityPolylinesInEast[0].ObjectId];
-                        item._EastInfo = "Amenity " + value;
+                        item._EastInfo = FormatAmenityText(value);
                     }
                 }
 
@@ -698,18 +699,18 @@ public class MyCommands
                     if (roadPolylinesInSouth.Count > 0)
                     {
                         string value = combinedDict[roadPolylinesInSouth[0].ObjectId];
-                        int len = value.IndexOf(".");
-                        item._SouthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                        item._SouthInfo = FormatRoadText(value);
+                        item.IsRoadAvailable = true;
                     }
                     else if (plotPolylinesInSouth.Count > 0)
                     {
                         string value = combinedDict[plotPolylinesInSouth[0].ObjectId];
-                        item._SouthInfo = "Plot " + value;
+                        item._SouthInfo = FormatPlotText(value);
                     }
                     else if (amenityPolylinesInSouth.Count > 0)
                     {
                         string value = combinedDict[amenityPolylinesInSouth[0].ObjectId];
-                        item._SouthInfo = "Amenity " + value;
+                        item._SouthInfo = FormatAmenityText(value);
                     }
                 }
 
@@ -737,22 +738,21 @@ public class MyCommands
 
                 try
                 {
-
                     if (roadPolylinesInWest.Count > 0)
                     {
                         string value = combinedDict[roadPolylinesInWest[0].ObjectId];
-                        int len = value.IndexOf(".");
-                        item._WestInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                        item._WestInfo = FormatRoadText(value);
+                        item.IsRoadAvailable = true;
                     }
                     else if (plotPolylinesInWest.Count > 0)
                     {
                         string value = combinedDict[plotPolylinesInWest[0].ObjectId];
-                        item._WestInfo = "Plot " + value;
+                        item._WestInfo = FormatPlotText(value);
                     }
                     else if (amenityPolylinesInWest.Count > 0)
                     {
                         string value = combinedDict[amenityPolylinesInWest[0].ObjectId];
-                        item._WestInfo = "Amenity " + value;
+                        item._WestInfo = FormatAmenityText(value);
                     }
                 }
 
@@ -783,18 +783,18 @@ public class MyCommands
                     if (roadPolylinesInNorth.Count > 0)
                     {
                         string value = combinedDict[roadPolylinesInNorth[0].ObjectId];
-                        int len = value.IndexOf(".");
-                        item._NorthInfo = "Road " + value.Substring(0, len > 0 ? len : 10).Trim();
+                        item._NorthInfo = FormatRoadText(value);
+                        item.IsRoadAvailable = true;
                     }
                     else if (plotPolylinesInNorth.Count > 0)
                     {
                         string value = combinedDict[plotPolylinesInNorth[0].ObjectId];
-                        item._NorthInfo = "Plot " + value;
+                        item._NorthInfo = FormatPlotText(value);
                     }
                     else if (amenityPolylinesInNorth.Count > 0)
                     {
                         string value = combinedDict[amenityPolylinesInNorth[0].ObjectId];
-                        item._NorthInfo = "Amenity " + value;
+                        item._NorthInfo = FormatAmenityText(value);
                     }
                 }
 
@@ -966,7 +966,6 @@ public class MyCommands
 
             #endregion
 
-
             // Write data to CSV
 
             UpdateAutoCADProgressBar(pm);
@@ -1029,6 +1028,55 @@ public class MyCommands
             acTrans.Commit();
         }
     }
+
+    public string FormatRoadText(string roadText)
+    {
+        if (string.IsNullOrEmpty(roadText))
+            return "-";
+
+        //int len = roadText.IndexOf(" ");
+        //string formattedtext = roadText.Substring(0, len > 0 ? len : 10).Trim() + " Mts. Road";
+
+        string formattedtext = ExtractNumbers(roadText)[0] + " Mts. Road";
+        return formattedtext;
+    }
+
+    public string FormatPlotText(string plotText)
+    {
+        if (string.IsNullOrEmpty(plotText))
+            return "-";
+
+        string formattedtext = "Plot No. " + plotText;
+        return formattedtext;
+    }
+
+    public string FormatAmenityText(string amenityText)
+    {
+        if (string.IsNullOrEmpty(amenityText))
+            return "-";
+
+        string formattedtext = "Amenity " + amenityText;
+        return formattedtext;
+    }
+
+    static List<string> ExtractNumbers(string input)
+    {
+        // Regular expression to match numbers (including decimals)
+        Regex regex = new Regex(@"\d+(\.\d+)?");
+
+        // Find all matches
+        MatchCollection matches = regex.Matches(input);
+
+        // Collect all matches into a list of strings
+        List<string> numbers = new List<string>();
+        foreach (Match match in matches)
+        {
+            numbers.Add(match.Value);
+        }
+
+        return numbers;
+    }
+
 
     public bool IsLicenseExpired()
     {
