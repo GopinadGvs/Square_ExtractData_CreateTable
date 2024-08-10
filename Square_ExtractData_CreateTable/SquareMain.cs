@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Square_ExtractData_CreateTable.ViewModel;
 using System.Text.RegularExpressions;
+using Autodesk.AutoCAD.Colors;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -75,6 +76,94 @@ public class MyCommands
 
         pm.Stop();
 
+    }
+
+    [CommandMethod("CLAYER")]
+    public void CheckAndCreateLayers()
+    {
+        // Get the current database and transaction manager
+
+        if (IsLicenseExpired())
+            return;
+
+        Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        Database acCurDb = acDoc.Database;
+        Editor ed = acDoc.Editor;
+
+        // Zoom extents
+        ed.Command("_.zoom", "_e");
+
+        List<string> layersList = new List<string>()
+        {
+            Constants.SurveyNoLayer,
+            Constants.IndivPlotLayer,
+            Constants.IndivPlotDimLayer,
+            Constants.MortgageLayer,
+            Constants.AmenityLayer,
+            Constants.AmenityDimLayer,
+            Constants.DocNoLayer,
+            Constants.LandLordLayer,
+            Constants.InternalRoadLayer,
+            Constants.PlotLayer,
+            Constants.OpenSpaceLayer,
+            Constants.UtilityLayer,
+            Constants.LeftOverOwnerLandLayer,
+            Constants.SideBoundaryLayer,
+            Constants.MainRoadLayer,
+            Constants.SplayLayer,
+            Constants.RoadWideningLayer,
+            Constants.GreenBufferZoneLayer
+        };
+
+        using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+        {
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+
+            // Upgrade the LayerTable to write
+            layerTable.UpgradeOpen();
+
+            foreach (var layerName in layersList)
+            {
+                // Check if the layer exists
+                if (!layerTable.Has(layerName))
+                {
+                    // Create a new layer table record
+                    LayerTableRecord layerTableRecord = new LayerTableRecord
+                    {
+                        Name = layerName,
+                        //Color = Color.FromRgb(255, 0, 0) // Red color
+                    };
+
+                    // Add the new layer to the LayerTable
+                    layerTable.Add(layerTableRecord);
+
+                    // Add the new LayerTableRecord to the transaction
+                    acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+
+                    // Inform the user
+                    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"\nLayer {layerName} has been created...");
+                }
+                else
+                {
+                    // Inform the user if the layer already exists
+                    //Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"\nLayer {layerName} already exists.");
+                }
+            }
+
+            // Commit the transaction
+            acTrans.Commit();
+        }
+
+        Application.SetSystemVariable("CMDECHO", 0);
+
+        // Execute layer management commands after the transaction is committed
+        foreach (var layerName in layersList)
+        {
+            ed.Command("_-layer", "t", layerName, "ON", layerName, "U", layerName, "");
+        }
+
+        Application.SetSystemVariable("CMDECHO", 1);
     }
 
 
