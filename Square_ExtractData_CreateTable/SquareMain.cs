@@ -72,6 +72,9 @@ public class MyCommands
 
         Document acDoc = Application.DocumentManager.MdiActiveDocument;
 
+        // Set the CMDECHO system variable to 0
+        Application.SetSystemVariable("CMDECHO", 0);
+
         //viewModel = new ViewModelObject();
         //myWpfForm = new MyWPF(viewModel);
         //frm = new Form1(viewModel);
@@ -1022,6 +1025,9 @@ public class MyCommands
 
             UpdateAutoCADProgressBar(pm);
             CloseAutoCADProgress(pm);
+
+            // Set the CMDECHO system variable to 0
+            Application.SetSystemVariable("CMDECHO", 1);
 
             ed.WriteMessage("\nProcess complete.");
 
