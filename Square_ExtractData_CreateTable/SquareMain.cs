@@ -20,27 +20,6 @@ using Autodesk.AutoCAD.Colors;
 public class MyCommands
 {
     private static Editor ed = null;
-    List<string> mortgagePlots = new List<string>();
-    private static int AreaDecimals = 2;
-    private static int uniquePointsIdentifier = 1;
-    private static double minArea = 1.0;
-
-    private static double TotalSiteArea = 0;
-    private static double PlotsArea = 0;
-    //private static double MortgageArea = 0;
-    private static double AmenitiesArea = 0;
-    private static double OpenSpaceArea = 0;
-    private static double UtilityArea = 0;
-    private static double InternalRoadsArea = 0;
-    private static double SplayArea = 0;
-    private static double LeftOverOwnerLandArea = 0;
-    private static double RoadWideningArea = 0;
-    private static double GreenArea = 0;
-
-    private static double VerifiedArea = 0;
-    private static double differenceArea = 0;
-
-
 
     //public Form1 frm;
     //private Thread cadThread1;
@@ -254,6 +233,7 @@ public class MyCommands
         List<Roadline> roadlines = new List<Roadline>();
         //List<OpenSpace> OpenSpaces = new List<OpenSpace>();
 
+        List<string> mortgagePlots = new List<string>();
 
         Dictionary<ObjectId, string> roadlineDict = new Dictionary<ObjectId, string>();
         Dictionary<ObjectId, string> plotlineDict = new Dictionary<ObjectId, string>();
@@ -264,22 +244,22 @@ public class MyCommands
             BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
             BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
-            TotalSiteArea = GetAreaByLayer(Constants.PlotLayer, acTrans);
+            SiteInfo.TotalSiteArea = GetAreaByLayer(Constants.PlotLayer, acTrans);
 
-            PlotsArea = GetAreaByLayer(Constants.IndivPlotLayer, acTrans);
+            SiteInfo.PlotsArea = GetAreaByLayer(Constants.IndivPlotLayer, acTrans);
             //MortgageArea = GetAreaByLayer(Constants.MortgageLayer, acTrans);
-            AmenitiesArea = GetAreaByLayer(Constants.AmenityLayer, acTrans);
-            OpenSpaceArea = GetAreaByLayer(Constants.OpenSpaceLayer, acTrans);
-            UtilityArea = GetAreaByLayer(Constants.UtilityLayer, acTrans);
-            InternalRoadsArea = GetAreaByLayer(Constants.InternalRoadLayer, acTrans);
-            SplayArea = GetAreaByLayer(Constants.SplayLayer, acTrans);
-            LeftOverOwnerLandArea = GetAreaByLayer(Constants.LeftOverOwnerLandLayer, acTrans);
-            RoadWideningArea = GetAreaByLayer(Constants.RoadWideningLayer, acTrans);
-            GreenArea = GetAreaByLayer(Constants.GreenBufferZoneLayer, acTrans);
+            SiteInfo.AmenitiesArea = GetAreaByLayer(Constants.AmenityLayer, acTrans);
+            SiteInfo.OpenSpaceArea = GetAreaByLayer(Constants.OpenSpaceLayer, acTrans);
+            SiteInfo.UtilityArea = GetAreaByLayer(Constants.UtilityLayer, acTrans);
+            SiteInfo.InternalRoadsArea = GetAreaByLayer(Constants.InternalRoadLayer, acTrans);
+            SiteInfo.SplayArea = GetAreaByLayer(Constants.SplayLayer, acTrans);
+            SiteInfo.LeftOverOwnerLandArea = GetAreaByLayer(Constants.LeftOverOwnerLandLayer, acTrans);
+            SiteInfo.RoadWideningArea = GetAreaByLayer(Constants.RoadWideningLayer, acTrans);
+            SiteInfo.GreenArea = GetAreaByLayer(Constants.GreenBufferZoneLayer, acTrans);
 
-            VerifiedArea = PlotsArea + AmenitiesArea + OpenSpaceArea + UtilityArea + InternalRoadsArea + SplayArea + LeftOverOwnerLandArea + RoadWideningArea + GreenArea;
+            SiteInfo.VerifiedArea = SiteInfo.PlotsArea + SiteInfo.AmenitiesArea + SiteInfo.OpenSpaceArea + SiteInfo.UtilityArea + SiteInfo.InternalRoadsArea + SiteInfo.SplayArea + SiteInfo.LeftOverOwnerLandArea + SiteInfo.RoadWideningArea + SiteInfo.GreenArea;
 
-            differenceArea = TotalSiteArea - VerifiedArea;
+            SiteInfo.differenceArea = SiteInfo.TotalSiteArea - SiteInfo.VerifiedArea;
 
             #region Logic to get mortgage plot numbers list
             //ed.WriteMessage("Collecting Mortgage information...");
@@ -559,7 +539,7 @@ public class MyCommands
                                             List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
                                             List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            if (uniquePoints.Count > uniquePointsIdentifier)
+                                            if (uniquePoints.Count > Constants.uniquePointsIdentifier)
                                             {
                                                 // new logic added
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._PlotNos).Where
@@ -680,7 +660,7 @@ public class MyCommands
                                             List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
                                             List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            if (uniquePoints.Count > uniquePointsIdentifier)
+                                            if (uniquePoints.Count > Constants.uniquePointsIdentifier)
                                             {
                                                 var existingPlotNos = surveyNos.SelectMany(x => x._AmenityPlots).Where
                                             (x => x._Polyline.ObjectId == acPoly2.ObjectId).ToList();
@@ -1315,7 +1295,7 @@ public class MyCommands
 
             ed.WriteMessage("Generating Report...");
 
-            WritetoExcel(prefix, folderPath, combinedPlots);
+            ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
 
             #region Test write
 
@@ -1548,7 +1528,7 @@ public class MyCommands
                 foreach (SurveyNo svno in item._ParentSurveyNos)
                 {
                     //condition to eliminate 0 areas in some survey no's ex: plot no.65
-                    if (item.AreaInSurveyNo[svno] > minArea)
+                    if (item.AreaInSurveyNo[svno] > Constants.minArea)
                         combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
                 }
 
@@ -1580,105 +1560,9 @@ public class MyCommands
 
             sw.WriteLine(textValue);
 
-            sw.WriteLine($",,,,,Total Site Area : " + TotalSiteArea);
+            sw.WriteLine($",,,,,Total Site Area : " + SiteInfo.TotalSiteArea);
 
         }
-    }
-
-    private void WritetoExcel(string prefix, string path, List<Plot> combinedPlots)
-    {
-        //VctDataTableRepository repo = new VctDataTableRepository();
-        //repo.TemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
-        //repo.Prefix = prefix;
-        //repo.SavePath = path;
-        //if (!Directory.Exists(repo.SavePath))
-        //    Directory.CreateDirectory(repo.SavePath);
-        //repo.MergePdf = true;
-        //repo.OpenExcelAfterGenerate = true;
-        //repo.OpenPdfAfterGenerate = true;
-
-        System.Data.DataTable dt1 = new System.Data.DataTable();
-        dt1.Columns.Add("Plot Number");
-        dt1.Columns.Add("East");
-        dt1.Columns.Add("South");
-        dt1.Columns.Add("West");
-        dt1.Columns.Add("North");
-        dt1.Columns.Add("Plot Area");
-        dt1.Columns.Add("Mortgage Plots");
-        dt1.Columns.Add("Amenity Plots");
-        dt1.Columns.Add("Doc.No/R.S.No./Area/Name");
-        dt1.Columns.Add("EastI");
-        dt1.Columns.Add("SouthI");
-        dt1.Columns.Add("WestI");
-        dt1.Columns.Add("NorthI");
-
-        foreach (var item in combinedPlots)
-        {
-            List<string> combinedText = new List<string>();
-            foreach (SurveyNo svno in item._ParentSurveyNos)
-            {
-                //condition to eliminate 0 areas in some survey no's ex: plot no.65
-                if (item.AreaInSurveyNo[svno] > minArea)
-                    combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
-            }
-
-            dt1.Rows.Add(new object[] { $"{item._PlotNo}" ,
-                $"{item._SizesInEast[0].Text}" ,
-                $"{item._SizesInSouth[0].Text}" ,
-                $"{item._SizesInWest[0].Text}" ,
-                $"{item._SizesInNorth[0].Text}" ,
-                String.Format("{0:0.00}", item._PlotArea),
-                String.Format("{0:0.00}", item._MortgageArea),
-                String.Format("{0:0.00}", item._AmenityArea),
-                $"{Convert.ToString(string.Join(", ", combinedText.ToArray()))}" ,
-                $"{item._EastInfo}" ,
-                $"{item._SouthInfo}" ,
-                $"{item._WestInfo}" ,
-                $"{item._NorthInfo}" });
-        }
-
-        dt1.Rows.Add(new object[] {$"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}" ,
-               $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
-               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
-
-        dt1.Rows.Add(new object[] {$"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"Total Site Area : {TotalSiteArea}" });
-
-        WritetoExcelAndPDF.WritetoExcel2(prefix, path, dt1);
-
-
-        //dt1.Rows.Add(new object[] { "James Bond, LLC", 120, "Garrison" });
-        //dt1.Rows.Add(new object[] { "LLC", 10, "Gar" });
-        //dt1.Rows.Add(new object[] { "Bond, LLC", 10, "Gar" });
-
-        //var highlighter = new StyleSettings()
-        //{
-        //    BackColor = new HighlightColor() { B = 144, G = 238, R = 144 }
-        //};
-
-        //VctDataTable dataTable1 = new VctDataTable(dt1)
-        //{
-        //    SheetName = "Meters",
-        //    PrintHeader = false,
-        //    StartRow = 3
-        //};
-
-        ////dataTable1.Rows[0].Cells[0].UpdateSettings = true;
-        ////dataTable1.Rows[0].Cells[0].Settings = highlighter;
-        ////dataTable1.Rows[2].Cells[2].UpdateSettings = true;
-        ////dataTable1.Rows[2].Cells[2].Settings = highlighter;
-
-        //repo.VctDataTables.Add(dataTable1);
-        //repo.GenerateReport(true);
     }
 
     private List<Polyline> GetPolylinesUsingCrossPolygon(List<Point3d> points, Transaction acTrans, string LayerName)
@@ -2049,13 +1933,13 @@ public class MyCommands
         if (!string.IsNullOrEmpty(plotNoText))
         {
             plotNo._PlotNo = plotNoText;//assign plotNo Text
-            plotNo._Area = Math.Round(plotNo._Polyline.Area, AreaDecimals);
+            plotNo._Area = Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);
             plotNo._ParentSurveyNos.Add(surveyNo);
         }
         else
         {
             plotNo._PlotNo = GetTextFromLayer(acTrans, plotNo._PolylinePoints, Constants.MTEXT, TextLayerName);//assign plotNo Text
-            plotNo._Area = Math.Round(plotNo._Polyline.Area, AreaDecimals);
+            plotNo._Area = Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);
             plotNo._ParentSurveyNos.Add(surveyNo);
         }
 

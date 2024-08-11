@@ -31,5 +31,11 @@ namespace Square_ExtractData_CreateTable
         public static string LWPOLYLINE = "LWPOLYLINE";
         public static string TEXT = "TEXT";
         public static string MTEXT = "MTEXT";
+
+        public static int AreaDecimals = 2;
+        public static int uniquePointsIdentifier = 1;
+        public static double minArea = 1.0;
+
+        public static string ExceltemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
     }
 }

@@ -99,6 +99,8 @@
   <ItemGroup>
     <Compile Include="Objects\Amenity.cs" />
     <Compile Include="Constants\Constants.cs" />
+    <Compile Include="Objects\SiteInfo.cs" />
+    <Compile Include="Report\ExcelReport.cs" />
     <Compile Include="Utilities\Extension.cs" />
     <Compile Include="UI\Form1.cs">
       <SubType>Form</SubType>
@@ -119,7 +121,6 @@
       <DependentUpon>MyWPF.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModel\ViewModel.cs" />
-    <Compile Include="Utilities\WritetoExcelAndPDF.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
