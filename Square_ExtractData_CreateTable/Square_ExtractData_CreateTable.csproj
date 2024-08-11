@@ -43,6 +43,9 @@
     <Reference Include="acmgd">
       <HintPath>AutoCADSupport\acmgd.dll</HintPath>
     </Reference>
+    <Reference Include="EPPlus, Version=5.0.3.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPPlus.5.0.3\lib\net45\EPPlus.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -50,6 +53,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>ExtLib\System.Buffers.dll</HintPath>
     </Reference>
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -60,6 +64,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>ExtLib\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Threading.Tasks" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -78,9 +84,7 @@
     <Compile Include="Objects\SiteInfo.cs" />
     <Compile Include="Report\ExcelReport.cs" />
     <Compile Include="Utilities\Extension.cs" />
-    <Compile Include="UI\Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="UI\Form1.cs" />
     <Compile Include="UI\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
@@ -99,6 +103,7 @@
     <Compile Include="ViewModel\ViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Template\Square_Excel_Template.xlsx" />
   </ItemGroup>

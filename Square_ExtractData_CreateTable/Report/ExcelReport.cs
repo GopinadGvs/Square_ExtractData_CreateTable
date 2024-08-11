@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CreateExcelAndPDF;
+using OfficeOpenXml.Style;
 
 namespace Square_ExtractData_CreateTable
 {
@@ -77,21 +78,44 @@ namespace Square_ExtractData_CreateTable
                $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
 
-            dt1.Rows.Add(new object[] {$"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"" ,
-               $"Total Site Area : {SiteInfo.TotalSiteArea}" });
+            //dt1.Rows.Add(new object[] {$"" ,
+            //   $"" ,
+            //   $"" ,
+            //   $"" ,
+            //   $"" ,
+            //   $"Total Site Area : {SiteInfo.TotalSiteArea}" });
+
+            int startRow = 6;
 
             MyDataTable dataTable1 = new MyDataTable(dt1)
             {
                 SheetName = "Meters",
                 PrintHeader = false,
-                StartRow = 6
+                StartRow = startRow
             };
 
             repo.MyDataTables.Add(dataTable1);
+
+            var mergeSettings = new StyleSettings()
+            {
+                //BackColor = new HighlightColor() { B = 144, G = 238, R = 144 },
+                WordWrap = true,
+                HorizontalAlignment = ExcelHorizontalAlignment.Left,
+                VerticalAlignment = ExcelVerticalAlignment.Center
+            };
+
+            int mergeStartRow = startRow + combinedPlots.Count + 3;
+            int mergeStartColumn = 3;
+            int mergeEndRow = mergeStartRow;
+            int numberofColumsToMerge = 5;
+            int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Site Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.TotalSiteArea, 2))}", mergeSettings));
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow + 2, mergeStartColumn, mergeEndRow + 2, mergeEndColumn, $"Total Plots Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.PlotsArea, 2))}", mergeSettings));
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow + 3, mergeStartColumn, mergeEndRow + 3, mergeEndColumn, $"Total Amenities Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.AmenitiesArea, 2))}", mergeSettings));
+
             repo.GenerateReport();
         }
     }
