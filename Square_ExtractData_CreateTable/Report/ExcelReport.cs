@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Library_NA_NA_NA_GenerateExcelandPDFReport;
+using CreateExcelAndPDF;
 
 namespace Square_ExtractData_CreateTable
 {
@@ -12,7 +12,7 @@ namespace Square_ExtractData_CreateTable
     {
         public static void WritetoExcel(string prefix, string path, List<Plot> combinedPlots)
         {
-            VctDataTableRepository repo = new VctDataTableRepository();
+            MyDataTableRepository repo = new MyDataTableRepository();
             repo.TemplatePath = Constants.ExceltemplatePath;
             repo.Prefix = prefix;
             repo.SavePath = path;
@@ -84,14 +84,14 @@ namespace Square_ExtractData_CreateTable
                $"" ,
                $"Total Site Area : {SiteInfo.TotalSiteArea}" });
 
-            VctDataTable dataTable1 = new VctDataTable(dt1)
+            MyDataTable dataTable1 = new MyDataTable(dt1)
             {
                 SheetName = "Meters",
                 PrintHeader = false,
                 StartRow = 6
             };
 
-            repo.VctDataTables.Add(dataTable1);
+            repo.MyDataTables.Add(dataTable1);
             repo.GenerateReport();
         }
     }

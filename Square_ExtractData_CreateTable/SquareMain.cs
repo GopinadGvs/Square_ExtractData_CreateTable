@@ -585,7 +585,8 @@ public class MyCommands
                                                     plotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
                                                 }
 
-                                                surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+                                                if (!string.IsNullOrEmpty(plotNo._PlotNo))
+                                                    surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List if it is not empty
                                             }
                                         }
                                     }
@@ -629,7 +630,8 @@ public class MyCommands
                                                 plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer/*, Constants.IndivPlotDimLayer*/);
                                                 plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                             }
-                                            surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List
+                                            if (!string.IsNullOrEmpty(plotNo._PlotNo))
+                                                surveyNo._PlotNos.Add(plotNo); //add plotNo to SurveyNo List if it is not empty
                                         }
                                     }
                                 }
@@ -706,7 +708,8 @@ public class MyCommands
                                                     amenityPlotNo.AreaInSurveyNo.Add(surveyNo, areainSurveyNo);
 
                                                 }
-                                                surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
+                                                if (!string.IsNullOrEmpty(amenityPlotNo._PlotNo))
+                                                    surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List if it is not empty
                                             }
                                         }
                                     }
@@ -751,7 +754,8 @@ public class MyCommands
                                                 amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
 
                                             }
-                                            surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List
+                                            if (!string.IsNullOrEmpty(amenityPlotNo._PlotNo))
+                                                surveyNo._AmenityPlots.Add(amenityPlotNo); //add amenityPlot to SurveyNo List if it is not empty
                                         }
                                     }
                                 }
