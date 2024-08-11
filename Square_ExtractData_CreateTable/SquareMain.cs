@@ -47,7 +47,7 @@ public class MyCommands
     //public MyWPF myWpfForm;
     //public static ViewModelObject viewModel;
 
-    [CommandMethod("PB")]
+    //[CommandMethod("PB")]
     public void ProgressBarManaged()
 
     {
@@ -166,9 +166,7 @@ public class MyCommands
         Application.SetSystemVariable("CMDECHO", 1);
     }
 
-
-    [CommandMethod("MEE")]
-    //[CommandMethod("MExport")]
+    [CommandMethod("MExport")]
 
     public void SIP()
     {
