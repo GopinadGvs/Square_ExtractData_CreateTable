@@ -124,7 +124,7 @@ namespace Square_ExtractData_CreateTable
                 WordWrap = false,
                 HorizontalAlignment = ExcelHorizontalAlignment.Left,
                 VerticalAlignment = ExcelVerticalAlignment.Center,
-                FontSize = 15,
+                FontSize = 13,
             };
 
             int mergeStartRow = startRow + combinedPlots.Count + 3;
@@ -134,19 +134,19 @@ namespace Square_ExtractData_CreateTable
             int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
             int padLength = 33;
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Site Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Site Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Plots Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Plots Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
