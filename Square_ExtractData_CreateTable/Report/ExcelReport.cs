@@ -134,19 +134,19 @@ namespace Square_ExtractData_CreateTable
             int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
             int padLength = 33;
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Site Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Applicants Site Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Plots Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Plots Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength,'-') + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
@@ -172,11 +172,21 @@ namespace Square_ExtractData_CreateTable
 
             dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Green Buffer Zone Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.GreenArea))}", mergeSettings));
 
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Verified Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.VerifiedArea))}", mergeSettings));
+
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
             dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Difference Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.differenceArea))}", mergeSettings));
 
-            repo.GenerateReport();
+            List<string> paths = repo.GenerateReport();
+
+            if (!paths.Any(s => s.IndexOf("pdf", StringComparison.OrdinalIgnoreCase) >= 0))
+                System.Windows.Forms.MessageBox.Show("Failed to generate Pdf..", "Square Planners Message");
+
+            if (!paths.Any(s => s.IndexOf("xlsx", StringComparison.OrdinalIgnoreCase) >= 0))
+                System.Windows.Forms.MessageBox.Show("Failed to generate Excel..", "Square Planners Message");
         }
 
         public static void RowIncrement(ref int startRowNumber, ref int endRowNumber, int increment)

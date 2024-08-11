@@ -1564,7 +1564,7 @@ public class MyCommands
 
             sw.WriteLine(textValue);
 
-            sw.WriteLine($",,,,,Total Site Area : " + SiteInfo.TotalSiteArea);
+            sw.WriteLine("Total Applicants Site Area ".PadRight(33) + "= " + $"{String.Format("{0:0.00}", RoundLengthValue(SiteInfo.TotalSiteArea))}");
 
         }
     }
