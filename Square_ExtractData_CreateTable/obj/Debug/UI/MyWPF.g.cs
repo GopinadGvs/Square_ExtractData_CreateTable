@@ -68,7 +68,7 @@ namespace Square_ExtractData_CreateTable {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/MExport1;component/ui/mywpf.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/MExport;component/ui/mywpf.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\UI\MyWPF.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

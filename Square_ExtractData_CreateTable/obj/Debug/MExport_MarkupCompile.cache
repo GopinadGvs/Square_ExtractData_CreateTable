@@ -1,4 +1,4 @@
-﻿MExport1
+﻿MExport
 
 
 library
@@ -16,5 +16,5 @@ DEBUG;TRACE
 751148002665
 UI\MyWPF.xaml;
 
-False
+True
 
