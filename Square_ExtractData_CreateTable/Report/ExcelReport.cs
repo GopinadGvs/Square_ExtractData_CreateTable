@@ -101,7 +101,8 @@ namespace Square_ExtractData_CreateTable
                 //BackColor = new HighlightColor() { B = 144, G = 238, R = 144 },
                 WordWrap = true,
                 HorizontalAlignment = ExcelHorizontalAlignment.Left,
-                VerticalAlignment = ExcelVerticalAlignment.Center
+                VerticalAlignment = ExcelVerticalAlignment.Center,
+                FontSize = 15,
             };
 
             int mergeStartRow = startRow + combinedPlots.Count + 3;
@@ -110,13 +111,60 @@ namespace Square_ExtractData_CreateTable
             int numberofColumsToMerge = 5;
             int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Site Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.TotalSiteArea, 2))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Site Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow + 2, mergeStartColumn, mergeEndRow + 2, mergeEndColumn, $"Total Plots Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.PlotsArea, 2))}", mergeSettings));
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow + 3, mergeStartColumn, mergeEndRow + 3, mergeEndColumn, $"Total Amenities Area - {String.Format("{0:0.00}", Math.Round(SiteInfo.AmenitiesArea, 2))}", mergeSettings));
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Utility Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.UtilityArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Internal Roads Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.InternalRoadsArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Left Over Owner Land Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.LeftOverOwnerLandArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Road Widening Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.RoadWideningArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Splay Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.SplayArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Green Buffer Zone Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.GreenArea))}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
+
+            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Difference Area - {String.Format("{0:0.00}", RoundValue(SiteInfo.differenceArea))}", mergeSettings));
 
             repo.GenerateReport();
+        }
+
+        public static void RowIncrement(ref int startRowNumber, ref int endRowNumber, int increment)
+        {
+            startRowNumber = startRowNumber + increment;
+            endRowNumber = endRowNumber + increment;
+        }
+
+        public static double RoundValue(double value)
+        {
+            return Math.Round(value, 2);
         }
     }
 }

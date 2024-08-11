@@ -27,3 +27,4 @@ E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_Cr
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\Square_ExtractData_CreateTable.csproj.CopyComplete
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\MExport1.dll
 E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\obj\Debug\MExport1.pdb
+E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\Square_ExtractData_CreateTable\bin\Debug\MExport1.dll.config
