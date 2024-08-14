@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="Objects\Amenity.cs" />
     <Compile Include="Constants\Constants.cs" />
+    <Compile Include="Objects\AreaConstants.cs" />
     <Compile Include="Objects\SiteInfo.cs" />
     <Compile Include="Report\ExcelReport.cs" />
     <Compile Include="Utilities\Extension.cs" />

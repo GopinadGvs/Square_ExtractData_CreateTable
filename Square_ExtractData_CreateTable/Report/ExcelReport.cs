@@ -13,6 +13,8 @@ namespace Square_ExtractData_CreateTable
     {
         public static void WritetoExcel(string prefix, string path, List<Plot> combinedPlots)
         {
+            AreaConstants areaConstants = new AreaConstants(SiteInfo.TotalSiteArea);
+
             MyDataTableRepository repo = new MyDataTableRepository();
             repo.TemplatePath = Constants.ExceltemplatePath;
             repo.Prefix = prefix;
@@ -88,7 +90,7 @@ namespace Square_ExtractData_CreateTable
                $"" ,
                $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
-               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });          
+               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
 
 
             int startRow = 6;
@@ -265,10 +267,22 @@ namespace Square_ExtractData_CreateTable
                 dataTable2.Rows[row.RowNumber - 1].Cells[8].Settings = highlighter3;
             }
 
-            //color amenity, utility & open space as per logic
-            //ToDo - add logic to highlight areas
-            dataTable2.Rows[3].Cells[8].UpdateSettings = true;
-            dataTable2.Rows[3].Cells[8].Settings = ColorhighlighterForArea;
+            //logic added to highlight amenity, open space & utility areas as per predefined rule
+            if (!areaConstants.ValidateAmenity(SiteInfo.AmenitiesArea))
+            {
+                dataTable2.Rows[3].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[3].Cells[8].Settings = ColorhighlighterForArea;
+            }
+            if (!areaConstants.ValidateOpenSpace(SiteInfo.OpenSpaceArea))
+            {
+                dataTable2.Rows[4].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[4].Cells[8].Settings = ColorhighlighterForArea;
+            }
+            if (!areaConstants.ValidateUtility(SiteInfo.UtilityArea))
+            {
+                dataTable2.Rows[5].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[5].Cells[8].Settings = ColorhighlighterForArea;
+            }
 
             repo.MyDataTables.Add(dataTable2);
 
@@ -286,15 +300,15 @@ namespace Square_ExtractData_CreateTable
             int mergeEndRow = mergeStartRow;
             int numberofColumsToMerge = 4;
             int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
-            int padLength = 33;           
+            int padLength = 33;
 
             dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Layout Area".PadRight(padLength), mergeSettings));
 
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);            
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
             dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area Including Mortgages".PadRight(padLength), mergeSettings));
 
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);            
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
             dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength), mergeSettings));
 
