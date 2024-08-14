@@ -88,16 +88,7 @@ namespace Square_ExtractData_CreateTable
                $"" ,
                $"{combinedPlots.Select(x => x._PlotArea).ToArray().Sum():0.00}" ,
                $"{combinedPlots.Select(x => x._MortgageArea).ToArray().Sum():0.00}" ,
-               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
-
-            //Write areas in table
-            //dt1.Rows.Add(new object[] {$"" ,
-            //   $"" ,
-            //   $"" ,
-            //   $"" ,
-            //   $"" ,
-            //   $"" ,
-            //   $"Total Site Area = {String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}" });
+               $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });          
 
 
             int startRow = 6;
@@ -118,6 +109,169 @@ namespace Square_ExtractData_CreateTable
 
             repo.MyDataTables.Add(dataTable1);
 
+            //create another data table
+            System.Data.DataTable dt2 = new System.Data.DataTable();
+            dt2.Columns.Add("Plot Number");
+            dt2.Columns.Add("East");
+            dt2.Columns.Add("South");
+            dt2.Columns.Add("West");
+            dt2.Columns.Add("North");
+            dt2.Columns.Add("Plot Area");
+            dt2.Columns.Add("Mortgage Plots");
+            dt2.Columns.Add("Amenity Plots");
+            dt2.Columns.Add("Doc.No/R.S.No./Area/Name");
+            dt2.Columns.Add("EastI");
+            dt2.Columns.Add("SouthI");
+            dt2.Columns.Add("WestI");
+            dt2.Columns.Add("NorthI");
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Layout Area".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}" });
+
+            dt2.Rows.Add(new object[] { $"" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Plots Area Including Mortgages".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea/SiteInfo.TotalSiteArea * 100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Amenities Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total openspace Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total utility Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.UtilityArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.UtilityArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total roads Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.InternalRoadsArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.InternalRoadsArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total leftoverland Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.LeftOverOwnerLandArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.LeftOverOwnerLandArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Road widening Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.RoadWideningArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.RoadWideningArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Splay Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.SplayArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.SplayArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Amenities Area ".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.GreenArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.GreenArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Verified Area".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.VerifiedArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.VerifiedArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            dt2.Rows.Add(new object[] { $"" });
+
+            dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Difference Area".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.differenceArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.differenceArea/SiteInfo.TotalSiteArea*100))}" + "%)" }" });
+
+            //logic to merge columns
+
+            int startRowfordt2 = startRow + combinedPlots.Count + 3;
+
+            MyDataTable dataTable2 = new MyDataTable(dt2)
+            {
+                SheetName = "Meters",
+                PrintHeader = false,
+                StartRow = startRowfordt2,
+                AddBorder = false
+            };
+
+            //datatable2 font change
+            var highlighter2 = new StyleSettings()
+            {
+                //BackColor = new HighlightColor() { B = 144, G = 238, R = 144 },
+                WordWrap = false,
+                HorizontalAlignment = ExcelHorizontalAlignment.Center,
+                VerticalAlignment = ExcelVerticalAlignment.Center,
+                FontSize = 13,
+            };
+
+            var highlighter3 = new StyleSettings()
+            {
+                //BackColor = new HighlightColor() { B = 144, G = 238, R = 144 },
+                WordWrap = false,
+                HorizontalAlignment = ExcelHorizontalAlignment.Left,
+                VerticalAlignment = ExcelVerticalAlignment.Center,
+                FontSize = 13,
+            };
+
+            var ColorhighlighterForArea = new StyleSettings()
+            {
+                BackColor = new HighlightColor() { B = 0, G = 0, R = 255 },
+                WordWrap = false,
+                HorizontalAlignment = ExcelHorizontalAlignment.Left,
+                VerticalAlignment = ExcelVerticalAlignment.Center,
+                FontSize = 13,
+            };
+
+            //adjust text height of datatable2
+            foreach (var row in dataTable2.Rows)
+            {
+                dataTable2.Rows[row.RowNumber - 1].UpdateSettings = true;
+                dataTable2.Rows[row.RowNumber - 1].Settings = highlighter2;
+
+                //make total area column in left
+                dataTable2.Rows[row.RowNumber - 1].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[row.RowNumber - 1].Cells[8].Settings = highlighter3;
+            }
+
+            //color amenity, utility & open space as per logic
+            //ToDo - add logic to highlight areas
+            dataTable2.Rows[3].Cells[8].UpdateSettings = true;
+            dataTable2.Rows[3].Cells[8].Settings = ColorhighlighterForArea;
+
+            repo.MyDataTables.Add(dataTable2);
+
             var mergeSettings = new StyleSettings()
             {
                 //BackColor = new HighlightColor() { B = 144, G = 238, R = 144 },
@@ -130,55 +284,55 @@ namespace Square_ExtractData_CreateTable
             int mergeStartRow = startRow + combinedPlots.Count + 3;
             int mergeStartColumn = 3;
             int mergeEndRow = mergeStartRow;
-            int numberofColumsToMerge = 5;
+            int numberofColumsToMerge = 4;
             int mergeEndColumn = mergeStartColumn + numberofColumsToMerge;
-            int padLength = 33;
+            int padLength = 33;           
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Applicants Site Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.TotalSiteArea))}", mergeSettings));
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Layout Area".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);            
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area Including Mortgages".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);            
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Utility Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Internal Roads Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Left Over Owner Land Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Road Widening Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Splay Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Green Buffer Zone Area ".PadRight(padLength), mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Verified Area ".PadRight(padLength), mergeSettings));
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, "Total Plots Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Amenities Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.AmenitiesArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Open Space Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.OpenSpaceArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Utility Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.UtilityArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Internal Roads Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.InternalRoadsArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Left Over Owner Land Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.LeftOverOwnerLandArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Road Widening Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.RoadWideningArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Splay Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.SplayArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Green Buffer Zone Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.GreenArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Verified Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.VerifiedArea))}", mergeSettings));
-
-            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
-
-            dataTable1.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Difference Area ".PadRight(padLength) + "= " + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.differenceArea))}", mergeSettings));
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Difference Area ".PadRight(padLength), mergeSettings));
 
             List<string> paths = repo.GenerateReport();
 
