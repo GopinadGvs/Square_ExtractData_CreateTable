@@ -53,7 +53,8 @@ namespace Square_ExtractData_CreateTable
 
             foreach (var item in combinedPlots)
             {
-                if (!item.IsRoadAvailable)
+                //if no road is available or any of the boundary info is not available then add row number to list
+                if (!item.IsRoadAvailable || item._NorthInfo == "-" || item._SouthInfo == "-" || item._EastInfo == "-" || item._WestInfo == "-")
                 {
                     rowNumbersWithOutRoad.Add(rowNumberWithRoadStart);
                 }
@@ -105,8 +106,17 @@ namespace Square_ExtractData_CreateTable
             //mark rows in red color if there is no Road in any of the directions
             foreach (int rowNumber in rowNumbersWithOutRoad)
             {
-                dataTable1.Rows[rowNumber].UpdateSettings = true;
-                dataTable1.Rows[rowNumber].Settings = highlighter;
+                //highlight entire row
+                //dataTable1.Rows[rowNumber].UpdateSettings = true;
+                //dataTable1.Rows[rowNumber].Settings = highlighter;
+
+                //cell values hard coded for Boundary cells (East,South,West,North)
+                List<int> cellValues = new List<int>() { 9, 10, 11, 12 };
+                foreach (int cellValue in cellValues)
+                {
+                    dataTable1.Rows[rowNumber].Cells[cellValue].UpdateSettings = true;
+                    dataTable1.Rows[rowNumber].Cells[cellValue].Settings = highlighter;
+                }
             }
 
             repo.MyDataTables.Add(dataTable1);
