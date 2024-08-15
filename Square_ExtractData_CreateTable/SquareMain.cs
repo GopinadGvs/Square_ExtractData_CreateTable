@@ -244,6 +244,9 @@ public class MyCommands
             BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
             BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
+
+            #region Collect Areas
+
             SiteInfo.TotalSiteArea = GetAreaByLayer(Constants.PlotLayer, acTrans);
 
             SiteInfo.PlotsArea = GetAreaByLayer(Constants.IndivPlotLayer, acTrans);
@@ -260,6 +263,71 @@ public class MyCommands
             SiteInfo.VerifiedArea = SiteInfo.PlotsArea + SiteInfo.AmenitiesArea + SiteInfo.OpenSpaceArea + SiteInfo.UtilityArea + SiteInfo.InternalRoadsArea + SiteInfo.SplayArea + SiteInfo.LeftOverOwnerLandArea + SiteInfo.RoadWideningArea + SiteInfo.GreenArea;
 
             SiteInfo.differenceArea = SiteInfo.TotalSiteArea - SiteInfo.VerifiedArea;
+
+            #endregion
+
+            #region Collect Plot & Amenity numbers to find missing,duplicate & other numbers
+
+            List<string> plotnumbers = GetListTextFromLayer(Constants.IndivPlotLayer, acTrans);
+            List<string> amenityNumbers = GetListTextFromLayer(Constants.AmenityLayer, acTrans);
+            List<string> combinedPlotAndAmenityNumbers = plotnumbers.Concat(amenityNumbers).ToList();
+
+            combinedPlotAndAmenityNumbers.Sort(new AlphanumericComparer());
+
+            List<int> sortedIntegers = new List<int>();
+            List<string> sortedStrings = new List<string>();
+
+            //separate numbers and strings
+            foreach (string text3 in combinedPlotAndAmenityNumbers)
+            {
+                if (int.TryParse(text3, out var _))
+                {
+                    sortedIntegers.Add(Convert.ToInt32(text3));
+                }
+                else
+                {
+                    sortedStrings.Add(text3);
+                }
+            }
+
+            FindMissingNumber.otherNumbersString = "Other Numbers: " + string.Join(",", sortedStrings.ToArray());
+
+            int startNum = sortedIntegers.Min();
+            int endNum = sortedIntegers.Max();
+
+            //logic to get missing numbers from range
+            IEnumerable<int> missingNumbers = Enumerable.Range(startNum, endNum - startNum).Except(sortedIntegers);
+
+            FindMissingNumber.missingNumbersString = $"Missing Numbers in Range ({startNum} - {endNum}): " + string.Join(",", missingNumbers.ToArray());
+
+            //create a dictionary with item number and it's repetative count to get duplicates
+            Dictionary<int, int> dictionary = new Dictionary<int, int>();
+            foreach (int item2 in sortedIntegers)
+            {
+                if (dictionary.ContainsKey(item2))
+                {
+                    dictionary[item2]++;
+                }
+                else
+                {
+                    dictionary[item2] = 1;
+                }
+            }
+
+            //get duplicate values
+            List<string> duplicatesInfo = new List<string>();
+            foreach (KeyValuePair<int, int> item3 in dictionary)
+            {
+                if (item3.Value > 1)
+                {
+                    duplicatesInfo.Add($"Value {item3.Key} occurred {item3.Value} times");
+                }
+            }
+
+            FindMissingNumber.duplicateNumbersString = duplicatesInfo;
+
+            #endregion
+
 
             #region Logic to get mortgage plot numbers list
             //ed.WriteMessage("Collecting Mortgage information...");
@@ -2262,6 +2330,42 @@ public class MyCommands
         }
 
         return TotalArea;
+    }
+
+    public List<string> GetListTextFromLayer(string layerName, Transaction acTrans)
+    {
+        List<string> textArray = new List<string>();
+
+        PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+        if (acSSPrompt1.Status == PromptStatus.OK)
+        {
+            SelectionSet acSSet = acSSPrompt1.Value;
+
+            foreach (SelectedObject acSSObj in acSSet)
+            {
+                if (acSSObj != null)
+                {
+                    Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                    if (acPoly != null && acPoly.Closed)
+                    {
+                        //Collect all Points
+                        Point3dCollection point3DCollection = new Point3dCollection();
+
+                        for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                        {
+                            point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                        }
+
+                        textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
+                        textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
+                    }
+                }
+            }
+        }
+
+        return textArray;
     }
 
     //private string GetTextFromLayer2(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)

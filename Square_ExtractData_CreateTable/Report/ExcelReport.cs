@@ -374,6 +374,26 @@ namespace Square_ExtractData_CreateTable
 
             dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Difference Area ".PadRight(padLength), mergeSettings));
 
+            //add missing,duplicate & other numbers to excel
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
+            mergeEndColumn = 13;
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"{FindMissingNumber.missingNumbersString}", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Duplicate Numbers: ", mergeSettings));
+
+            RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+            foreach (var item in FindMissingNumber.duplicateNumbersString)
+            {
+                dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"{item}", mergeSettings));
+                RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+            }
+
+            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"{FindMissingNumber.otherNumbersString}", mergeSettings));
+
             List<string> paths = repo.GenerateReport();
 
             if (!paths.Any(s => s.IndexOf("pdf", StringComparison.OrdinalIgnoreCase) >= 0))
