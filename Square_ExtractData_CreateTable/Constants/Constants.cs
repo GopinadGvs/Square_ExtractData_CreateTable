@@ -34,7 +34,9 @@ namespace Square_ExtractData_CreateTable
 
         public static int AreaDecimals = 2;
         public static int uniquePointsIdentifier = 1;
-        public static double minArea = 1.0;
+        public static double minArea = 0.1;
+        public static double areaTolerance = 0.01;
+
 
         public static string ExceltemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
     }

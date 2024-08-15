@@ -33,6 +33,7 @@ namespace Square_ExtractData_CreateTable
             };
 
             List<int> rowNumbersWithOutRoad = new List<int>();
+            List<int> rowNumbersWithTotalSVnoAreaMismatch = new List<int>();
 
             System.Data.DataTable dt1 = new System.Data.DataTable();
             dt1.Columns.Add("Plot Number");
@@ -60,12 +61,20 @@ namespace Square_ExtractData_CreateTable
                 }
 
                 List<string> combinedText = new List<string>();
+                double totalAreainSVNo = 0;
                 foreach (SurveyNo svno in item._ParentSurveyNos)
                 {
                     //condition to eliminate 0 areas in some survey no's ex: plot no.65
                     if (item.AreaInSurveyNo[svno] > Constants.minArea)
                         combinedText.Add($"{svno.DocumentNo + "-" + svno._SurveyNo + "-" + String.Format("{0:0.00}", item.AreaInSurveyNo[svno]) + "-" + svno.LandLordName }");
+
+                    totalAreainSVNo += item.AreaInSurveyNo[svno];
                 }
+
+                //adding row numbers with total area in surveyno mismatches with plot area to color the cell 
+                double areaDifference = Math.Abs(totalAreainSVNo - item._Area);
+                if (areaDifference >= Constants.areaTolerance)
+                    rowNumbersWithTotalSVnoAreaMismatch.Add(rowNumberWithRoadStart);
 
                 dt1.Rows.Add(new object[] { $"{item._PlotNo}" ,
                 $"{item._SizesInEast[0].Text}" ,
@@ -103,7 +112,7 @@ namespace Square_ExtractData_CreateTable
                 StartRow = startRow
             };
 
-            //mark rows in red color if there is no Road in any of the directions
+            //mark cells in red color if there is no Road in any of the directions
             foreach (int rowNumber in rowNumbersWithOutRoad)
             {
                 //highlight entire row
@@ -117,6 +126,13 @@ namespace Square_ExtractData_CreateTable
                     dataTable1.Rows[rowNumber].Cells[cellValue].UpdateSettings = true;
                     dataTable1.Rows[rowNumber].Cells[cellValue].Settings = highlighter;
                 }
+            }
+
+            //mark cells in red color with mismatch total survey no areas with plot area
+            foreach (int rowNumberWithTotalSVnoAreaMismatch in rowNumbersWithTotalSVnoAreaMismatch)
+            {
+                dataTable1.Rows[rowNumberWithTotalSVnoAreaMismatch].Cells[8].UpdateSettings = true;
+                dataTable1.Rows[rowNumberWithTotalSVnoAreaMismatch].Cells[8].Settings = highlighter;
             }
 
             repo.MyDataTables.Add(dataTable1);

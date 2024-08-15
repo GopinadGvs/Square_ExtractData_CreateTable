@@ -1937,13 +1937,13 @@ public class MyCommands
         if (!string.IsNullOrEmpty(plotNoText))
         {
             plotNo._PlotNo = plotNoText;//assign plotNo Text
-            plotNo._Area = Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);
+            plotNo._Area = plotNo._Polyline.Area; /*Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);*/
             plotNo._ParentSurveyNos.Add(surveyNo);
         }
         else
         {
             plotNo._PlotNo = GetTextFromLayer(acTrans, plotNo._PolylinePoints, Constants.MTEXT, TextLayerName);//assign plotNo Text
-            plotNo._Area = Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);
+            plotNo._Area = plotNo._Polyline.Area;/* Math.Round(plotNo._Polyline.Area, Constants.AreaDecimals);*/
             plotNo._ParentSurveyNos.Add(surveyNo);
         }
 
