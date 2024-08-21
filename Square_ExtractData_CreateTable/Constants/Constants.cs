@@ -28,6 +28,11 @@ namespace Square_ExtractData_CreateTable
         public static string RoadWideningLayer = "_RoadWidening";
         public static string GreenBufferZoneLayer = "_GreenBufferZone";
 
+        public static string LandLordSubLayer = "_LandLord_Sub";
+
+        public static string FreeSpaceLayer = "_FreeSpace";
+
+
         public static string LWPOLYLINE = "LWPOLYLINE";
         public static string TEXT = "TEXT";
         public static string MTEXT = "MTEXT";

@@ -69,30 +69,12 @@ public class MyCommands
         Database acCurDb = acDoc.Database;
         Editor ed = acDoc.Editor;
 
+        Application.SetSystemVariable("CMDECHO", 0);
+
         // Zoom extents
         ed.Command("_.zoom", "_e");
 
-        List<string> layersList = new List<string>()
-        {
-            Constants.SurveyNoLayer,
-            Constants.IndivPlotLayer,
-            //Constants.IndivPlotDimLayer,
-            Constants.MortgageLayer,
-            Constants.AmenityLayer,
-            //Constants.AmenityDimLayer,
-            Constants.DocNoLayer,
-            Constants.LandLordLayer,
-            Constants.InternalRoadLayer,
-            Constants.PlotLayer,
-            Constants.OpenSpaceLayer,
-            Constants.UtilityLayer,
-            Constants.LeftOverOwnerLandLayer,
-            Constants.SideBoundaryLayer,
-            Constants.MainRoadLayer,
-            Constants.SplayLayer,
-            Constants.RoadWideningLayer,
-            Constants.GreenBufferZoneLayer
-        };
+        List<string> layersList = GetLayerList();
 
         using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
         {
@@ -134,8 +116,6 @@ public class MyCommands
             acTrans.Commit();
         }
 
-        Application.SetSystemVariable("CMDECHO", 0);
-
         // Execute layer management commands after the transaction is committed
         foreach (var layerName in layersList)
         {
@@ -144,6 +124,36 @@ public class MyCommands
 
         Application.SetSystemVariable("CMDECHO", 1);
     }
+
+
+    private List<string> GetLayerList()
+    {
+        List<string> layersList = new List<string>()
+        {
+            Constants.SurveyNoLayer,
+            Constants.IndivPlotLayer,
+            //Constants.IndivPlotDimLayer,
+            Constants.MortgageLayer,
+            Constants.AmenityLayer,
+            //Constants.AmenityDimLayer,
+            Constants.DocNoLayer,
+            Constants.LandLordLayer,
+            Constants.InternalRoadLayer,
+            Constants.PlotLayer,
+            Constants.OpenSpaceLayer,
+            Constants.UtilityLayer,
+            Constants.LeftOverOwnerLandLayer,
+            Constants.SideBoundaryLayer,
+            Constants.MainRoadLayer,
+            Constants.SplayLayer,
+            Constants.RoadWideningLayer,
+            Constants.GreenBufferZoneLayer,
+            Constants.LandLordSubLayer,
+        };
+
+        return layersList;
+    }
+
 
     [CommandMethod("MExport")]
 
@@ -196,27 +206,7 @@ public class MyCommands
         pm.Start("Export to Excel In Progress....");
         pm.SetLimit(100);
 
-        List<string> layersList = new List<string>()
-        {
-            Constants.SurveyNoLayer,
-            Constants.IndivPlotLayer,
-            //Constants.IndivPlotDimLayer,
-            Constants.MortgageLayer,
-            Constants.AmenityLayer,
-            //Constants.AmenityDimLayer,
-            Constants.DocNoLayer,
-            Constants.LandLordLayer,
-            Constants.InternalRoadLayer,
-            Constants.PlotLayer,
-            Constants.OpenSpaceLayer,
-            Constants.UtilityLayer,
-            Constants.LeftOverOwnerLandLayer,
-            Constants.SideBoundaryLayer,
-            Constants.MainRoadLayer,
-            Constants.SplayLayer,
-            Constants.RoadWideningLayer,
-            Constants.GreenBufferZoneLayer
-        };
+        List<string> layersList = GetLayerList();
 
         // Turn on, unlock and thaw layers
         foreach (var layerName in layersList)
@@ -243,6 +233,30 @@ public class MyCommands
         {
             BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
             BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
+
+            #region Create Free Space Layer
+
+            //create free space layer with red color
+
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+
+            // Upgrade the LayerTable to write
+            layerTable.UpgradeOpen();
+
+            LayerTableRecord layerTableRecord = new LayerTableRecord
+            {
+                Name = Constants.FreeSpaceLayer,
+                Color = Color.FromRgb(255, 0, 0) // Red color
+            };
+
+            // Add the new layer to the LayerTable
+            layerTable.Add(layerTableRecord);
+
+            // Add the new LayerTableRecord to the transaction
+            acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+
+            #endregion
 
 
             #region Collect Areas
