@@ -1364,6 +1364,69 @@ public class MyCommands
 
             #endregion
 
+
+            #region Validate all Areas and highlight free space
+
+            PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoMainLayer));
+
+            if (acSSPromptNew.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSet = acSSPromptNew.Value;
+
+                foreach (SelectedObject acSSObj in acSSet)
+                {
+                    double SurveyNoArea = 0.0;
+                    double landLordSubArea = 0.0;
+
+                    Dictionary<string, ObjectId> myDict = new Dictionary<string, ObjectId>();
+
+                    if (acSSObj != null)
+                    {
+                        Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                        if (acPoly != null)
+                        {
+                            SurveyNoArea = acPoly.Area;
+
+                            //Collect all Points
+                            Point3dCollection point3DCollection = new Point3dCollection();
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            string surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNoMainLayer);
+                            if(string.IsNullOrEmpty(surveyNoText))
+                                surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoMainLayer);
+
+                            myDict.Add(surveyNoText, acPoly.ObjectId);
+
+                            List<Polyline> polylines = GetPolylinesUsingCrossPolygon(point3DCollection.Cast<Point3d>().ToList(), acTrans, Constants.SurveyNoLayer);
+
+                            foreach (Polyline polyline in polylines)
+                            {
+                                landLordSubArea += polyline.Area;
+                            }
+                        }
+                    }
+
+                    double diffArea = Math.Abs(SurveyNoArea - landLordSubArea);
+
+                    if (diffArea < Constants.areaTolerance)
+                    {
+                        //Area Mismatch
+                    }
+                }
+            }
+
+
+
+            #endregion
+
+
+
+
+
             // Write data to CSV
 
             UpdateAutoCADProgressBar(pm);
