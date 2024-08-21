@@ -244,17 +244,22 @@ public class MyCommands
             // Upgrade the LayerTable to write
             layerTable.UpgradeOpen();
 
-            LayerTableRecord layerTableRecord = new LayerTableRecord
+            string layerName = Constants.FreeSpaceLayer;
+
+            if (!layerTable.Has(layerName))
             {
-                Name = Constants.FreeSpaceLayer,
-                Color = Color.FromRgb(255, 0, 0) // Red color
-            };
+                LayerTableRecord layerTableRecord = new LayerTableRecord
+                {
+                    Name = layerName,
+                    Color = Color.FromRgb(255, 0, 0) // Red color
+                };
 
-            // Add the new layer to the LayerTable
-            layerTable.Add(layerTableRecord);
+                // Add the new layer to the LayerTable
+                layerTable.Add(layerTableRecord);
 
-            // Add the new LayerTableRecord to the transaction
-            acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+                // Add the new LayerTableRecord to the transaction
+                acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+            }
 
             #endregion
 

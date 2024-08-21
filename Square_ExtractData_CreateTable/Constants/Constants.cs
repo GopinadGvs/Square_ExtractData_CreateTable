@@ -8,7 +8,13 @@ namespace Square_ExtractData_CreateTable
 {
     public static class Constants
     {
-        public static string SurveyNoLayer = "_SurveyNo";
+        //public static string SurveyNoLayer = "_SurveyNo";
+
+        //survey no layer name updated to handle landlord sub 
+        public static string SurveyNoLayer = "_LandLord_Sub";
+
+        public static string SurveyNoMainLayer = "_SurveyNo";
+
         public static string IndivPlotLayer = "_IndivSubPlot";
         //public static string IndivPlotDimLayer = "_IndivSubPlot_DIMENSION";
         public static string MortgageLayer = "_MortgageArea";
