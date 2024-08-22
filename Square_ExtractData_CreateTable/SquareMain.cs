@@ -1379,6 +1379,7 @@ public class MyCommands
                     double landLordSubArea = 0.0;
 
                     Dictionary<string, ObjectId> myDict = new Dictionary<string, ObjectId>();
+                    string surveyNoText = string.Empty;
 
                     if (acSSObj != null)
                     {
@@ -1395,26 +1396,109 @@ public class MyCommands
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            string surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNoMainLayer);
-                            if(string.IsNullOrEmpty(surveyNoText))
+                            surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNoMainLayer);
+                            if (string.IsNullOrEmpty(surveyNoText))
                                 surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoMainLayer);
 
                             myDict.Add(surveyNoText, acPoly.ObjectId);
 
-                            List<Polyline> polylines = GetPolylinesUsingCrossPolygon(point3DCollection.Cast<Point3d>().ToList(), acTrans, Constants.SurveyNoLayer);
+                            //ToDo - 22.08.2024 use window polygon
 
-                            foreach (Polyline polyline in polylines)
+                            PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+
+                            if (acSSPromptPoly.Status == PromptStatus.OK)
                             {
-                                landLordSubArea += polyline.Area;
+                                SelectionSet acSSetPoly = acSSPromptPoly.Value;
+
+                                foreach (SelectedObject acSSObjPoly in acSSetPoly)
+                                {
+                                    if (acSSObjPoly != null)
+                                    {
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                        //Collect all Points
+                                        Point3dCollection point3DCollection2 = new Point3dCollection();
+                                        for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                        {
+                                            point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
+                                        }
+
+                                        if (acPoly2 != null)
+                                        {
+                                            List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
+                                            List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
+
+                                            if (uniquePoints.Count > Constants.uniquePointsIdentifierNew)
+                                            {
+                                                string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                                if (string.IsNullOrEmpty(text))
+                                                    text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+
+                                                if (surveyNoText == text)
+                                                {
+                                                    landLordSubArea += acPoly2.Area;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
+
+
+                            PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+
+                            if (acSSPromptZeroPoly.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
+
+                                foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
+                                {
+                                    if (acSSObjZeroPoly != null)
+                                    {
+                                        Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                        //Collect all Points
+                                        Point3dCollection point3DCollection2 = new Point3dCollection();
+                                        for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                        {
+                                            point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
+                                        }
+
+                                        if (acPoly2 != null)
+                                        {
+                                            string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                            if (string.IsNullOrEmpty(text))
+                                                text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+
+                                            if (surveyNoText == text)
+                                            {
+                                                landLordSubArea += acPoly2.Area;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            //List<Polyline> polylines = GetPolylinesUsingCrossPolygon(point3DCollection.Cast<Point3d>().ToList(), acTrans, Constants.SurveyNoLayer);
+
+                            //foreach (Polyline polyline in polylines)
+                            //{
+                            //    landLordSubArea += polyline.Area;
+                            //}
                         }
                     }
 
-                    double diffArea = Math.Abs(SurveyNoArea - landLordSubArea);
+                    double diffArea = landLordSubArea - SurveyNoArea;
 
-                    if (diffArea < Constants.areaTolerance)
+                    if (diffArea != 0 && diffArea < Constants.areaTolerance)
                     {
                         //Area Mismatch
+                        System.Diagnostics.Debug.Print(surveyNoText);
+                    }
+                    else
+                    {
+                        //correct area
+                        System.Diagnostics.Debug.Print(surveyNoText);
                     }
                 }
             }

@@ -45,6 +45,7 @@ namespace Square_ExtractData_CreateTable
 
         public static int AreaDecimals = 2;
         public static int uniquePointsIdentifier = 1;
+        public static int uniquePointsIdentifierNew = 2;
         public static double minArea = 0.1;
         public static double areaTolerance = 0.01;
 
