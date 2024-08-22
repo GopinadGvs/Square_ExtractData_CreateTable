@@ -1385,6 +1385,8 @@ public class MyCommands
                     {
                         Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
 
+                        Point3dCollection intersectionPointsOtherthanBoundary = new Point3dCollection();
+
                         if (acPoly != null)
                         {
                             SurveyNoArea = acPoly.Area;
@@ -1438,12 +1440,18 @@ public class MyCommands
                                                 {
                                                     landLordSubArea += acPoly2.Area;
                                                 }
+
+                                                //add points to intersectionPointsOtherthanBoundary to draw red color boundary
+                                                foreach (Point3d uniquePoint in uniquePoints)
+                                                {
+                                                    if (!point3DCollection.Contains(uniquePoint))
+                                                        intersectionPointsOtherthanBoundary.Add(uniquePoint);
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-
 
                             PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
 
@@ -1486,19 +1494,25 @@ public class MyCommands
                             //    landLordSubArea += polyline.Area;
                             //}
                         }
-                    }
 
-                    double diffArea = landLordSubArea - SurveyNoArea;
+                        double diffArea = landLordSubArea - SurveyNoArea;
 
-                    if (diffArea != 0 && diffArea < Constants.areaTolerance)
-                    {
-                        //Area Mismatch
-                        System.Diagnostics.Debug.Print(surveyNoText);
-                    }
-                    else
-                    {
-                        //correct area
-                        System.Diagnostics.Debug.Print(surveyNoText);
+                        if (diffArea != 0 && diffArea < Constants.areaTolerance)
+                        {
+                            //Area Mismatch
+                            System.Diagnostics.Debug.Print(surveyNoText);
+
+                            if (intersectionPointsOtherthanBoundary.Count > 0)
+                            {
+                                //ToDo - 22.08.2024
+                                double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                            }
+                        }
+                        else
+                        {
+                            //correct area
+                            System.Diagnostics.Debug.Print(surveyNoText);
+                        }
                     }
                 }
             }
@@ -1844,6 +1858,20 @@ public class MyCommands
         return area;
     }
 
+    private double CalculateAreaAndCreatePolyline(List<Point3d> points)
+    {
+        // Sort the points to form a proper closed polyline
+        List<Point3d> sortedPoints = SortPoints(points.ToArray());
+
+        // Create a closed polyline from the sorted points
+        Polyline polyline = CreateClosedPolylineAndCommit(sortedPoints);
+
+        // Calculate the area of the polyline
+        double area = polyline.Area;
+
+        return area;
+    }
+
     private Polyline CreateClosedPolyline(List<Point3d> points)
     {
         Polyline polyline = new Polyline();
@@ -1856,6 +1884,57 @@ public class MyCommands
         }
 
         polyline.Closed = true; // Close the polyline
+
+        return polyline;
+    }
+
+    private Polyline CreateClosedPolylineAndCommit(List<Point3d> points)
+    {
+        Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        Database db = acDoc.Database;
+        Polyline polyline = new Polyline();
+
+        //Start a transaction
+        using (Transaction trans = db.TransactionManager.StartTransaction())
+        {
+            // Open the BlockTable for read
+            BlockTable blockTable = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+
+            // Add points to polyline
+            for (int i = 0; i < points.Count; i++)
+            {
+                Point2d pt2d = new Point2d(points[i].X, points[i].Y);
+                polyline.AddVertexAt(i, pt2d, 0, 0, 0);
+            }
+
+            polyline.Closed = true; // Close the polyline
+
+
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
+            string layerName = Constants.FreeSpaceLayer;
+
+            if (layerTable.Has(layerName))
+            {
+                //get layers object id
+                ObjectId layerId = layerTable[layerName];
+
+                //open the layer for read
+                LayerTableRecord layerTableRecord = trans.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
+
+                //set the layer as current layer
+                db.Clayer = layerId;
+            }
+
+            //Add the polyline to the current space
+            BlockTableRecord btr = (BlockTableRecord)trans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+            btr.AppendEntity(polyline);
+            trans.AddNewlyCreatedDBObject(polyline, true);
+
+            //Commit the transaction
+            trans.Commit();
+        }
 
         return polyline;
     }

@@ -87,6 +87,7 @@
     <Compile Include="Constants\Constants.cs" />
     <Compile Include="Objects\AreaConstants.cs" />
     <Compile Include="Objects\SiteInfo.cs" />
+    <Compile Include="ReferenceCodes\Snippets.cs" />
     <Compile Include="Report\ExcelReport.cs" />
     <Compile Include="Utilities\Extension.cs" />
     <Compile Include="UI\Form1.cs">
@@ -125,9 +126,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ReferenceCodes\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\CreateExcelAndPDF\CreateExcelAndPDF.csproj">
       <Project>{419ff520-c2f1-4e34-866e-217f26c57db3}</Project>
