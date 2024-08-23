@@ -1430,7 +1430,7 @@ public class MyCommands
                                             List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
                                             List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
 
-                                            if (uniquePoints.Count > Constants.uniquePointsIdentifierNew)
+                                            if (uniquePoints.Count > Constants.uniquePointsIdentifier) //ToDo - test multiple types and confirm this logic
                                             {
                                                 string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
                                                 if (string.IsNullOrEmpty(text))
@@ -1497,32 +1497,43 @@ public class MyCommands
 
                         double diffArea = landLordSubArea - SurveyNoArea;
 
-                        if (diffArea != 0 && diffArea < Constants.areaTolerance)
+                        //if (diffArea != 0 && diffArea < Constants.areaTolerance) //ToDo Update logic here
+                        //{
+                        //    //Area Mismatch
+                        //    System.Diagnostics.Debug.Print(surveyNoText);
+
+                        //    if (intersectionPointsOtherthanBoundary.Count > 0)
+                        //    {
+                        //        //ToDo - 22.08.2024
+                        //        double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                        //    }
+                        //}
+                        if (diffArea == 0)
+                        {
+                            //correct area
+                            System.Diagnostics.Debug.Print(surveyNoText);
+                        }
+
+                        else
                         {
                             //Area Mismatch
                             System.Diagnostics.Debug.Print(surveyNoText);
 
                             if (intersectionPointsOtherthanBoundary.Count > 0)
                             {
-                                //ToDo - 22.08.2024
-                                double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                                //ToDo - 22.08.2024, validate logic
+                                //create polyline code commented as some times we will get only single point, so creating points only
+                                //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+
+                                //Create points at the unidentified areas
+                                CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
                             }
-                        }
-                        else
-                        {
-                            //correct area
-                            System.Diagnostics.Debug.Print(surveyNoText);
                         }
                     }
                 }
             }
 
-
-
             #endregion
-
-
-
 
 
             // Write data to CSV
@@ -1547,7 +1558,8 @@ public class MyCommands
 
             ed.WriteMessage("Generating Report...");
 
-            ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
+            //ToDo - uncomment excel code
+            //ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
 
             #region Test write
 
@@ -1872,6 +1884,16 @@ public class MyCommands
         return area;
     }
 
+    private void CreatePoints(List<Point3d> points)
+    {
+        // Sort the points to form a proper closed polyline
+        List<Point3d> sortedPoints = SortPoints(points.ToArray());
+
+        // Create points from the sorted points
+        CreatePointsAndCommit(sortedPoints);        
+    }
+
+
     private Polyline CreateClosedPolyline(List<Point3d> points)
     {
         Polyline polyline = new Polyline();
@@ -1900,6 +1922,21 @@ public class MyCommands
             // Open the BlockTable for read
             BlockTable blockTable = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
 
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
+            string layerName = Constants.FreeSpaceLayer;
+
+            if (layerTable.Has(layerName))
+            {
+                //get layers object id
+                ObjectId layerId = layerTable[layerName];
+
+                //open the layer for read
+                LayerTableRecord layerTableRecord = trans.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
+
+                //set the layer as current layer
+                db.Clayer = layerId;
+            }
 
             // Add points to polyline
             for (int i = 0; i < points.Count; i++)
@@ -1910,6 +1947,29 @@ public class MyCommands
 
             polyline.Closed = true; // Close the polyline
 
+            //Add the polyline to the current space
+            BlockTableRecord btr = (BlockTableRecord)trans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+
+            btr.AppendEntity(polyline);
+            trans.AddNewlyCreatedDBObject(polyline, true);
+
+            //Commit the transaction
+            trans.Commit();            
+        }
+
+        return polyline;
+    }
+
+    private void CreatePointsAndCommit(List<Point3d> points)
+    {
+        Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        Database db = acDoc.Database;
+
+        //Start a transaction
+        using (Transaction trans = db.TransactionManager.StartTransaction())
+        {
+            // Open the BlockTable for read
+            BlockTable blockTable = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
 
             // Open the LayerTable for read
             LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
@@ -1927,16 +1987,41 @@ public class MyCommands
                 db.Clayer = layerId;
             }
 
+            //// Add points to polyline
+            //for (int i = 0; i < points.Count; i++)
+            //{
+            //    Point2d pt2d = new Point2d(points[i].X, points[i].Y);
+            //    polyline.AddVertexAt(i, pt2d, 0, 0, 0);
+            //}
+
+            //polyline.Closed = true; // Close the polyline
+
             //Add the polyline to the current space
             BlockTableRecord btr = (BlockTableRecord)trans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
-            btr.AppendEntity(polyline);
-            trans.AddNewlyCreatedDBObject(polyline, true);
+
+            // Add points
+            for (int i = 0; i < points.Count; i++)
+            {
+                Point3d pt3d = new Point3d(points[i].X, points[i].Y, points[i].Z);
+                DBPoint dBPoint = new DBPoint(pt3d);
+
+                btr.AppendEntity(dBPoint);
+                trans.AddNewlyCreatedDBObject(dBPoint, true);
+            }
+
+            //btr.AppendEntity(polyline);
+            //trans.AddNewlyCreatedDBObject(polyline, true);
 
             //Commit the transaction
             trans.Commit();
-        }
 
-        return polyline;
+            //ToDo - test points creation in progress
+            //set pdmode system variable
+            Application.SetSystemVariable("PDMODE", 35);
+
+            //set PDSIZE to set point size
+            //Application.SetSystemVariable("PDSIZE", 2.0);
+        }
     }
 
     private List<Point3d> SortPoints(Point3d[] points)
