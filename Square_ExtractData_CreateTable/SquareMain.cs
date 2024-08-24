@@ -534,7 +534,6 @@ namespace Square_ExtractData_CreateTable
                 Dictionary<ObjectId, string> SideBoundaryDict = GetObjectIdAndTextDictionary(Constants.SideBoundaryLayer, acTrans);
                 Dictionary<ObjectId, string> MainRoadDict = GetObjectIdAndTextDictionary(Constants.MainRoadLayer, acTrans);
 
-                //ToDo
 
                 #region Process SurveyNo Polylines
 
@@ -1456,7 +1455,7 @@ namespace Square_ExtractData_CreateTable
 
                                 myDict.Add(surveyNoText, acPoly.ObjectId);
 
-                                //ToDo - 22.08.2024 use window polygon
+                                //Done - 22.08.2024 use Cross window & window polygon
 
                                 PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
 
@@ -1556,7 +1555,7 @@ namespace Square_ExtractData_CreateTable
 
                             //    if (intersectionPointsOtherthanBoundary.Count > 0)
                             //    {
-                            //        //ToDo - 22.08.2024
+                            //        
                             //        double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
                             //    }
                             //}
@@ -1573,7 +1572,7 @@ namespace Square_ExtractData_CreateTable
 
                                 if (intersectionPointsOtherthanBoundary.Count > 0)
                                 {
-                                    //ToDo - 22.08.2024, validate logic
+                                    //22.08.2024, validate logic
                                     //create polyline code commented as some times we will get only single point, so creating points only
                                     //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
 
@@ -1610,8 +1609,7 @@ namespace Square_ExtractData_CreateTable
 
                 ed.WriteMessage("Generating Report...");
 
-                //ToDo - uncomment excel code
-                //ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
+                ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
 
                 #region Test write
 
@@ -1947,7 +1945,6 @@ namespace Square_ExtractData_CreateTable
 
         private void CreatePoints(Plot item)
         {
-            //ToDo - 24.08.2024
             Point3dCollection intersectionPointsOtherthanBoundary = new Point3dCollection();
             double totalAreainSVNo = 0;
             foreach (SurveyNo svno in item._ParentSurveyNos)
@@ -1974,7 +1971,7 @@ namespace Square_ExtractData_CreateTable
             {
                 if (intersectionPointsOtherthanBoundary.Count > 0)
                 {
-                    //ToDo - 22.08.2024, validate logic
+                    //22.08.2024, validate logic
                     //create polyline code commented as some times we will get only single point, so creating points only
                     //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
 
@@ -2105,7 +2102,6 @@ namespace Square_ExtractData_CreateTable
                 //Commit the transaction
                 trans.Commit();
 
-                //ToDo - test points creation in progress
                 //set pdmode system variable
                 Application.SetSystemVariable("PDMODE", 35);
 
@@ -2467,7 +2463,7 @@ namespace Square_ExtractData_CreateTable
             //}
             #endregion
 
-            //ToDo - Test as commenting this method, get all dimensions of plot and fill in plot object
+            //Tested after commenting this method, get all dimensions of plot and fill in plot object
             //PromptSelectionResult dimSelResult = ed.SelectCrossingPolygon(plotNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer("DIMENSION", dimensionLayerName));
 
             //if (dimSelResult.Status == PromptStatus.OK)
@@ -2492,10 +2488,10 @@ namespace Square_ExtractData_CreateTable
             //fill sizes by direction
             FillLineSegmentsAndPointsByDirection(plotNo._Polyline, plotNo);
 
-            //ToDo - Test, as commenting this method - main method responsible for sorting dimensions
+            //Tested after commenting this method - main method responsible for sorting dimensions
             //FillSizesByDirection(plotNo);
 
-            //ToDo - New method added to get sizes from length itself no need to go for dimension layers
+            //New method added to get sizes from length itself no need to go for dimension layers
             FillSizesByLength(plotNo);
 
 
@@ -2531,7 +2527,7 @@ namespace Square_ExtractData_CreateTable
 
         private void FillSizesByDirection(Plot plotNo)
         {
-            //ToDo - for your information, filling sizes by direction based on available dimensions
+            //for your information, filling sizes by direction based on available dimensions
             //-> you can use polyline.length also instead of dimension
             //-> you can change dimension type to text if text is placed for dimension
 
