@@ -74,7 +74,9 @@ namespace Square_ExtractData_CreateTable
                 //adding row numbers with total area in surveyno mismatches with plot area to color the cell 
                 double areaDifference = Math.Abs(totalAreainSVNo - item._Area);
                 if (areaDifference >= Constants.areaTolerance)
+                {
                     rowNumbersWithTotalSVnoAreaMismatch.Add(rowNumberWithRoadStart);
+                }
 
                 dt1.Rows.Add(new object[] { $"{item._PlotNo}" ,
                 $"{item._SizesInEast[0].Text}" ,
