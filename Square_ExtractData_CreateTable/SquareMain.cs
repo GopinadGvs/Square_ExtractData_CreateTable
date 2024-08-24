@@ -1211,6 +1211,50 @@ namespace Square_ExtractData_CreateTable
 
                     #endregion
 
+                    #region Create points where east,south,west,north info is "-"
+
+                    if (item._EastInfo.Equals("-"))
+                    {
+
+                        List<Point3d> points = new List<Point3d>();
+                        points.Add(item.eastLineSegment[0].StartPoint);
+                        points.Add(item.eastLineSegment[0].EndPoint);
+
+                        CreatePoints(points);
+                    }
+
+                    if (item._SouthInfo.Equals("-"))
+                    {
+
+                        List<Point3d> points = new List<Point3d>();
+                        points.Add(item.southLineSegment[0].StartPoint);
+                        points.Add(item.southLineSegment[0].EndPoint);
+
+                        CreatePoints(points);
+                    }
+
+                    if (item._WestInfo.Equals("-"))
+                    {
+
+                        List<Point3d> points = new List<Point3d>();
+                        points.Add(item.westLineSegment[0].StartPoint);
+                        points.Add(item.westLineSegment[0].EndPoint);
+
+                        CreatePoints(points);
+                    }
+
+                    if (item._NorthInfo.Equals("-"))
+                    {
+
+                        List<Point3d> points = new List<Point3d>();
+                        points.Add(item.northLineSegment[0].StartPoint);
+                        points.Add(item.northLineSegment[0].EndPoint);
+
+                        CreatePoints(points);
+                    }
+
+                    #endregion
+
                 }
 
 
