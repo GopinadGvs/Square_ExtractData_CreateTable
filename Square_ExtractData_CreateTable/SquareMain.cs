@@ -128,6 +128,16 @@ namespace Square_ExtractData_CreateTable
         }
 
 
+        [CommandMethod("MExportHELP")]
+        public void OpenDocumentPDF()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Constants.MExportHelpPDF);
+            }
+            catch { }
+        }
+
         private List<string> GetLayerList()
         {
             List<string> layersList = new List<string>()
@@ -1605,7 +1615,8 @@ namespace Square_ExtractData_CreateTable
                 string prefix = Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_";
                 string folderPath = Path.GetDirectoryName(acCurDb.Filename);
 
-                WritetoCSV(csvFileNew, combinedPlots);
+                //Commented write data to csv as it is no longer needed
+                //WritetoCSV(csvFileNew, combinedPlots);
 
                 ed.WriteMessage("Generating Report...");
 

@@ -399,10 +399,10 @@ namespace Square_ExtractData_CreateTable
             List<string> paths = repo.GenerateReport();
 
             if (!paths.Any(s => s.IndexOf("pdf", StringComparison.OrdinalIgnoreCase) >= 0))
-                System.Windows.Forms.MessageBox.Show("Failed to generate Pdf..", "Square Planners Message");
+                System.Windows.Forms.MessageBox.Show("Failed to generate Pdf..", "Square Planners Message", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
 
             if (!paths.Any(s => s.IndexOf("xlsx", StringComparison.OrdinalIgnoreCase) >= 0))
-                System.Windows.Forms.MessageBox.Show("Failed to generate Excel..", "Square Planners Message");
+                System.Windows.Forms.MessageBox.Show("Failed to generate Excel..", "Square Planners Message", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
         }
 
         public static void RowIncrement(ref int startRowNumber, ref int endRowNumber, int increment)

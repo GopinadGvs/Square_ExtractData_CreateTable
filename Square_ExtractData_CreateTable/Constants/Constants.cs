@@ -51,5 +51,7 @@ namespace Square_ExtractData_CreateTable
 
 
         public static string ExceltemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
+
+        public static string MExportHelpPDF = @"C:\Data\LayerSettings_V1.2.0.0.pdf";
     }
 }
