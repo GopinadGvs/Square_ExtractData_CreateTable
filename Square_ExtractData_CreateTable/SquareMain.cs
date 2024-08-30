@@ -154,8 +154,12 @@ namespace Square_ExtractData_CreateTable
             // Zoom extents
             ed.Command("_.zoom", "_e");
 
+            string newLayerName = "_OpenPolyLines";
+
             using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
             {
+                CreateLayerByName(acCurDb, acTrans, newLayerName, Color.FromRgb(255, 0, 0));
+
                 PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartType(Constants.LWPOLYLINE));
 
                 if (acSSPrompt1.Status == PromptStatus.OK)
@@ -170,7 +174,18 @@ namespace Square_ExtractData_CreateTable
 
                             if(acPoly != null && !acPoly.Closed)
                             {
-                                //ToDo copy polyline to another layer
+                                // Clone the polyline
+                                Polyline clonedPolyline = acPoly.Clone() as Polyline;
+
+                                // Set layer
+                                clonedPolyline.Layer = newLayerName;
+
+                                // Add the cloned polyline to the model space
+                                BlockTable blockTable = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
+                                BlockTableRecord modelSpace = acTrans.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                                modelSpace.AppendEntity(clonedPolyline);
+                                acTrans.AddNewlyCreatedDBObject(clonedPolyline, true);
                             }
                         }
                     }
@@ -230,6 +245,33 @@ namespace Square_ExtractData_CreateTable
 
             return layersListToValidate;
         }
+
+        private void CreateLayerByName(Database acCurDb, Transaction acTrans, string layerName, Color layerColor)
+        {
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+
+            // Upgrade the LayerTable to write
+            layerTable.UpgradeOpen();
+
+            //string layerName = Constants.FreeSpaceLayer;
+
+            if (!layerTable.Has(layerName))
+            {
+                LayerTableRecord layerTableRecord = new LayerTableRecord
+                {
+                    Name = layerName,
+                    Color = layerColor  /*Color.FromRgb(255, 0, 0)*/ // Red color
+                };
+
+                // Add the new layer to the LayerTable
+                layerTable.Add(layerTableRecord);
+
+                // Add the new LayerTableRecord to the transaction
+                acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+            }
+        }
+
 
         [CommandMethod("MExport")]
 
@@ -314,28 +356,30 @@ namespace Square_ExtractData_CreateTable
 
                 //create free space layer with red color
 
-                // Open the LayerTable for read
-                LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+                CreateLayerByName(acCurDb, acTrans, Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
 
-                // Upgrade the LayerTable to write
-                layerTable.UpgradeOpen();
+                //// Open the LayerTable for read
+                //LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
 
-                string layerName = Constants.FreeSpaceLayer;
+                //// Upgrade the LayerTable to write
+                //layerTable.UpgradeOpen();
 
-                if (!layerTable.Has(layerName))
-                {
-                    LayerTableRecord layerTableRecord = new LayerTableRecord
-                    {
-                        Name = layerName,
-                        Color = Color.FromRgb(255, 0, 0) // Red color
-                    };
+                //string layerName = Constants.FreeSpaceLayer;
 
-                    // Add the new layer to the LayerTable
-                    layerTable.Add(layerTableRecord);
+                //if (!layerTable.Has(layerName))
+                //{
+                //    LayerTableRecord layerTableRecord = new LayerTableRecord
+                //    {
+                //        Name = layerName,
+                //        Color = Color.FromRgb(255, 0, 0) // Red color
+                //    };
 
-                    // Add the new LayerTableRecord to the transaction
-                    acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
-                }
+                //    // Add the new layer to the LayerTable
+                //    layerTable.Add(layerTableRecord);
+
+                //    // Add the new LayerTableRecord to the transaction
+                //    acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+                //}
 
                 #endregion
 

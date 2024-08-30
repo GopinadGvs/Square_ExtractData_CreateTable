@@ -746,5 +746,184 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+
+        #region User Prompts
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Runtime;
+        //using Autodesk.AutoCAD.EditorInput;
+
+        //public class CopyPolylineToLayer
+        //    {
+        //        [CommandMethod("CopyPolylineToLayer")]
+        //        public void CopyPolylineToAnotherLayer()
+        //        {
+        //            Document doc = Application.DocumentManager.MdiActiveDocument;
+        //            Database db = doc.Database;
+        //            Editor ed = doc.Editor;
+
+        //            // Prompt the user to select a polyline
+        //            PromptEntityOptions peo = new PromptEntityOptions("\nSelect a polyline to copy: ");
+        //            peo.SetRejectMessage("\nSelected entity is not a polyline.");
+        //            peo.AddAllowedClass(typeof(Polyline), true);
+
+        //            PromptEntityResult per = ed.GetEntity(peo);
+
+        //            if (per.Status != PromptStatus.OK)
+        //            {
+        //                ed.WriteMessage("\nCommand canceled.");
+        //                return;
+        //            }
+
+        //            using (Transaction tr = db.TransactionManager.StartTransaction())
+        //            {
+        //                // Open the selected polyline for read
+        //                Polyline polyline = tr.GetObject(per.ObjectId, OpenMode.ForRead) as Polyline;
+
+        //                if (polyline != null)
+        //                {
+        //                    // Clone the polyline
+        //                    Polyline clonedPolyline = polyline.Clone() as Polyline;
+
+        //                    // Prompt the user for the target layer name
+        //                    PromptStringOptions pso = new PromptStringOptions("\nEnter target layer name: ");
+        //                    pso.AllowSpaces = true;
+        //                    PromptResult pr = ed.GetString(pso);
+
+        //                    if (pr.Status == PromptStatus.OK)
+        //                    {
+        //                        string targetLayerName = pr.StringResult;
+
+        //                        // Check if the layer exists, if not, create it
+        //                        LayerTable layerTable = tr.GetObject(db.LayerTableId, OpenMode.ForRead) as LayerTable;
+
+        //                        if (!layerTable.Has(targetLayerName))
+        //                        {
+        //                            using (LayerTableRecord newLayer = new LayerTableRecord())
+        //                            {
+        //                                newLayer.Name = targetLayerName;
+        //                                layerTable.UpgradeOpen();
+        //                                layerTable.Add(newLayer);
+        //                                tr.AddNewlyCreatedDBObject(newLayer, true);
+        //                            }
+        //                        }
+
+        //                        // Set the cloned polyline to the target layer
+        //                        clonedPolyline.Layer = targetLayerName;
+
+        //                        // Add the cloned polyline to the model space
+        //                        BlockTable blockTable = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+        //                        BlockTableRecord modelSpace = tr.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+        //                        modelSpace.AppendEntity(clonedPolyline);
+        //                        tr.AddNewlyCreatedDBObject(clonedPolyline, true);
+
+        //                        ed.WriteMessage($"\nPolyline copied to layer '{targetLayerName}'.");
+        //                    }
+        //                    else
+        //                    {
+        //                        ed.WriteMessage("\nNo layer name provided. Command canceled.");
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    ed.WriteMessage("\nSelected entity is not a polyline.");
+        //                }
+
+        //                // Commit the transaction
+        //                tr.Commit();
+        //            }
+        //        }
+        //    }
+
+        #endregion
+
+        #region Explode polyline and create region
+
+        //        using Autodesk.AutoCAD.ApplicationServices;
+        //using Autodesk.AutoCAD.DatabaseServices;
+        //using Autodesk.AutoCAD.Geometry;
+        //using Autodesk.AutoCAD.Runtime;
+
+        //public class PolylineContainment
+        //    {
+        //        [CommandMethod("CheckPolylineContainment")]
+        //        public void CheckPolylineContainment()
+        //        {
+        //            Document doc = Application.DocumentManager.MdiActiveDocument;
+        //            Database db = doc.Database;
+
+        //            using (Transaction tr = db.TransactionManager.StartTransaction())
+        //            {
+        //                // Assuming we have the ObjectIds of the two polylines
+        //                ObjectId outerPolylineId = new ObjectId(); // Set this to the ObjectId of the outer polyline
+        //                ObjectId innerPolylineId = new ObjectId(); // Set this to the ObjectId of the inner polyline
+
+        //                Polyline outerPolyline = tr.GetObject(outerPolylineId, OpenMode.ForRead) as Polyline;
+        //                Polyline innerPolyline = tr.GetObject(innerPolylineId, OpenMode.ForRead) as Polyline;
+
+        //                if (outerPolyline != null && innerPolyline != null)
+        //                {
+        //                    bool isInside = IsPolylineInside(outerPolyline, innerPolyline);
+
+        //                    if (isInside)
+        //                    {
+        //                        doc.Editor.WriteMessage("\nThe inner polyline is inside the outer polyline.");
+        //                    }
+        //                    else
+        //                    {
+        //                        doc.Editor.WriteMessage("\nThe inner polyline is not inside the outer polyline.");
+        //                    }
+        //                }
+
+        //                tr.Commit();
+        //            }
+        //        }
+
+        //        private bool IsPolylineInside(Polyline outerPolyline, Polyline innerPolyline)
+        //        {
+        //            // Loop through each vertex of the inner polyline
+        //            for (int i = 0; i < innerPolyline.NumberOfVertices; i++)
+        //            {
+        //                Point3d vertex = innerPolyline.GetPoint3dAt(i);
+
+        //                // Check if the point is inside the outer polyline
+        //                if (!IsPointInsidePolyline(outerPolyline, vertex))
+        //                {
+        //                    return false; // If any point is outside, the polyline is not inside
+        //                }
+        //            }
+        //            return true;
+        //        }
+
+        //        private bool IsPointInsidePolyline(Polyline polyline, Point3d point)
+        //        {
+        //            // Convert polyline to Region
+        //            using (var db = polyline.Database)
+        //            {
+        //                using (var region = new Region())
+        //                {
+        //                    DBObjectCollection dbObjCollection = new DBObjectCollection();
+        //                    polyline.Explode(dbObjCollection);
+
+        //                    DBObjectCollection regionColl = new DBObjectCollection();
+        //                    Region.CreateFromCurves(dbObjCollection, regionColl);
+
+        //                    Region regionEntity = regionColl[0] as Region;
+
+        //                    if (regionEntity != null)
+        //                    {
+        //                        return regionEntity.PointContainment(new Point2d(point.X, point.Y)) == PointContainment.Inside;
+        //                    }
+        //                }
+        //            }
+        //            return false;
+        //        }
+        //    }
+
+
+        #endregion
+
     }
 }
