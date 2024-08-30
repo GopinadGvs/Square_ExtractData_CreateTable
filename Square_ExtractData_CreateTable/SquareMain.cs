@@ -141,31 +141,50 @@ namespace Square_ExtractData_CreateTable
         private List<string> GetLayerList()
         {
             List<string> layersList = new List<string>()
-        {
-            Constants.SurveyNoLayer,
-            Constants.IndivPlotLayer,
-            //Constants.IndivPlotDimLayer,
-            Constants.MortgageLayer,
-            Constants.AmenityLayer,
-            //Constants.AmenityDimLayer,
-            Constants.DocNoLayer,
-            Constants.LandLordLayer,
-            Constants.InternalRoadLayer,
-            Constants.PlotLayer,
-            Constants.OpenSpaceLayer,
-            Constants.UtilityLayer,
-            Constants.LeftOverOwnerLandLayer,
-            Constants.SideBoundaryLayer,
-            Constants.MainRoadLayer,
-            Constants.SplayLayer,
-            Constants.RoadWideningLayer,
-            Constants.GreenBufferZoneLayer,
-            Constants.LandLordSubLayer,
-        };
+            {
+                Constants.SurveyNoLayer,
+                Constants.IndivPlotLayer,
+                //Constants.IndivPlotDimLayer,
+                Constants.MortgageLayer,
+                Constants.AmenityLayer,
+                //Constants.AmenityDimLayer,
+                Constants.DocNoLayer,
+                Constants.LandLordLayer,
+                Constants.InternalRoadLayer,
+                Constants.PlotLayer,
+                Constants.OpenSpaceLayer,
+                Constants.UtilityLayer,
+                Constants.LeftOverOwnerLandLayer,
+                Constants.SideBoundaryLayer,
+                Constants.MainRoadLayer,
+                Constants.SplayLayer,
+                Constants.RoadWideningLayer,
+                Constants.GreenBufferZoneLayer,
+                Constants.LandLordSubLayer,
+            };
 
             return layersList;
         }
 
+
+        private List<string> GetLayerListToValidateFreeSpace()
+        {
+            List<string> layersListToValidate = new List<string>()
+            {
+                Constants.InternalRoadLayer,
+                Constants.IndivPlotLayer,
+                Constants.AmenityLayer,
+                Constants.PlotLayer,
+                Constants.UtilityLayer,
+                Constants.LeftOverOwnerLandLayer,
+                Constants.SideBoundaryLayer,
+                Constants.MainRoadLayer,
+                Constants.SplayLayer,
+                Constants.OpenSpaceLayer
+            };
+
+            return layersListToValidate;
+        }
 
         [CommandMethod("MExport")]
 
@@ -1596,10 +1615,101 @@ namespace Square_ExtractData_CreateTable
 
                 #endregion
 
+                #region Validate all poyline points in all Layers to identify free space
+
+                List<string> layersListToValidate = GetLayerListToValidateFreeSpace();
+
+                List<string> layersToSkip = new List<string>()
+                {
+                    Constants.PlotLayer,
+                    Constants.MainRoadLayer,
+                    Constants.SideBoundaryLayer,
+                    Constants.SplayLayer
+                };
+
+                foreach (string currentValidateLayer in layersListToValidate)
+                {
+                    //Skip Plot, main Road, side boundary Layer for validation
+                    if(layersToSkip.Contains(currentValidateLayer))
+                    {
+                        continue;
+                    }
+
+                    PromptSelectionResult acSSPromptOpenSpace = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, currentValidateLayer));
+
+                    if (acSSPromptOpenSpace.Status == PromptStatus.OK)
+                    {
+                        SelectionSet acSSet = acSSPromptOpenSpace.Value;
+
+                        foreach (SelectedObject acSSObj in acSSet)
+                        {
+                            if (acSSObj != null)
+                            {
+                                Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                if (acPoly != null && acPoly.Closed)
+                                {
+                                    //Collect all Points
+                                    //Point3dCollection point3DCollection = new Point3dCollection();
+                                    for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                                    {
+                                        //point3DCollection.Add(acPoly.GetPoint3dAt(i));
+
+                                        Point3d mypoint = acPoly.GetPoint3dAt(i);
+
+                                        List<Point3d> points = new List<Point3d>();
+                                        Point3d point1 = new Point3d(mypoint.X + 0.5, mypoint.Y + 0.5, 0);
+                                        Point3d point2 = new Point3d(mypoint.X - 0.5, mypoint.Y - 0.5, 0);
+                                        points.AddRange(new List<Point3d> { point1, point2 });
+
+                                        List<string> layersListforValidation = GetLayerListToValidateFreeSpace();
+                                        layersListforValidation.Remove(currentValidateLayer);
+
+                                        List<Polyline> boundaryPolylines = new List<Polyline>();
+
+                                        foreach (string layer in layersListforValidation)
+                                        {
+                                            boundaryPolylines.AddRange(GetPolylinesUsingCrossPolygon(points, acTrans, layer));
+                                        }
+
+                                        if (!boundaryPolylines.Any())
+                                            CreatePoints(new List<Point3d>() { mypoint });
+
+                                        //List<Polyline> roadPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.InternalRoadLayer);
+                                        //List<Polyline> plotPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.IndivPlotLayer);
+                                        //List<Polyline> amenityPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.AmenityLayer);
+                                        //List<Polyline> LayoutPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.PlotLayer);
+                                        //List<Polyline> utilityPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.UtilityLayer);
+                                        //List<Polyline> leftOverLandPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.LeftOverOwnerLandLayer);
+                                        //List<Polyline> sideBoundaryPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.SideBoundaryLayer);
+                                        //List<Polyline> mainRoadPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.MainRoadLayer);
+                                        //List<Polyline> splayPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.SplayLayer);
+
+                                        //if (roadPolylines.Any() || plotPolylines.Any() || amenityPolylines.Any() || LayoutPolylines.Any() ||
+                                        //    utilityPolylines.Any() || leftOverLandPolylines.Any() || sideBoundaryPolylines.Any() || mainRoadPolylines.Any() || splayPolylines.Any())
+                                        //{
+                                        //    //found some connected side boundary
+                                        //}
+                                        //else
+                                        //{
+                                        //    //no connected boundary found
+                                        //    CreatePoints(new List<Point3d>() { mypoint });
+                                        //}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                #endregion
+
 
                 // Write data to CSV
 
                 UpdateAutoCADProgressBar(pm);
+
+                //Set Point Mode
+                Application.SetSystemVariable("PDMODE", 35);
 
                 DateTime datetime = DateTime.Now;
                 string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
@@ -2114,7 +2224,7 @@ namespace Square_ExtractData_CreateTable
                 trans.Commit();
 
                 //set pdmode system variable
-                Application.SetSystemVariable("PDMODE", 35);
+                //Application.SetSystemVariable("PDMODE", 35);
 
                 //set PDSIZE to set point size
                 //Application.SetSystemVariable("PDSIZE", 2.0);
