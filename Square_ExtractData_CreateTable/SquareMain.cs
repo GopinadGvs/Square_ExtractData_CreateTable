@@ -138,6 +138,51 @@ namespace Square_ExtractData_CreateTable
             catch { }
         }
 
+
+        [CommandMethod("CHECKPOLYLINES")]
+        public void CheckPolylines()
+        {
+            if (IsLicenseExpired())
+                return;
+
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            Database acCurDb = acDoc.Database;
+            Editor ed = acDoc.Editor;
+
+            Application.SetSystemVariable("CMDECHO", 0);
+
+            // Zoom extents
+            ed.Command("_.zoom", "_e");
+
+            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            {
+                PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartType(Constants.LWPOLYLINE));
+
+                if (acSSPrompt1.Status == PromptStatus.OK)
+                {
+                    SelectionSet acSSet = acSSPrompt1.Value;
+
+                    foreach (SelectedObject acSSObj in acSSet)
+                    {
+                        if (acSSObj != null)
+                        {
+                            Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                            if(acPoly != null && !acPoly.Closed)
+                            {
+                                //ToDo copy polyline to another layer
+                            }
+                        }
+                    }
+                }
+
+                // Commit the transaction
+                acTrans.Commit();
+            }
+
+            Application.SetSystemVariable("CMDECHO", 1);
+        }
+
         private List<string> GetLayerList()
         {
             List<string> layersList = new List<string>()
@@ -1624,13 +1669,13 @@ namespace Square_ExtractData_CreateTable
                     Constants.PlotLayer,
                     Constants.MainRoadLayer,
                     Constants.SideBoundaryLayer,
-                    Constants.SplayLayer
+                    //Constants.SplayLayer
                 };
 
                 foreach (string currentValidateLayer in layersListToValidate)
                 {
                     //Skip Plot, main Road, side boundary Layer for validation
-                    if(layersToSkip.Contains(currentValidateLayer))
+                    if (layersToSkip.Contains(currentValidateLayer))
                     {
                         continue;
                     }
@@ -1663,7 +1708,10 @@ namespace Square_ExtractData_CreateTable
                                         points.AddRange(new List<Point3d> { point1, point2 });
 
                                         List<string> layersListforValidation = GetLayerListToValidateFreeSpace();
-                                        layersListforValidation.Remove(currentValidateLayer);
+
+                                        //IndivPlotLayer can intersect with IndivPlotLayer also
+                                        if (currentValidateLayer != Constants.IndivPlotLayer)
+                                            layersListforValidation.Remove(currentValidateLayer);
 
                                         List<Polyline> boundaryPolylines = new List<Polyline>();
 
@@ -1700,7 +1748,16 @@ namespace Square_ExtractData_CreateTable
                             }
                         }
                     }
+
+                    UpdateAutoCADProgressBar(pm);
                 }
+                #endregion
+
+
+                #region Identify polylines that are outside the plot layer
+
+                //ToDo
+
                 #endregion
 
 
@@ -1932,7 +1989,7 @@ namespace Square_ExtractData_CreateTable
 
         private void UpdateAutoCADProgressBar(ProgressMeter pm)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 8; i++)
             {
                 System.Threading.Thread.Sleep(5);
 
@@ -2503,6 +2560,15 @@ namespace Square_ExtractData_CreateTable
             return acSelFtr;
         }
 
+        private SelectionFilter CreateSelectionFilterByStartType(string startType)
+        {
+            TypedValue[] Filter = { new TypedValue((int)DxfCode.Start, startType),                                
+                              };
+
+            SelectionFilter acSelFtr = new SelectionFilter(Filter);
+            return acSelFtr;
+        }
+
         private SelectionFilter CreateSelectionFilterByStartTypeAndLayer(string startType1, string startType2, string Layer)
         {
             TypedValue[] Filter = { new TypedValue((int)DxfCode.Start, startType1),
@@ -2919,6 +2985,111 @@ namespace Square_ExtractData_CreateTable
 
         //    return "";
         //}
+
+
+        #region Check whether any polyline is outside the plot layer
+
+        //public void CheckPolylineContainment()
+        //{
+        //    Document doc = Application.DocumentManager.MdiActiveDocument;
+        //    Database db = doc.Database;
+
+        //    using (Transaction tr = db.TransactionManager.StartTransaction())
+        //    {
+        //        // Assuming we have the ObjectIds of the two polylines
+        //        ObjectId outerPolylineId = new ObjectId(); // Set this to the ObjectId of the outer polyline
+        //        ObjectId innerPolylineId = new ObjectId(); // Set this to the ObjectId of the inner polyline
+
+        //        Polyline outerPolyline = tr.GetObject(outerPolylineId, OpenMode.ForRead) as Polyline;
+        //        Polyline innerPolyline = tr.GetObject(innerPolylineId, OpenMode.ForRead) as Polyline;
+
+        //        if (outerPolyline != null && innerPolyline != null)
+        //        {
+        //            bool isInside = IsPolylineCompletelyInside(outerPolyline, innerPolyline);
+
+        //            if (isInside)
+        //            {
+        //                doc.Editor.WriteMessage("\nThe inner polyline is completely inside the outer polyline.");
+        //            }
+        //            else
+        //            {
+        //                doc.Editor.WriteMessage("\nThe inner polyline is not completely inside the outer polyline.");
+        //            }
+        //        }
+
+        //        tr.Commit();
+        //    }
+        //}
+
+        //private bool IsPolylineCompletelyInside(Polyline outerPolyline, Polyline innerPolyline)
+        //{
+        //    // 1. Check if all vertices of the inner polyline are inside or on the boundary of the outer polyline
+        //    for (int i = 0; i < innerPolyline.NumberOfVertices; i++)
+        //    {
+        //        Point3d vertex = innerPolyline.GetPoint3dAt(i);
+
+        //        if (!IsPointInsideOrOnPolyline(outerPolyline, vertex))
+        //        {
+        //            return false; // If any vertex is outside, the polyline is not completely inside
+        //        }
+        //    }
+
+        //    // 2. Check for intersection between the inner and outer polylines
+        //    if (CheckPolylinesIntersection(outerPolyline, innerPolyline))
+        //    {
+        //        return false; // If there is any intersection, the inner polyline is not completely inside
+        //    }
+
+        //    return true; // All vertices are inside/on and there's no intersection
+        //}
+
+        //private bool IsPointInsideOrOnPolyline(Polyline polyline, Point3d point)
+        //{
+        //    // Convert polyline to Region to check point containment
+        //    using (var db = polyline.Database)
+        //    {
+        //        using (var region = new Region())
+        //        {
+        //            DBObjectCollection dbObjCollection = new DBObjectCollection();
+        //            polyline.Explode(dbObjCollection);
+
+        //            DBObjectCollection regionColl = new DBObjectCollection();
+        //            Region.CreateFromCurves(dbObjCollection, regionColl);
+
+        //            Region regionEntity = regionColl[0] as Region;
+
+        //            if (regionEntity != null)
+        //            {
+        //                // Check if point is inside or on the boundary
+        //                PointContainment containment = regionEntity.PointContainment(new Point2d(point.X, point.Y));
+        //                return containment == PointContainment.Inside || containment == PointContainment.OnBoundary;
+        //            }
+        //        }
+        //    }
+        //    return false;
+        //}
+
+        //private bool CheckPolylinesIntersection(Polyline polyline1, Polyline polyline2)
+        //{
+        //    for (int i = 0; i < polyline1.NumberOfVertices; i++)
+        //    {
+        //        LineSegment3d segment1 = polyline1.GetLineSegmentAt(i);
+
+        //        for (int j = 0; j < polyline2.NumberOfVertices; j++)
+        //        {
+        //            LineSegment3d segment2 = polyline2.GetLineSegmentAt(j);
+
+        //            if (segment1.IntersectWith(segment2, Intersect.OnBothOperands).Count > 0)
+        //            {
+        //                return true; // If any segments intersect, the polylines intersect
+        //            }
+        //        }
+        //    }
+        //    return false; // No intersection found
+        //}
+
+        #endregion
+
 
     }
 }
