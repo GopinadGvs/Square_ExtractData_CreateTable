@@ -59,6 +59,82 @@ namespace Square_ExtractData_CreateTable
 
         }
 
+        [CommandMethod("SC")]
+        public void SurveyNumberCheck()
+        {
+            if (IsLicenseExpired())
+                return;
+
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+            // Set the CMDECHO system variable to 0
+            Application.SetSystemVariable("CMDECHO", 0);
+
+            Database acCurDb = acDoc.Database;
+            /*Editor*/
+            ed = acDoc.Editor;
+
+            string logPath = acCurDb.Filename;
+
+            // Zoom extents
+            ed.Command("_.zoom", "_e");
+
+            string surveyNoLayer = "_SurveyNo";
+
+            ed.Command("_-layer", "t", surveyNoLayer, "ON", surveyNoLayer, "U", surveyNoLayer, "");
+
+            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            {
+                BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
+                BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
+
+                List<string> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
+                List<string> surveyNumberTextList = GetListTextFromLayer(surveyNoLayer, acTrans);
+
+                List<string> polylineIdsForMissingSurveyNos = new List<string>();
+                List<string> SurveyNosForMissingpolylines = new List<string>();
+                List<string> polylineIdsWithMultipleSurveyNos = new List<string>();
+
+                if (surveyNumberPolylineIds.Count == surveyNumberTextList.Count)
+                    System.Windows.Forms.MessageBox.Show("No Errors Found.");
+                else
+                {
+                    Dictionary<string, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
+
+                    //Validate for missing Survey Numbers
+                    if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
+                    {
+                        List<string> validatedPolyLineIds = surveyNumberDictionary.Select(x => x.Key).ToList();
+
+                        polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
+
+                    }
+                    //Validate for missing Survey Polylines
+                    else if (surveyNumberPolylineIds.Count < surveyNumberTextList.Count)
+                    {
+                        List<string> validatedSurveyNos = surveyNumberDictionary.Select(x => x.Value).ToList();
+
+                        SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
+                    }
+
+                }
+
+                //Validate for Survey Duplicate Numbers
+                //validate for multiple survey numbers in same survey Number polyline
+                //Validate for Total Area of Survey Polylines with Plot Layer 
+
+
+                //ToDo - Today
+
+                using StreamWriter sw = new StreamWriter()
+
+
+            }
+
+        }
+
+
+
         [CommandMethod("CLAYER")]
         public void CheckAndCreateLayers()
         {
@@ -172,7 +248,7 @@ namespace Square_ExtractData_CreateTable
                         {
                             Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
 
-                            if(acPoly != null && !acPoly.Closed)
+                            if (acPoly != null && !acPoly.Closed)
                             {
                                 // Clone the polyline
                                 Polyline clonedPolyline = acPoly.Clone() as Polyline;
@@ -2606,7 +2682,7 @@ namespace Square_ExtractData_CreateTable
 
         private SelectionFilter CreateSelectionFilterByStartType(string startType)
         {
-            TypedValue[] Filter = { new TypedValue((int)DxfCode.Start, startType),                                
+            TypedValue[] Filter = { new TypedValue((int)DxfCode.Start, startType),
                               };
 
             SelectionFilter acSelFtr = new SelectionFilter(Filter);
@@ -3007,6 +3083,86 @@ namespace Square_ExtractData_CreateTable
 
                             textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
                             textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
+                        }
+                    }
+                }
+            }
+
+            return textArray;
+        }
+
+        public List<string> GetPolyLines(string layerName, Transaction acTrans)
+        {
+            List<string> polylinesList = new List<string>();
+
+            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+            if (acSSPrompt1.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSet = acSSPrompt1.Value;
+
+                foreach (SelectedObject acSSObj in acSSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+                        polylinesList.Add(acPoly.ObjectId.ToString());
+                    }
+                }
+            }
+
+            return polylinesList;
+        }
+
+        public Dictionary<string, string> GetListTextDictionaryFromLayer(string layerName, Transaction acTrans, List<string> polylineIdsWithMultipleSurveyNos)
+        {
+            Dictionary<string, string> textArray = new Dictionary<string, string>();
+
+            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+            if (acSSPrompt1.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSet = acSSPrompt1.Value;
+
+                foreach (SelectedObject acSSObj in acSSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                        if (acPoly != null && acPoly.Closed)
+                        {
+                            //Collect all Points
+                            Point3dCollection point3DCollection = new Point3dCollection();
+
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            List<string> textValues = GetListTextFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName);
+
+                            if (textValues.Count > 1)
+                            {
+                                polylineIdsWithMultipleSurveyNos.Add(acPoly.ObjectId.ToString());
+                            }
+                            if (textValues.Count == 1)
+                            {
+                                if (!string.IsNullOrEmpty(textValues[0]))
+                                    textArray.Add(acPoly.ObjectId.ToString(), textValues[0]);
+                            }
+
+                            List<string> mTextValues = GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName);
+
+                            if (mTextValues.Count > 1)
+                            {
+                                polylineIdsWithMultipleSurveyNos.Add(acPoly.ObjectId.ToString());
+                            }
+                            if (mTextValues.Count == 1)
+                            {
+                                if (!string.IsNullOrEmpty(mTextValues[0]))
+                                    textArray.Add(acPoly.ObjectId.ToString(), mTextValues[0]);
+                            }
                         }
                     }
                 }
