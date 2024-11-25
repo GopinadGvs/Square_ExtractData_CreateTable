@@ -74,7 +74,8 @@ namespace Square_ExtractData_CreateTable
             /*Editor*/
             ed = acDoc.Editor;
 
-            string logPath = acCurDb.Filename;
+            //filename
+            //string logPath = acCurDb.Filename;
 
             // Zoom extents
             ed.Command("_.zoom", "_e");
@@ -91,13 +92,53 @@ namespace Square_ExtractData_CreateTable
                 List<string> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
                 List<string> surveyNumberTextList = GetListTextFromLayer(surveyNoLayer, acTrans);
 
+                double totalPlotArea = Math.Round(GetAreaByLayer("_Plot", acTrans), 2);
+                double surveyNosPlotArea = Math.Round(GetAreaByLayer("_SurveyNo", acTrans), 2);
+
+                //create a dictionary with item number and it's repetative count to get duplicates
+                Dictionary<string, int> dictionary = new Dictionary<string, int>();
+                foreach (string item2 in surveyNumberTextList)
+                {
+                    if (dictionary.ContainsKey(item2))
+                    {
+                        dictionary[item2]++;
+                    }
+                    else
+                    {
+                        dictionary[item2] = 1;
+                    }
+                }
+
+                //Validate for Duplicate Survey Numbers
+                //get duplicate values
+                List<string> duplicatesInfo = new List<string>();
+                foreach (KeyValuePair<string, int> item3 in dictionary)
+                {
+                    if (item3.Value > 1)
+                    {
+                        duplicatesInfo.Add($"Value {item3.Key} occurred {item3.Value} times");
+                    }
+                }
+
                 List<string> polylineIdsForMissingSurveyNos = new List<string>();
                 List<string> SurveyNosForMissingpolylines = new List<string>();
-                List<string> polylineIdsWithMultipleSurveyNos = new List<string>();
+                List<(string, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(string, List<string>)>();
 
                 if (surveyNumberPolylineIds.Count == surveyNumberTextList.Count)
-                    System.Windows.Forms.MessageBox.Show("No Errors Found.");
+                {
+                    System.Windows.Forms.DialogResult result = System.Windows.Forms.MessageBox.Show("No Errors Found, Do you want to open Report?", "No Mistake", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+
+                    if (result == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        CreateReport();
+                    }
+                }
                 else
+                {
+                    CreateReport();
+                }
+
+                void CreateReport()
                 {
                     Dictionary<string, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
 
@@ -117,20 +158,56 @@ namespace Square_ExtractData_CreateTable
                         SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
                     }
 
+                    string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".txt");
+
+                    using (StreamWriter sw = new StreamWriter(txtFileNew))
+                    {
+                        if (duplicatesInfo.Count > 0)
+                            sw.WriteLine("Duplicate Survey No's :");
+                        foreach (string duplicate in duplicatesInfo)
+                        {
+                            sw.WriteLine($"\n{duplicate}");
+                        }
+                        if (SurveyNosForMissingpolylines.Count > 0)
+                            sw.WriteLine("\nSurvey Numbers for Missing or Incorrect Polylines :");
+                        foreach (string SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
+                        {
+                            sw.WriteLine($"\n{SurveyNosForMissingpolyline}");
+                        }
+                        if (polylineIdsForMissingSurveyNos.Count > 0)
+                            sw.WriteLine("\nPolyline ID's for Missing Survey No's :");
+                        foreach (string polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
+                        {
+                            sw.WriteLine($"\n{polylineIdsForMissingSurveyNo}");
+                        }
+                        //validate for multiple survey numbers in same survey Number polyline
+                        if (polylineIdsWithMultipleSurveyNos.Count > 0)
+                            sw.WriteLine("\nMultiple Survey Numbers in Same Polyline :");
+                        foreach (var polylineIdsWithMultipleSurveyNo in polylineIdsWithMultipleSurveyNos)
+                        {
+                            sw.WriteLine($"\n{polylineIdsWithMultipleSurveyNo.Item1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
+                        }
+                        //Validate for Total Area of Survey Polylines with Plot Layer 
+                        sw.WriteLine("\nIs Total Area Matched with Plot Layer :");
+                        if (Math.Abs(surveyNosPlotArea - totalPlotArea) < 0.01)
+                        {
+                            sw.WriteLine("\nTotal Area is Matched.");
+                            sw.WriteLine($"\nTotal Area From Survey No = {surveyNosPlotArea}");
+                            sw.WriteLine($"\nTotal Area From Plot Layer = {totalPlotArea}");
+                        }
+                        else
+                        {
+                            sw.WriteLine("\nTotal Area is Not Matched.");
+                            sw.WriteLine($"\nTotal Area From Survey No = {surveyNosPlotArea}");
+                            sw.WriteLine($"\nTotal Area From Plot Layer = {totalPlotArea}");
+                        }
+                    }
+
+                    System.Diagnostics.Process.Start(txtFileNew);
                 }
 
-                //Validate for Survey Duplicate Numbers
-                //validate for multiple survey numbers in same survey Number polyline
-                //Validate for Total Area of Survey Polylines with Plot Layer 
-
-
-                //ToDo - Today
-
-                using StreamWriter sw = new StreamWriter()
-
-
+                //ToDo - Today                
             }
-
         }
 
 
@@ -3114,7 +3191,7 @@ namespace Square_ExtractData_CreateTable
             return polylinesList;
         }
 
-        public Dictionary<string, string> GetListTextDictionaryFromLayer(string layerName, Transaction acTrans, List<string> polylineIdsWithMultipleSurveyNos)
+        public Dictionary<string, string> GetListTextDictionaryFromLayer(string layerName, Transaction acTrans, List<(string, List<string>)> polylineIdsWithMultipleSurveyNos)
         {
             Dictionary<string, string> textArray = new Dictionary<string, string>();
 
@@ -3144,7 +3221,7 @@ namespace Square_ExtractData_CreateTable
 
                             if (textValues.Count > 1)
                             {
-                                polylineIdsWithMultipleSurveyNos.Add(acPoly.ObjectId.ToString());
+                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId.ToString(), textValues));
                             }
                             if (textValues.Count == 1)
                             {
@@ -3156,7 +3233,7 @@ namespace Square_ExtractData_CreateTable
 
                             if (mTextValues.Count > 1)
                             {
-                                polylineIdsWithMultipleSurveyNos.Add(acPoly.ObjectId.ToString());
+                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId.ToString(), mTextValues));
                             }
                             if (mTextValues.Count == 1)
                             {

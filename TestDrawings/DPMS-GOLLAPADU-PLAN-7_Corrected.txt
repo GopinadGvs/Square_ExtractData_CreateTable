@@ -1,0 +1,15 @@
+Duplicate Survey No's :
+
+Survey Numbers for Missing or Incorrect Polylines :
+
+Polyline ID's for Missing Survey No's :
+
+Multiple Survey Numbers in Same Polyline :
+
+Is Total Area Matched with Plot Layer :
+
+Total Area is Not Matched.
+
+Total Area From Survey No = 94686
+
+Total Area From Plot Layer = 94686.08
