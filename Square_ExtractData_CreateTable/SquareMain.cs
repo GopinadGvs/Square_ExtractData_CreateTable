@@ -89,15 +89,15 @@ namespace Square_ExtractData_CreateTable
                 BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
-                List<string> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
-                List<string> surveyNumberTextList = GetListTextFromLayer(surveyNoLayer, acTrans);
+                List<ObjectId> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
+                List<(ObjectId, string)> surveyNumberTextList = GetListTextFromLayer(surveyNoLayer, acTrans);
 
                 double totalPlotArea = Math.Round(GetAreaByLayer("_Plot", acTrans), 2);
                 double surveyNosPlotArea = Math.Round(GetAreaByLayer("_SurveyNo", acTrans), 2);
 
                 //create a dictionary with item number and it's repetative count to get duplicates
                 Dictionary<string, int> dictionary = new Dictionary<string, int>();
-                foreach (string item2 in surveyNumberTextList)
+                foreach (string item2 in surveyNumberTextList.Select(x => x.Item2).ToList())
                 {
                     if (dictionary.ContainsKey(item2))
                     {
@@ -111,18 +111,18 @@ namespace Square_ExtractData_CreateTable
 
                 //Validate for Duplicate Survey Numbers
                 //get duplicate values
-                List<string> duplicatesInfo = new List<string>();
+                List<(string, string)> duplicatesInfo = new List<(string, string)>();
                 foreach (KeyValuePair<string, int> item3 in dictionary)
                 {
                     if (item3.Value > 1)
                     {
-                        duplicatesInfo.Add($"Value {item3.Key} occurred {item3.Value} times");
+                        duplicatesInfo.Add((item3.Key, $"Value {item3.Key} occurred {item3.Value} times"));
                     }
                 }
 
-                List<string> polylineIdsForMissingSurveyNos = new List<string>();
-                List<string> SurveyNosForMissingpolylines = new List<string>();
-                List<(string, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(string, List<string>)>();
+                List<ObjectId> polylineIdsForMissingSurveyNos = new List<ObjectId>();
+                List<(ObjectId, string)> SurveyNosForMissingpolylines = new List<(ObjectId, string)>();
+                List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(ObjectId, List<string>)>();
 
                 if (surveyNumberPolylineIds.Count == surveyNumberTextList.Count)
                 {
@@ -140,12 +140,12 @@ namespace Square_ExtractData_CreateTable
 
                 void CreateReport()
                 {
-                    Dictionary<string, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
+                    Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
 
                     //Validate for missing Survey Numbers
                     if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
                     {
-                        List<string> validatedPolyLineIds = surveyNumberDictionary.Select(x => x.Key).ToList();
+                        List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
 
                         polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
 
@@ -153,7 +153,7 @@ namespace Square_ExtractData_CreateTable
                     //Validate for missing Survey Polylines
                     else if (surveyNumberPolylineIds.Count < surveyNumberTextList.Count)
                     {
-                        List<string> validatedSurveyNos = surveyNumberDictionary.Select(x => x.Value).ToList();
+                        List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
 
                         SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
                     }
@@ -164,21 +164,52 @@ namespace Square_ExtractData_CreateTable
                     {
                         if (duplicatesInfo.Count > 0)
                             sw.WriteLine("Duplicate Survey No's :");
-                        foreach (string duplicate in duplicatesInfo)
+                        foreach (var duplicate in duplicatesInfo)
                         {
-                            sw.WriteLine($"\n{duplicate}");
+                            sw.WriteLine($"\n{duplicate.Item2}");
+
+                            List<ObjectId> duplicates = surveyNumberTextList.Where(x => x.Item2 == duplicate.Item1).Select(x => x.Item1).ToList();
+
+                            foreach (ObjectId duplicateId in duplicates)
+                            {
+                                DBObject dbObject = acTrans.GetObject(duplicateId, OpenMode.ForRead);
+
+                                if (dbObject is MText mText)
+                                    CreatePoints(new List<Point3d>() { mText.Location });
+                                if (dbObject is DBText dBText)
+                                    CreatePoints(new List<Point3d>() { dBText.Position });
+                            }
                         }
                         if (SurveyNosForMissingpolylines.Count > 0)
                             sw.WriteLine("\nSurvey Numbers for Missing or Incorrect Polylines :");
-                        foreach (string SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
+                        foreach (var SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
                         {
-                            sw.WriteLine($"\n{SurveyNosForMissingpolyline}");
+                            sw.WriteLine($"\n{SurveyNosForMissingpolyline.Item2}");
+
+                            DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
+
+                            if (dbObject is MText mText)
+                                CreatePoints(new List<Point3d>() { mText.Location });
+                            if (dbObject is DBText dBText)
+                                CreatePoints(new List<Point3d>() { dBText.Position });
+
                         }
                         if (polylineIdsForMissingSurveyNos.Count > 0)
                             sw.WriteLine("\nPolyline ID's for Missing Survey No's :");
-                        foreach (string polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
+                        foreach (ObjectId polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
                         {
                             sw.WriteLine($"\n{polylineIdsForMissingSurveyNo}");
+
+                            Polyline acPoly = acTrans.GetObject(polylineIdsForMissingSurveyNo, OpenMode.ForRead) as Polyline;
+
+                            Point3dCollection point3DCollection = new Point3dCollection();
+
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
                         }
                         //validate for multiple survey numbers in same survey Number polyline
                         if (polylineIdsWithMultipleSurveyNos.Count > 0)
@@ -202,6 +233,8 @@ namespace Square_ExtractData_CreateTable
                             sw.WriteLine($"\nTotal Area From Plot Layer = {totalPlotArea}");
                         }
                     }
+
+
 
                     System.Diagnostics.Process.Start(txtFileNew);
                 }
@@ -3062,6 +3095,40 @@ namespace Square_ExtractData_CreateTable
             return collection;
         }
 
+        private List<(ObjectId, string)> GetListTextAndObjectFromLayer(Transaction acTrans, Point3dCollection point3dCollection, string textType, string layerName)
+        {
+            List<(ObjectId, string)> collection = new List<(ObjectId, string)>();
+
+            PromptSelectionResult acSSPromptText = ed.SelectCrossingPolygon(point3dCollection, CreateSelectionFilterByStartTypeAndLayer(textType, layerName));
+
+            if (acSSPromptText.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSetTexts = acSSPromptText.Value;
+
+                foreach (SelectedObject acSSetText in acSSetTexts)
+                {
+                    if (acSSetText != null)
+                    {
+                        string val2;
+                        try
+                        {
+                            DBText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as DBText;
+                            val2 = acText.TextString;
+                        }
+
+                        catch
+                        {
+                            MText acText = acTrans.GetObject(acSSetText.ObjectId, OpenMode.ForRead) as MText;
+                            val2 = acText.Text;
+                        }
+                        collection.Add((acSSetText.ObjectId, val2)); //add to list
+                    }
+                }
+            }
+
+            return collection;
+        }
+
         public bool IsPointInsidePolyline(Point3d point, Polyline polyline)
         {
             // Convert Point3d to Point2d
@@ -3132,9 +3199,9 @@ namespace Square_ExtractData_CreateTable
             return TotalArea;
         }
 
-        public List<string> GetListTextFromLayer(string layerName, Transaction acTrans)
+        public List<(ObjectId, string)> GetListTextFromLayer(string layerName, Transaction acTrans)
         {
-            List<string> textArray = new List<string>();
+            List<(ObjectId, string)> textArray = new List<(ObjectId, string)>();
 
             PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
 
@@ -3158,8 +3225,8 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
-                            textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
+                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
+                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
                         }
                     }
                 }
@@ -3168,9 +3235,9 @@ namespace Square_ExtractData_CreateTable
             return textArray;
         }
 
-        public List<string> GetPolyLines(string layerName, Transaction acTrans)
+        public List<ObjectId> GetPolyLines(string layerName, Transaction acTrans)
         {
-            List<string> polylinesList = new List<string>();
+            List<ObjectId> polylinesList = new List<ObjectId>();
 
             PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
 
@@ -3183,7 +3250,7 @@ namespace Square_ExtractData_CreateTable
                     if (acSSObj != null)
                     {
                         Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
-                        polylinesList.Add(acPoly.ObjectId.ToString());
+                        polylinesList.Add(acPoly.ObjectId);
                     }
                 }
             }
@@ -3191,9 +3258,9 @@ namespace Square_ExtractData_CreateTable
             return polylinesList;
         }
 
-        public Dictionary<string, string> GetListTextDictionaryFromLayer(string layerName, Transaction acTrans, List<(string, List<string>)> polylineIdsWithMultipleSurveyNos)
+        public Dictionary<ObjectId, string> GetListTextDictionaryFromLayer(string layerName, Transaction acTrans, List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos)
         {
-            Dictionary<string, string> textArray = new Dictionary<string, string>();
+            Dictionary<ObjectId, string> textArray = new Dictionary<ObjectId, string>();
 
             PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
 
@@ -3221,24 +3288,24 @@ namespace Square_ExtractData_CreateTable
 
                             if (textValues.Count > 1)
                             {
-                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId.ToString(), textValues));
+                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId, textValues));
                             }
                             if (textValues.Count == 1)
                             {
                                 if (!string.IsNullOrEmpty(textValues[0]))
-                                    textArray.Add(acPoly.ObjectId.ToString(), textValues[0]);
+                                    textArray.Add(acPoly.ObjectId, textValues[0]);
                             }
 
                             List<string> mTextValues = GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName);
 
                             if (mTextValues.Count > 1)
                             {
-                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId.ToString(), mTextValues));
+                                polylineIdsWithMultipleSurveyNos.Add((acPoly.ObjectId, mTextValues));
                             }
                             if (mTextValues.Count == 1)
                             {
                                 if (!string.IsNullOrEmpty(mTextValues[0]))
-                                    textArray.Add(acPoly.ObjectId.ToString(), mTextValues[0]);
+                                    textArray.Add(acPoly.ObjectId, mTextValues[0]);
                             }
                         }
                     }

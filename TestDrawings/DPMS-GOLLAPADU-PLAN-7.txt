@@ -8,16 +8,14 @@ Survey Numbers for Missing or Incorrect Polylines :
 
 88/A1E
 
-Polyline ID's for Missing Survey No's :
-
 Multiple Survey Numbers in Same Polyline :
 
-(140686581341232) - 88/A1E,88/A1G,88/A1F
+(140688925965360) - 88/A1E,88/A1G,88/A1F
 
 Is Total Area Matched with Plot Layer :
 
 Total Area is Not Matched.
 
-Total Area From Survey No = 96811.8489690241
+Total Area From Survey No = 96811.85
 
-Total Area From Plot Layer = 94686.0821941973
+Total Area From Plot Layer = 94686.08
