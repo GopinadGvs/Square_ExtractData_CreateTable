@@ -155,7 +155,9 @@ namespace Square_ExtractData_CreateTable
                     {
                         List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
 
-                        SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
+                        SurveyNosForMissingpolylines = surveyNumberTextList.Where(x => !validatedSurveyNos.Select(y => y.Item2).ToList().Contains(x.Item2)).ToList();
+
+                        //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
                     }
 
                     string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".txt");
