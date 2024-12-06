@@ -90,7 +90,7 @@ namespace Square_ExtractData_CreateTable
                 BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
                 List<ObjectId> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
-                List<(ObjectId, string)> surveyNumberTextList = GetListTextFromLayer(surveyNoLayer, acTrans);
+                List<(ObjectId, string)> surveyNumberTextList = GetListTextAndObjectIdFromLayer(surveyNoLayer, acTrans);
 
                 double totalPlotArea = Math.Round(GetAreaByLayer("_Plot", acTrans), 2);
                 double surveyNosPlotArea = Math.Round(GetAreaByLayer("_SurveyNo", acTrans), 2);
@@ -3199,7 +3199,7 @@ namespace Square_ExtractData_CreateTable
             return TotalArea;
         }
 
-        public List<(ObjectId, string)> GetListTextFromLayer(string layerName, Transaction acTrans)
+        public List<(ObjectId, string)> GetListTextAndObjectIdFromLayer(string layerName, Transaction acTrans)
         {
             List<(ObjectId, string)> textArray = new List<(ObjectId, string)>();
 
@@ -3227,6 +3227,42 @@ namespace Square_ExtractData_CreateTable
 
                             textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
                             textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
+                        }
+                    }
+                }
+            }
+
+            return textArray;
+        }
+
+        public List<string> GetListTextFromLayer(string layerName, Transaction acTrans)
+        {
+            List<string> textArray = new List<string>();
+
+            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+
+            if (acSSPrompt1.Status == PromptStatus.OK)
+            {
+                SelectionSet acSSet = acSSPrompt1.Value;
+
+                foreach (SelectedObject acSSObj in acSSet)
+                {
+                    if (acSSObj != null)
+                    {
+                        Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+
+                        if (acPoly != null && acPoly.Closed)
+                        {
+                            //Collect all Points
+                            Point3dCollection point3DCollection = new Point3dCollection();
+
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
+                            textArray.AddRange(GetListTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
                         }
                     }
                 }
