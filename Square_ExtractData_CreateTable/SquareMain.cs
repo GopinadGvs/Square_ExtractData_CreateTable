@@ -89,6 +89,14 @@ namespace Square_ExtractData_CreateTable
                 BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
+                #region Create Free Space Layer
+
+                //create free space layer with red color
+
+                CreateLayerByName(acCurDb, acTrans, Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
+
+                #endregion
+
                 List<ObjectId> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
                 List<(ObjectId, string)> surveyNumberTextList = GetListTextAndObjectIdFromLayer(surveyNoLayer, acTrans);
 
@@ -140,6 +148,7 @@ namespace Square_ExtractData_CreateTable
 
                 void CreateReport()
                 {
+
                     Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
 
                     //Validate for missing Survey Numbers
@@ -219,6 +228,18 @@ namespace Square_ExtractData_CreateTable
                         foreach (var polylineIdsWithMultipleSurveyNo in polylineIdsWithMultipleSurveyNos)
                         {
                             sw.WriteLine($"\n{polylineIdsWithMultipleSurveyNo.Item1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
+
+                            Polyline acPoly = acTrans.GetObject(polylineIdsWithMultipleSurveyNo.Item1, OpenMode.ForRead) as Polyline;
+
+                            Point3dCollection point3DCollection = new Point3dCollection();
+
+                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            {
+                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                            }
+
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+
                         }
                         //Validate for Total Area of Survey Polylines with Plot Layer 
                         sw.WriteLine("\nIs Total Area Matched with Plot Layer :");
@@ -236,13 +257,19 @@ namespace Square_ExtractData_CreateTable
                         }
                     }
 
+                    //Set Point Mode
+                    Application.SetSystemVariable("PDMODE", 35);
 
+                    //set PDSIZE to set point size
+                    Application.SetSystemVariable("PDSIZE", 2.0);
 
                     System.Diagnostics.Process.Start(txtFileNew);
                 }
 
                 //ToDo - Today                
+                acTrans.Commit();
             }
+
         }
 
 
