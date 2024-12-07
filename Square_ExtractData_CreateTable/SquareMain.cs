@@ -81,6 +81,8 @@ namespace Square_ExtractData_CreateTable
             ed.Command("_.zoom", "_e");
 
             string surveyNoLayer = "_SurveyNo";
+            string plotLayer = "_Plot";
+
 
             ed.Command("_-layer", "t", surveyNoLayer, "ON", surveyNoLayer, "U", surveyNoLayer, "");
 
@@ -98,10 +100,10 @@ namespace Square_ExtractData_CreateTable
                 #endregion
 
                 List<ObjectId> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
-                List<(ObjectId, string)> surveyNumberTextList = GetListTextAndObjectIdFromLayer(surveyNoLayer, acTrans);
+                List<(ObjectId, string)> surveyNumberTextList = GetListTextAndObjectIdFromLayer(plotLayer, surveyNoLayer, acTrans); //ToDo - change this collection
 
-                double totalPlotArea = Math.Round(GetAreaByLayer("_Plot", acTrans), 2);
-                double surveyNosPlotArea = Math.Round(GetAreaByLayer("_SurveyNo", acTrans), 2);
+                double totalPlotArea = Math.Round(GetAreaByLayer(plotLayer, acTrans), 2);
+                double surveyNosPlotArea = Math.Round(GetAreaByLayer(surveyNoLayer, acTrans), 2);
 
                 //create a dictionary with item number and it's repetative count to get duplicates
                 Dictionary<string, int> dictionary = new Dictionary<string, int>();
@@ -132,19 +134,21 @@ namespace Square_ExtractData_CreateTable
                 List<(ObjectId, string)> SurveyNosForMissingpolylines = new List<(ObjectId, string)>();
                 List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(ObjectId, List<string>)>();
 
-                if (surveyNumberPolylineIds.Count == surveyNumberTextList.Count)
-                {
-                    System.Windows.Forms.DialogResult result = System.Windows.Forms.MessageBox.Show("No Errors Found, Do you want to open Report?", "No Mistake", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+                //Commented as there is no proper logic to confirm no errors in the drawing
 
-                    if (result == System.Windows.Forms.DialogResult.Yes)
-                    {
-                        CreateReport();
-                    }
-                }
-                else
-                {
+                //if (surveyNumberPolylineIds.Count == surveyNumberTextList.Count)
+                //{
+                //    System.Windows.Forms.DialogResult result = System.Windows.Forms.MessageBox.Show("No Errors Found, Do you want to open Report?", "No Mistake", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+
+                //    if (result == System.Windows.Forms.DialogResult.Yes)
+                //    {
+                //        CreateReport();
+                //    }
+                //}
+                //else
+                //{
                     CreateReport();
-                }
+                //}
 
                 void CreateReport()
                 {
@@ -152,22 +156,22 @@ namespace Square_ExtractData_CreateTable
                     Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, acTrans, polylineIdsWithMultipleSurveyNos);
 
                     //Validate for missing Survey Numbers
-                    if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
-                    {
-                        List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
+                    //if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
+                    //{
+                    List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
 
-                        polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
+                    polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
 
-                    }
+                    //}
                     //Validate for missing Survey Polylines
-                    else if (surveyNumberPolylineIds.Count < surveyNumberTextList.Count)
-                    {
-                        List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
+                    //else if (surveyNumberPolylineIds.Count < surveyNumberTextList.Count)
+                    //{
+                    List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
 
-                        SurveyNosForMissingpolylines = surveyNumberTextList.Where(x => !validatedSurveyNos.Select(y => y.Item2).ToList().Contains(x.Item2)).ToList();
+                    SurveyNosForMissingpolylines = surveyNumberTextList.Where(x => !validatedSurveyNos.Select(y => y.Item2).ToList().Contains(x.Item2)).ToList();
 
-                        //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
-                    }
+                    //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
+                    //}
 
                     string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".txt");
 
@@ -242,7 +246,7 @@ namespace Square_ExtractData_CreateTable
 
                         }
                         //Validate for Total Area of Survey Polylines with Plot Layer 
-                        sw.WriteLine("\nIs Total Area Matched with Plot Layer :");
+                        //sw.WriteLine("\nIs Total Area Matched with Plot Layer :");
                         if (Math.Abs(surveyNosPlotArea - totalPlotArea) < 0.01)
                         {
                             sw.WriteLine("\nTotal Area is Matched.");
@@ -3228,11 +3232,11 @@ namespace Square_ExtractData_CreateTable
             return TotalArea;
         }
 
-        public List<(ObjectId, string)> GetListTextAndObjectIdFromLayer(string layerName, Transaction acTrans)
+        public List<(ObjectId, string)> GetListTextAndObjectIdFromLayer(string plotlayer, string surveyNoLayer, Transaction acTrans)
         {
             List<(ObjectId, string)> textArray = new List<(ObjectId, string)>();
 
-            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, layerName));
+            PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, plotlayer));
 
             if (acSSPrompt1.Status == PromptStatus.OK)
             {
@@ -3254,8 +3258,8 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.TEXT, layerName));
-                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.MTEXT, layerName));
+                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.TEXT, surveyNoLayer));
+                            textArray.AddRange(GetListTextAndObjectFromLayer(acTrans, point3DCollection, Constants.MTEXT, surveyNoLayer));
                         }
                     }
                 }
