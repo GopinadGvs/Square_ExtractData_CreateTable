@@ -159,6 +159,7 @@ namespace Square_ExtractData_CreateTable
                     //if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
                     //{
                     List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
+                    validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
 
                     polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
 
@@ -173,7 +174,7 @@ namespace Square_ExtractData_CreateTable
                     //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
                     //}
 
-                    string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".txt");
+                    string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_SC.txt");
 
                     using (StreamWriter sw = new StreamWriter(txtFileNew))
                     {
@@ -298,8 +299,6 @@ namespace Square_ExtractData_CreateTable
             ed.Command("_.zoom", "_e");
 
             string surveyNoLayer = "_SurveyNo";
-            string plotLayer = "_Plot";
-
             string LandLordLayer = "_LandLord";
 
 
@@ -350,7 +349,7 @@ namespace Square_ExtractData_CreateTable
                 //}
 
                 List<ObjectId> polylineIdsForMissingSurveyNos = new List<ObjectId>();
-                List<(ObjectId, string)> SurveyNosForMissingpolylines = new List<(ObjectId, string)>();
+                //List<(ObjectId, string)> SurveyNosForMissingpolylines = new List<(ObjectId, string)>();
                 List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(ObjectId, List<string>)>();
 
                 //Commented as there is no proper logic to confirm no errors in the drawing
@@ -379,6 +378,8 @@ namespace Square_ExtractData_CreateTable
                     //{
                     List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
 
+                    validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
+
                     polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
 
                     //}
@@ -392,7 +393,7 @@ namespace Square_ExtractData_CreateTable
                     //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
                     //}
 
-                    string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + ".txt");
+                    string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_NDEC.txt");
 
                     using (StreamWriter sw = new StreamWriter(txtFileNew))
                     {
@@ -414,20 +415,20 @@ namespace Square_ExtractData_CreateTable
                         //            CreatePoints(new List<Point3d>() { dBText.Position });
                         //    }
                         //}
-                        if (SurveyNosForMissingpolylines.Count > 0)
-                            sw.WriteLine("\nSurvey Numbers for Missing or Incorrect Polylines :");
-                        foreach (var SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
-                        {
-                            sw.WriteLine($"\n{SurveyNosForMissingpolyline.Item2}");
+                        //if (SurveyNosForMissingpolylines.Count > 0)
+                        //    sw.WriteLine("\nSurvey Numbers for Missing or Incorrect Polylines :");
+                        //foreach (var SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
+                        //{
+                        //    sw.WriteLine($"\n{SurveyNosForMissingpolyline.Item2}");
 
-                            DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
+                        //    DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
 
-                            if (dbObject is MText mText)
-                                CreatePoints(new List<Point3d>() { mText.Location });
-                            if (dbObject is DBText dBText)
-                                CreatePoints(new List<Point3d>() { dBText.Position });
+                        //    if (dbObject is MText mText)
+                        //        CreatePoints(new List<Point3d>() { mText.Location });
+                        //    if (dbObject is DBText dBText)
+                        //        CreatePoints(new List<Point3d>() { dBText.Position });
 
-                        }
+                        //}
                         if (polylineIdsForMissingSurveyNos.Count > 0)
                             sw.WriteLine("\nPolyline ID's for Missing Survey No's :");
                         foreach (ObjectId polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
