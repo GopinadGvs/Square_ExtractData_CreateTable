@@ -191,9 +191,9 @@ namespace Square_ExtractData_CreateTable
                                 DBObject dbObject = acTrans.GetObject(duplicateId, OpenMode.ForRead);
 
                                 if (dbObject is MText mText)
-                                    CreatePoints(new List<Point3d>() { mText.Location });
+                                    CreatePoints(new List<Point3d>() { mText.Location }, Constants.FreeSpaceLayer);
                                 if (dbObject is DBText dBText)
-                                    CreatePoints(new List<Point3d>() { dBText.Position });
+                                    CreatePoints(new List<Point3d>() { dBText.Position }, Constants.FreeSpaceLayer);
                             }
                         }
                         if (SurveyNosForMissingpolylines.Count > 0)
@@ -205,9 +205,9 @@ namespace Square_ExtractData_CreateTable
                             DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
 
                             if (dbObject is MText mText)
-                                CreatePoints(new List<Point3d>() { mText.Location });
+                                CreatePoints(new List<Point3d>() { mText.Location }, Constants.FreeSpaceLayer);
                             if (dbObject is DBText dBText)
-                                CreatePoints(new List<Point3d>() { dBText.Position });
+                                CreatePoints(new List<Point3d>() { dBText.Position }, Constants.FreeSpaceLayer);
 
                         }
                         if (polylineIdsForMissingSurveyNos.Count > 0)
@@ -225,7 +225,7 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
                         }
                         //validate for multiple survey numbers in same survey Number polyline
                         if (polylineIdsWithMultipleSurveyNos.Count > 0)
@@ -243,7 +243,7 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
 
                         }
                         //Validate for Total Area of Survey Polylines with Plot Layer 
@@ -299,8 +299,6 @@ namespace Square_ExtractData_CreateTable
             ed.Command("_.zoom", "_e");
 
             string surveyNoLayer = "_SurveyNo";
-            string LandLordLayer = "_LandLord";
-
 
             ed.Command("_-layer", "t", surveyNoLayer, "ON", surveyNoLayer, "U", surveyNoLayer, "");
 
@@ -308,14 +306,6 @@ namespace Square_ExtractData_CreateTable
             {
                 BlockTable acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
-
-                #region Create Free Space Layer
-
-                //create free space layer with red color
-
-                CreateLayerByName(acCurDb, acTrans, Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
-
-                #endregion
 
                 List<ObjectId> surveyNumberPolylineIds = GetPolyLines(surveyNoLayer, acTrans);
                 //List<(ObjectId, string)> surveyNumberTextList = GetListTextAndObjectIdFromLayer(plotLayer, LandLordLayer, acTrans);
@@ -348,9 +338,7 @@ namespace Square_ExtractData_CreateTable
                 //    }
                 //}
 
-                List<ObjectId> polylineIdsForMissingSurveyNos = new List<ObjectId>();
-                //List<(ObjectId, string)> SurveyNosForMissingpolylines = new List<(ObjectId, string)>();
-                List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(ObjectId, List<string>)>();
+
 
                 //Commented as there is no proper logic to confirm no errors in the drawing
 
@@ -372,45 +360,89 @@ namespace Square_ExtractData_CreateTable
                 {
                     string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_NDEC.txt");
 
+                    List<(ObjectId, List<string>)> temp = new List<(ObjectId, List<string>)>();
+                    Dictionary<ObjectId, string> PolylineIDVssurveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, surveyNoLayer, acTrans, temp);
+
                     List<string> layersToCheck = new List<string>() { "_LandLord", "_DocNo", "_Extent" };
 
-                    foreach (string layerToCheck in layersToCheck)
+                    using (StreamWriter sw = new StreamWriter(txtFileNew))
                     {
-                        Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, layerToCheck, acTrans, polylineIdsWithMultipleSurveyNos);
-
-                        List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
-
-                        validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
-
-                        polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
-
-                        List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
-
-                        string prompt;
-
-                        switch (layerToCheck)
+                        foreach (string layerToCheck in layersToCheck)
                         {
-                            case "_LandLord":
-                                prompt = "Names";
-                                break;
-                            case "_DocNo":
-                                prompt = "Document Numbers";
-                                break;
-                            case "_Extent":
-                                prompt = "Extent";
-                                break;
-                            default:
-                                prompt = string.Empty;
-                                break;
-                        }
+                            string prompt;
+                            string freeSpaceLayer;
+                            byte red, green, blue;
 
-                        using (StreamWriter sw = new StreamWriter(txtFileNew))
-                        {
+                            switch (layerToCheck)
+                            {
+                                case "_LandLord":
+                                    prompt = "Names";
+                                    freeSpaceLayer = "_FreeSpace_NameCheck";
+                                    red = 255;
+                                    green = 0;
+                                    blue = 0;
+                                    break;
+                                case "_DocNo":
+                                    prompt = "Document Numbers";
+                                    freeSpaceLayer = "_FreeSpace_DocCheck";
+                                    red = 0;
+                                    green = 255;
+                                    blue = 0;
+                                    break;
+                                case "_Extent":
+                                    prompt = "Extent";
+                                    freeSpaceLayer = "_FreeSpace_ExtentCheck";
+                                    red = 0;
+                                    green = 0;
+                                    blue = 255;
+                                    break;
+                                default:
+                                    prompt = string.Empty;
+                                    freeSpaceLayer = "_FreeSpace_Temp";
+                                    red = 255;
+                                    green = 255;
+                                    blue = 255;
+                                    break;
+                            }
+
+                            #region Create Free Space Layer
+
+                            //create free space layer with red color
+
+                            CreateLayerByName(acCurDb, acTrans, freeSpaceLayer, Color.FromRgb(red, green, blue));
+
+                            #endregion
+
+                            List<ObjectId> polylineIdsForMissingSurveyNos = new List<ObjectId>();
+                            List<(ObjectId, List<string>)> polylineIdsWithMultipleSurveyNos = new List<(ObjectId, List<string>)>();
+
+                            Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, layerToCheck, acTrans, polylineIdsWithMultipleSurveyNos);
+
+                            List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
+
+                            validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
+
+                            polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
+
+                            List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
+
+
                             if (polylineIdsForMissingSurveyNos.Count > 0)
-                                sw.WriteLine($"\nPolyline ID's for Missing {prompt} :");
+                                sw.WriteLine($"\n{prompt} Check: Survey Number for Missing {prompt}");
                             foreach (ObjectId polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
                             {
-                                sw.WriteLine($"\n{polylineIdsForMissingSurveyNo}");
+                                string temp1 = string.Empty;
+
+                                try
+                                {
+                                    temp1 = PolylineIDVssurveyNumberDictionary[polylineIdsForMissingSurveyNo];
+                                }
+                                catch (System.Exception)
+                                {
+                                    temp1 = polylineIdsForMissingSurveyNo.ToString();
+                                }
+
+                                sw.WriteLine($"\n{temp1}");
 
                                 Polyline acPoly = acTrans.GetObject(polylineIdsForMissingSurveyNo, OpenMode.ForRead) as Polyline;
 
@@ -421,14 +453,25 @@ namespace Square_ExtractData_CreateTable
                                     point3DCollection.Add(acPoly.GetPoint3dAt(i));
                                 }
 
-                                CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                                CreatePoints(point3DCollection.Cast<Point3d>().ToList(), freeSpaceLayer);
                             }
                             //validate for multiple survey numbers in same survey Number polyline
                             if (polylineIdsWithMultipleSurveyNos.Count > 0)
-                                sw.WriteLine($"\nMultiple {prompt} in Same Polyline :");
+                                sw.WriteLine($"\n{prompt} Check: Multiple {prompt} in Same Polyline");
                             foreach (var polylineIdsWithMultipleSurveyNo in polylineIdsWithMultipleSurveyNos)
                             {
-                                sw.WriteLine($"\n{polylineIdsWithMultipleSurveyNo.Item1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
+                                string temp1 = string.Empty;
+
+                                try
+                                {
+                                    temp1 = PolylineIDVssurveyNumberDictionary[polylineIdsWithMultipleSurveyNo.Item1];
+                                }
+                                catch (System.Exception)
+                                {
+                                    temp1 = polylineIdsWithMultipleSurveyNo.Item1.ToString();
+                                }
+
+                                sw.WriteLine($"\n{temp1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
 
                                 Polyline acPoly = acTrans.GetObject(polylineIdsWithMultipleSurveyNo.Item1, OpenMode.ForRead) as Polyline;
 
@@ -439,7 +482,7 @@ namespace Square_ExtractData_CreateTable
                                     point3DCollection.Add(acPoly.GetPoint3dAt(i));
                                 }
 
-                                CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                                CreatePoints(point3DCollection.Cast<Point3d>().ToList(), freeSpaceLayer);
 
                             }
                         }
@@ -456,7 +499,6 @@ namespace Square_ExtractData_CreateTable
                 //ToDo - Today                
                 acTrans.Commit();
             }
-
         }
 
         [CommandMethod("CLAYER")]
@@ -1737,7 +1779,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.eastLineSegment[0].StartPoint);
                         points.Add(item.eastLineSegment[0].EndPoint);
 
-                        CreatePoints(points);
+                        CreatePoints(points, Constants.FreeSpaceLayer);
                     }
 
                     if (item._SouthInfo.Equals("-"))
@@ -1747,7 +1789,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.southLineSegment[0].StartPoint);
                         points.Add(item.southLineSegment[0].EndPoint);
 
-                        CreatePoints(points);
+                        CreatePoints(points, Constants.FreeSpaceLayer);
                     }
 
                     if (item._WestInfo.Equals("-"))
@@ -1757,7 +1799,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.westLineSegment[0].StartPoint);
                         points.Add(item.westLineSegment[0].EndPoint);
 
-                        CreatePoints(points);
+                        CreatePoints(points, Constants.FreeSpaceLayer);
                     }
 
                     if (item._NorthInfo.Equals("-"))
@@ -1767,7 +1809,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.northLineSegment[0].StartPoint);
                         points.Add(item.northLineSegment[0].EndPoint);
 
-                        CreatePoints(points);
+                        CreatePoints(points, Constants.FreeSpaceLayer);
                     }
 
                     #endregion
@@ -2095,7 +2137,7 @@ namespace Square_ExtractData_CreateTable
                                     //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
 
                                     //Create points at the unidentified areas
-                                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
                                 }
                             }
                         }
@@ -2165,7 +2207,7 @@ namespace Square_ExtractData_CreateTable
                                         }
 
                                         if (!boundaryPolylines.Any())
-                                            CreatePoints(new List<Point3d>() { mypoint });
+                                            CreatePoints(new List<Point3d>() { mypoint }, Constants.FreeSpaceLayer);
 
                                         //List<Polyline> roadPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.InternalRoadLayer);
                                         //List<Polyline> plotPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.IndivPlotLayer);
@@ -2556,13 +2598,13 @@ namespace Square_ExtractData_CreateTable
             return area;
         }
 
-        private void CreatePoints(List<Point3d> points)
+        private void CreatePoints(List<Point3d> points, string freeSpaceLayer)
         {
             // Sort the points to form a proper closed polyline
             List<Point3d> sortedPoints = SortPoints(points.ToArray());
 
             // Create points from the sorted points
-            CreatePointsAndCommit(sortedPoints);
+            CreatePointsAndCommit(sortedPoints, freeSpaceLayer);
         }
 
         private void CreatePoints(Plot item)
@@ -2598,7 +2640,7 @@ namespace Square_ExtractData_CreateTable
                     //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
 
                     //Create points at the unidentified areas
-                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
                 }
             }
         }
@@ -2669,7 +2711,7 @@ namespace Square_ExtractData_CreateTable
             return polyline;
         }
 
-        private void CreatePointsAndCommit(List<Point3d> points)
+        private void CreatePointsAndCommit(List<Point3d> points, string freeSpaceLayer)
         {
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database db = acDoc.Database;
@@ -2682,7 +2724,7 @@ namespace Square_ExtractData_CreateTable
 
                 // Open the LayerTable for read
                 LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
-                string layerName = Constants.FreeSpaceLayer;
+                string layerName = freeSpaceLayer;
 
                 if (layerTable.Has(layerName))
                 {
