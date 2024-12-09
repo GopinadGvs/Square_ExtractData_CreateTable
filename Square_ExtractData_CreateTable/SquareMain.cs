@@ -370,117 +370,80 @@ namespace Square_ExtractData_CreateTable
 
                 void CreateReport()
                 {
-
-                    Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, LandLordLayer, acTrans, polylineIdsWithMultipleSurveyNos);
-
-                    //Validate for missing Survey Numbers
-                    //if (surveyNumberPolylineIds.Count > surveyNumberTextList.Count)
-                    //{
-                    List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
-
-                    validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
-
-                    polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
-
-                    //}
-                    //Validate for missing Survey Polylines
-                    //else if (surveyNumberPolylineIds.Count < surveyNumberTextList.Count)
-                    //{
-                    List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
-
-                    //SurveyNosForMissingpolylines = surveyNumberTextList.Where(x => !validatedSurveyNos.Select(y => y.Item2).ToList().Contains(x.Item2)).ToList();
-
-                    //SurveyNosForMissingpolylines = surveyNumberTextList.Except(validatedSurveyNos).ToList();
-                    //}
-
                     string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_NDEC.txt");
 
-                    using (StreamWriter sw = new StreamWriter(txtFileNew))
+                    List<string> layersToCheck = new List<string>() { "_LandLord", "_DocNo", "_Extent" };
+
+                    foreach (string layerToCheck in layersToCheck)
                     {
-                        //if (duplicatesInfo.Count > 0)
-                        //    sw.WriteLine("Duplicate Survey No's :");
-                        //foreach (var duplicate in duplicatesInfo)
-                        //{
-                        //    sw.WriteLine($"\n{duplicate.Item2}");
+                        Dictionary<ObjectId, string> surveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, layerToCheck, acTrans, polylineIdsWithMultipleSurveyNos);
 
-                        //    List<ObjectId> duplicates = surveyNumberTextList.Where(x => x.Item2 == duplicate.Item1).Select(x => x.Item1).ToList();
+                        List<ObjectId> validatedPolyLineIds = surveyNumberDictionary.Keys.ToList();
 
-                        //    foreach (ObjectId duplicateId in duplicates)
-                        //    {
-                        //        DBObject dbObject = acTrans.GetObject(duplicateId, OpenMode.ForRead);
+                        validatedPolyLineIds.AddRange(polylineIdsWithMultipleSurveyNos.Select(x => x.Item1).ToList());
 
-                        //        if (dbObject is MText mText)
-                        //            CreatePoints(new List<Point3d>() { mText.Location });
-                        //        if (dbObject is DBText dBText)
-                        //            CreatePoints(new List<Point3d>() { dBText.Position });
-                        //    }
-                        //}
-                        //if (SurveyNosForMissingpolylines.Count > 0)
-                        //    sw.WriteLine("\nSurvey Numbers for Missing or Incorrect Polylines :");
-                        //foreach (var SurveyNosForMissingpolyline in SurveyNosForMissingpolylines)
-                        //{
-                        //    sw.WriteLine($"\n{SurveyNosForMissingpolyline.Item2}");
+                        polylineIdsForMissingSurveyNos = surveyNumberPolylineIds.Except(validatedPolyLineIds).ToList();
 
-                        //    DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
+                        List<(ObjectId, string)> validatedSurveyNos = surveyNumberDictionary.Select(x => (x.Key, x.Value)).ToList();
 
-                        //    if (dbObject is MText mText)
-                        //        CreatePoints(new List<Point3d>() { mText.Location });
-                        //    if (dbObject is DBText dBText)
-                        //        CreatePoints(new List<Point3d>() { dBText.Position });
+                        string prompt;
 
-                        //}
-                        if (polylineIdsForMissingSurveyNos.Count > 0)
-                            sw.WriteLine("\nPolyline ID's for Missing Survey No's :");
-                        foreach (ObjectId polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
+                        switch (layerToCheck)
                         {
-                            sw.WriteLine($"\n{polylineIdsForMissingSurveyNo}");
-
-                            Polyline acPoly = acTrans.GetObject(polylineIdsForMissingSurveyNo, OpenMode.ForRead) as Polyline;
-
-                            Point3dCollection point3DCollection = new Point3dCollection();
-
-                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
-                            {
-                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
-                            }
-
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                            case "_LandLord":
+                                prompt = "Names";
+                                break;
+                            case "_DocNo":
+                                prompt = "Document Numbers";
+                                break;
+                            case "_Extent":
+                                prompt = "Extent";
+                                break;
+                            default:
+                                prompt = string.Empty;
+                                break;
                         }
-                        //validate for multiple survey numbers in same survey Number polyline
-                        if (polylineIdsWithMultipleSurveyNos.Count > 0)
-                            sw.WriteLine("\nMultiple Survey Numbers in Same Polyline :");
-                        foreach (var polylineIdsWithMultipleSurveyNo in polylineIdsWithMultipleSurveyNos)
+
+                        using (StreamWriter sw = new StreamWriter(txtFileNew))
                         {
-                            sw.WriteLine($"\n{polylineIdsWithMultipleSurveyNo.Item1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
-
-                            Polyline acPoly = acTrans.GetObject(polylineIdsWithMultipleSurveyNo.Item1, OpenMode.ForRead) as Polyline;
-
-                            Point3dCollection point3DCollection = new Point3dCollection();
-
-                            for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                            if (polylineIdsForMissingSurveyNos.Count > 0)
+                                sw.WriteLine($"\nPolyline ID's for Missing {prompt} :");
+                            foreach (ObjectId polylineIdsForMissingSurveyNo in polylineIdsForMissingSurveyNos)
                             {
-                                point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                                sw.WriteLine($"\n{polylineIdsForMissingSurveyNo}");
+
+                                Polyline acPoly = acTrans.GetObject(polylineIdsForMissingSurveyNo, OpenMode.ForRead) as Polyline;
+
+                                Point3dCollection point3DCollection = new Point3dCollection();
+
+                                for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                                {
+                                    point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                                }
+
+                                CreatePoints(point3DCollection.Cast<Point3d>().ToList());
                             }
+                            //validate for multiple survey numbers in same survey Number polyline
+                            if (polylineIdsWithMultipleSurveyNos.Count > 0)
+                                sw.WriteLine($"\nMultiple {prompt} in Same Polyline :");
+                            foreach (var polylineIdsWithMultipleSurveyNo in polylineIdsWithMultipleSurveyNos)
+                            {
+                                sw.WriteLine($"\n{polylineIdsWithMultipleSurveyNo.Item1} - {string.Join(",", polylineIdsWithMultipleSurveyNo.Item2)}");
 
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+                                Polyline acPoly = acTrans.GetObject(polylineIdsWithMultipleSurveyNo.Item1, OpenMode.ForRead) as Polyline;
 
+                                Point3dCollection point3DCollection = new Point3dCollection();
+
+                                for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                                {
+                                    point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                                }
+
+                                CreatePoints(point3DCollection.Cast<Point3d>().ToList());
+
+                            }
                         }
-                        //Validate for Total Area of Survey Polylines with Plot Layer 
-                        //sw.WriteLine("\nIs Total Area Matched with Plot Layer :");
-                        //if (Math.Abs(surveyNosPlotArea - totalPlotArea) < 0.01)
-                        //{
-                        //    sw.WriteLine("\nTotal Area is Matched.");
-                        //    sw.WriteLine($"\nTotal Area From Survey No = {surveyNosPlotArea}");
-                        //    sw.WriteLine($"\nTotal Area From Plot Layer = {totalPlotArea}");
-                        //}
-                        //else
-                        //{
-                        //    sw.WriteLine("\nTotal Area is Not Matched.");
-                        //    sw.WriteLine($"\nTotal Area From Survey No = {surveyNosPlotArea}");
-                        //    sw.WriteLine($"\nTotal Area From Plot Layer = {totalPlotArea}");
-                        //}
                     }
-
                     //Set Point Mode
                     Application.SetSystemVariable("PDMODE", 35);
 
@@ -495,8 +458,6 @@ namespace Square_ExtractData_CreateTable
             }
 
         }
-
-
 
         [CommandMethod("CLAYER")]
         public void CheckAndCreateLayers()

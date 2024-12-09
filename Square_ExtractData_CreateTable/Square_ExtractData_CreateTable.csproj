@@ -82,6 +82,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants\LayersConfig.cs" />
     <Compile Include="FindMissingNumber.cs" />
     <Compile Include="Objects\Amenity.cs" />
     <Compile Include="Constants\Constants.cs" />

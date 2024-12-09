@@ -1,0 +1,5 @@
+ <Layers>
+ <Layer Description = "Survey Number Layer Name" Name = "_SurveyNo"></Layer>
+ <Layer Description = "Land Lord Layer Name" Name = "_LandLord_Sub"></Layer>
+ <Layer Description = "Individual Sub Plot Layer Name" Name = "_IndivSubPlot"></Layer>
+ </Layers>
