@@ -643,28 +643,33 @@ namespace Square_ExtractData_CreateTable
 
         private List<string> GetLayerList()
         {
-            List<string> layersList = new List<string>()
+            List<string> layersList = new List<string>();
+            //{
+            //    Constants.SurveyNoLayer,
+            //    Constants.IndivPlotLayer,
+            //    //Constants.IndivPlotDimLayer,
+            //    Constants.MortgageLayer,
+            //    Constants.AmenityLayer,
+            //    //Constants.AmenityDimLayer,
+            //    Constants.DocNoLayer,
+            //    Constants.LandLordLayer,
+            //    Constants.InternalRoadLayer,
+            //    Constants.PlotLayer,
+            //    Constants.OpenSpaceLayer,
+            //    Constants.UtilityLayer,
+            //    Constants.LeftOverOwnerLandLayer,
+            //    Constants.SideBoundaryLayer,
+            //    Constants.MainRoadLayer,
+            //    Constants.SplayLayer,
+            //    Constants.RoadWideningLayer,
+            //    Constants.GreenBufferZoneLayer,
+            //    Constants.LandLordSubLayer,
+            //};
+
+            foreach (var item in Constants.LayersList)
             {
-                Constants.SurveyNoLayer,
-                Constants.IndivPlotLayer,
-                //Constants.IndivPlotDimLayer,
-                Constants.MortgageLayer,
-                Constants.AmenityLayer,
-                //Constants.AmenityDimLayer,
-                Constants.DocNoLayer,
-                Constants.LandLordLayer,
-                Constants.InternalRoadLayer,
-                Constants.PlotLayer,
-                Constants.OpenSpaceLayer,
-                Constants.UtilityLayer,
-                Constants.LeftOverOwnerLandLayer,
-                Constants.SideBoundaryLayer,
-                Constants.MainRoadLayer,
-                Constants.SplayLayer,
-                Constants.RoadWideningLayer,
-                Constants.GreenBufferZoneLayer,
-                Constants.LandLordSubLayer,
-            };
+                layersList.Add(item.Name);
+            }
 
             return layersList;
         }
@@ -729,35 +734,45 @@ namespace Square_ExtractData_CreateTable
 
             bool printMortageInReport = false;
 
-            //PromptKeywordOptions pko = new PromptKeywordOptions("\nSelect Mode: Applicant / PreDCR");
-            //pko.Keywords.Add("Applicant", "A", "A");
-            //pko.Keywords.Add("PreDCR", "P", "P");
-            //pko.AllowNone = false; // Ensure the user makes a selection
-            //pko.Message = "\nSelect Mode (A for Applicant, P for PreDCR):";
-
-            //// Display the prompt and get the result
-            //PromptResult pr = ed.GetKeywords(pko);
-
-            //if (pr.Status == PromptStatus.OK)
+            //try
             //{
-            //    if (pr.StringResult == "Applicant")
+            //    // Set up the keyword options
+            //    PromptKeywordOptions pko = new PromptKeywordOptions("\nSelect Mode (A for Applicant, P for PreDCR):");
+            //    pko.Keywords.Add("Applicant", "A", "A");
+            //    pko.Keywords.Add("PreDCR", "P", "P");
+            //    pko.AllowNone = false; // Ensure the user makes a selection
+
+            //    // Display the prompt and get the result
+            //    PromptResult pr = ed.GetKeywords(pko);
+
+            //    // Check the prompt result
+            //    if (pr.Status == PromptStatus.OK)
             //    {
-            //        ed.WriteMessage("\nYou selected Applicant mode.");
-            //        // Add logic for Applicant mode
-            //        printMortageInReport = true;
+            //        if (pr.StringResult == "Applicant")
+            //        {
+            //            ed.WriteMessage("\nYou selected Applicant mode.");
+            //            printMortageInReport = true;
+            //            // Add Applicant logic here
+            //        }
+            //        else if (pr.StringResult == "PreDCR")
+            //        {
+            //            ed.WriteMessage("\nYou selected PreDCR mode.");
+            //            printMortageInReport = false;
+            //            // Add PreDCR logic here
+            //        }
+
+            //        // Additional logic after selection
+            //        ed.WriteMessage($"\nMortgage in Report: {printMortageInReport}");
             //    }
-            //    else if (pr.StringResult == "PreDCR")
+            //    else
             //    {
-            //        ed.WriteMessage("\nYou selected PreDCR mode.");
-            //        // Add logic for PreDCR mode
-            //        printMortageInReport = false;
+            //        ed.WriteMessage("\nSelection was canceled.");
             //    }
             //}
-
-            foreach (var item in Constants.LayersList)
-            {
-
-            }
+            //catch (System.Exception ex)
+            //{
+            //    ed.WriteMessage($"\nAn error occurred: {ex.Message}");
+            //}
 
             // Set the CMDECHO system variable to 0
             Application.SetSystemVariable("CMDECHO", 0);
@@ -3810,11 +3825,51 @@ namespace Square_ExtractData_CreateTable
                 XmlSerializer xmlSerializer = new XmlSerializer(typeof(Layers));
                 Layers layers = xmlSerializer.Deserialize(fileStream) as Layers;
 
-                Constants.SurveyNo = layers.Layer.Where(x => x.SNo == "1").Select(x => x).FirstOrDefault();
-                Constants.IndivPlot = layers.Layer.Where(x => x.SNo == "2").Select(x => x).FirstOrDefault();
+                Constants.Plot = layers.Layer.Where(x => x.SNo == "1").Select(x => x).FirstOrDefault();
+                Constants.SurveyNo = layers.Layer.Where(x => x.SNo == "2").Select(x => x).FirstOrDefault();
+                Constants.IndivPlot = layers.Layer.Where(x => x.SNo == "3").Select(x => x).FirstOrDefault();
+                Constants.Mortgage = layers.Layer.Where(x => x.SNo == "4").Select(x => x).FirstOrDefault();
+                Constants.Amenity = layers.Layer.Where(x => x.SNo == "5").Select(x => x).FirstOrDefault();
+                Constants.Utility = layers.Layer.Where(x => x.SNo == "6").Select(x => x).FirstOrDefault();
+                Constants.InternalRoad = layers.Layer.Where(x => x.SNo == "7").Select(x => x).FirstOrDefault();
+                Constants.MainRoad = layers.Layer.Where(x => x.SNo == "8").Select(x => x).FirstOrDefault();
+                Constants.OrganizedOpenSpace = layers.Layer.Where(x => x.SNo == "9").Select(x => x).FirstOrDefault();
+                Constants.LeftoverOwnersLand = layers.Layer.Where(x => x.SNo == "10").Select(x => x).FirstOrDefault();
+                Constants.Splay = layers.Layer.Where(x => x.SNo == "11").Select(x => x).FirstOrDefault();
+                Constants.RoadWidening = layers.Layer.Where(x => x.SNo == "12").Select(x => x).FirstOrDefault();
+                Constants.GreenBufferZone = layers.Layer.Where(x => x.SNo == "13").Select(x => x).FirstOrDefault();
+                Constants.DocNo = layers.Layer.Where(x => x.SNo == "14").Select(x => x).FirstOrDefault();
+                Constants.LandLord = layers.Layer.Where(x => x.SNo == "15").Select(x => x).FirstOrDefault();
+                Constants.LandLord_Sub = layers.Layer.Where(x => x.SNo == "16").Select(x => x).FirstOrDefault();
+                Constants.Extent = layers.Layer.Where(x => x.SNo == "17").Select(x => x).FirstOrDefault();
+                Constants.SideBoundary = layers.Layer.Where(x => x.SNo == "18").Select(x => x).FirstOrDefault();
+                Constants.FreeSpace = layers.Layer.Where(x => x.SNo == "19").Select(x => x).FirstOrDefault();
+                Constants.FreeSpace_NameCheck = layers.Layer.Where(x => x.SNo == "20").Select(x => x).FirstOrDefault();
+                Constants.FreeSpace_DocCheck = layers.Layer.Where(x => x.SNo == "21").Select(x => x).FirstOrDefault();
+                Constants.FreeSpace_ExtentCheck = layers.Layer.Where(x => x.SNo == "22").Select(x => x).FirstOrDefault();
 
+                Constants.LayersList.Add(Constants.Plot);
                 Constants.LayersList.Add(Constants.SurveyNo);
                 Constants.LayersList.Add(Constants.IndivPlot);
+                Constants.LayersList.Add(Constants.Mortgage);
+                Constants.LayersList.Add(Constants.Amenity);
+                Constants.LayersList.Add(Constants.Utility);
+                Constants.LayersList.Add(Constants.InternalRoad);
+                Constants.LayersList.Add(Constants.MainRoad);
+                Constants.LayersList.Add(Constants.OrganizedOpenSpace);
+                Constants.LayersList.Add(Constants.LeftoverOwnersLand);
+                Constants.LayersList.Add(Constants.Splay);
+                Constants.LayersList.Add(Constants.RoadWidening);
+                Constants.LayersList.Add(Constants.GreenBufferZone);
+                Constants.LayersList.Add(Constants.DocNo);
+                Constants.LayersList.Add(Constants.LandLord);
+                Constants.LayersList.Add(Constants.LandLord_Sub);
+                Constants.LayersList.Add(Constants.Extent);
+                Constants.LayersList.Add(Constants.SideBoundary);
+                Constants.LayersList.Add(Constants.FreeSpace);
+                Constants.LayersList.Add(Constants.FreeSpace_NameCheck);
+                Constants.LayersList.Add(Constants.FreeSpace_DocCheck);
+                Constants.LayersList.Add(Constants.FreeSpace_ExtentCheck);
             }
         }
     }

@@ -34,3 +34,9 @@ FATAL ERROR:  Unhandled Access Violation Reading 0x0000 Exception at 67a55f15h
 
 12/11/2024 at 20:03:34.432  Drawing: E:\Personal\AUTOCAD\05_Releases\Extractor\Latest_Version\V3.3.0\TestDrawings\NewTest5_RedColor_NoRoad_NoItem_AreaMismatch_Final_Drawing_With_Table_Data.dwg
 -------------
+
+
+FATAL ERROR:  Unhandled Access Violation Reading 0x0000 Exception at 67a338ffh
+
+12/11/2024 at 22:31:14.099  Drawing: E:\Personal\AUTOCAD\05_Releases\Extractor\Latest_Version\V3.3.0\TestDrawings\NewTest5_RedColor_NoRoad_NoItem_AreaMismatch_Final_Drawing_With_Table_Data.dwg
+-------------

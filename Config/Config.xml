@@ -14,8 +14,8 @@
  <Layer SNo ="13" Description = "Green Buffer Zone Layer Name" Name = "_GreenBufferZone" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="14" Description = "Document Number Layer Name" Name = "_DocNo" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="15" Description = "Land Lord Layer Name" Name = "_LandLord" Red = "0" Green = "0" Blue = "255"></Layer>
- <Layer SNo ="16" Description = "Extent Layer Name" Name = "_Extent" Red = "0" Green = "0" Blue = "255"></Layer>
- <Layer SNo ="17" Description = "Land Lord Sub Layer Name" Name = "_LandLord_Sub" Red = "0" Green = "255" Blue = "0"></Layer>
+ <Layer SNo ="16" Description = "Land Lord Sub Layer Name" Name = "_LandLord_Sub" Red = "0" Green = "255" Blue = "0"></Layer>
+ <Layer SNo ="17" Description = "Extent Layer Name" Name = "_Extent" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="18" Description = "Side Boundary Layer Name" Name = "_SideBoundary" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="19" Description = "Free Space Layer Name" Name = "_FreeSpace" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="20" Description = "Free Space Name Check Layer Name" Name = "_FreeSpace_NameCheck" Red = "0" Green = "0" Blue = "255"></Layer>

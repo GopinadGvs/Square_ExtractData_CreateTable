@@ -13,8 +13,28 @@ namespace Square_ExtractData_CreateTable
         //survey no layer name updated to handle landlord sub 
         public static string SurveyNoLayer = "_LandLord_Sub";
 
+        public static LayersLayer Plot;
         public static LayersLayer SurveyNo;
         public static LayersLayer IndivPlot;
+        public static LayersLayer Mortgage;
+        public static LayersLayer Amenity;
+        public static LayersLayer Utility;
+        public static LayersLayer InternalRoad;
+        public static LayersLayer MainRoad;
+        public static LayersLayer OrganizedOpenSpace;
+        public static LayersLayer LeftoverOwnersLand;
+        public static LayersLayer Splay;
+        public static LayersLayer RoadWidening;
+        public static LayersLayer GreenBufferZone;
+        public static LayersLayer DocNo;
+        public static LayersLayer LandLord;
+        public static LayersLayer LandLord_Sub;
+        public static LayersLayer Extent;
+        public static LayersLayer SideBoundary;
+        public static LayersLayer FreeSpace;
+        public static LayersLayer FreeSpace_NameCheck;
+        public static LayersLayer FreeSpace_DocCheck;
+        public static LayersLayer FreeSpace_ExtentCheck;
 
         public static List<LayersLayer> LayersList = new List<LayersLayer>();
 
