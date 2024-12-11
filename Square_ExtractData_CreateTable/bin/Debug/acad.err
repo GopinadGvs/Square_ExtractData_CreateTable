@@ -28,3 +28,9 @@ FATAL ERROR:  Unhandled Access Violation Writing 0x0008 Exception at 575b6af4h
 
 12/07/2024 at 15:20:39.811  Drawing: E:\Personal\AUTOCAD\01_Repo\Square_ExtractData_CreateTable\TestDrawings\DPMS-GOLLAPADU-PLAN-7_Issues_Added.dwg
 -------------
+
+
+FATAL ERROR:  Unhandled Access Violation Reading 0x0000 Exception at 67a55f15h
+
+12/11/2024 at 20:03:34.432  Drawing: E:\Personal\AUTOCAD\05_Releases\Extractor\Latest_Version\V3.3.0\TestDrawings\NewTest5_RedColor_NoRoad_NoItem_AreaMismatch_Final_Drawing_With_Table_Data.dwg
+-------------

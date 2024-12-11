@@ -41,9 +41,31 @@ namespace Square_ExtractData_CreateTable
     public partial class LayersLayer
     {
 
+        private string sNoField;
+
         private string descriptionField;
 
         private string nameField;
+
+        private byte redField;
+
+        private byte greenField;
+
+        private byte blueField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string SNo
+        {
+            get
+            {
+                return this.sNoField;
+            }
+            set
+            {
+                this.sNoField = value;
+            }
+        }
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -70,6 +92,48 @@ namespace Square_ExtractData_CreateTable
             set
             {
                 this.nameField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public byte Red
+        {
+            get
+            {
+                return this.redField;
+            }
+            set
+            {
+                this.redField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public byte Green
+        {
+            get
+            {
+                return this.greenField;
+            }
+            set
+            {
+                this.greenField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public byte Blue
+        {
+            get
+            {
+                return this.blueField;
+            }
+            set
+            {
+                this.blueField = value;
             }
         }
     }

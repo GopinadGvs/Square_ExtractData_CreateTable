@@ -13,6 +13,11 @@ namespace Square_ExtractData_CreateTable
         //survey no layer name updated to handle landlord sub 
         public static string SurveyNoLayer = "_LandLord_Sub";
 
+        public static LayersLayer SurveyNo;
+        public static LayersLayer IndivPlot;
+
+        public static List<LayersLayer> LayersList = new List<LayersLayer>();
+
         public static string SurveyNoMainLayer = "_SurveyNo";
 
         public static string IndivPlotLayer = "_IndivSubPlot";
@@ -53,5 +58,7 @@ namespace Square_ExtractData_CreateTable
         public static string ExceltemplatePath = @"C:\Data\Square_Excel_Template.xlsx";
 
         public static string MExportHelpPDF = @"C:\Data\LayerSettings_V1.2.0.0.pdf";
+
+        public static string ConfigPath = @"C:\Data\Config.xml";
     }
 }

@@ -14,6 +14,7 @@ using System.Threading;
 using Square_ExtractData_CreateTable.ViewModel;
 using System.Text.RegularExpressions;
 using Autodesk.AutoCAD.Colors;
+using System.Xml.Serialization;
 
 [assembly: CommandClass(typeof(MyCommands))]
 
@@ -722,7 +723,41 @@ namespace Square_ExtractData_CreateTable
             if (IsLicenseExpired())
                 return;
 
+            ReadConfig();
+
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+            bool printMortageInReport = false;
+
+            //PromptKeywordOptions pko = new PromptKeywordOptions("\nSelect Mode: Applicant / PreDCR");
+            //pko.Keywords.Add("Applicant", "A", "A");
+            //pko.Keywords.Add("PreDCR", "P", "P");
+            //pko.AllowNone = false; // Ensure the user makes a selection
+            //pko.Message = "\nSelect Mode (A for Applicant, P for PreDCR):";
+
+            //// Display the prompt and get the result
+            //PromptResult pr = ed.GetKeywords(pko);
+
+            //if (pr.Status == PromptStatus.OK)
+            //{
+            //    if (pr.StringResult == "Applicant")
+            //    {
+            //        ed.WriteMessage("\nYou selected Applicant mode.");
+            //        // Add logic for Applicant mode
+            //        printMortageInReport = true;
+            //    }
+            //    else if (pr.StringResult == "PreDCR")
+            //    {
+            //        ed.WriteMessage("\nYou selected PreDCR mode.");
+            //        // Add logic for PreDCR mode
+            //        printMortageInReport = false;
+            //    }
+            //}
+
+            foreach (var item in Constants.LayersList)
+            {
+
+            }
 
             // Set the CMDECHO system variable to 0
             Application.SetSystemVariable("CMDECHO", 0);
@@ -3768,7 +3803,20 @@ namespace Square_ExtractData_CreateTable
 
         #endregion
 
+        public void ReadConfig()
+        {
+            using (FileStream fileStream = new FileStream(Constants.ConfigPath, FileMode.Open))
+            {
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Layers));
+                Layers layers = xmlSerializer.Deserialize(fileStream) as Layers;
 
+                Constants.SurveyNo = layers.Layer.Where(x => x.SNo == "1").Select(x => x).FirstOrDefault();
+                Constants.IndivPlot = layers.Layer.Where(x => x.SNo == "2").Select(x => x).FirstOrDefault();
+
+                Constants.LayersList.Add(Constants.SurveyNo);
+                Constants.LayersList.Add(Constants.IndivPlot);
+            }
+        }
     }
 }
 

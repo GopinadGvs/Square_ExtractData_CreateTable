@@ -1,5 +1,24 @@
  <Layers>
- <Layer Description = "Survey Number Layer Name" Name = "_SurveyNo"></Layer>
- <Layer Description = "Land Lord Layer Name" Name = "_LandLord_Sub"></Layer>
- <Layer Description = "Individual Sub Plot Layer Name" Name = "_IndivSubPlot"></Layer>
+ <Layer SNo ="1" Description = "Plot Layer Name" Name = "_Plot" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="2" Description = "Survey Number Layer Name" Name = "_SurveyNo" Red = "255" Green = "0" Blue = "0" ></Layer>
+ <Layer SNo ="3" Description = "Individual Sub Plot Layer Name" Name = "_IndivSubPlot" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="4" Description = "Mortgage Layer Name" Name = "_MortgageArea" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="5" Description = "Amenity Layer Name" Name = "_Amenity" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="6" Description = "Utility Area Layer Name" Name = "_UtilityArea" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="7" Description = "Internal Road Layer Name" Name = "_InternalRoad" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="8" Description = "Main Road Layer Name" Name = "_MainRoad" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="9" Description = "Organized Open Space Layer Name" Name = "_OrganizedOpenSpace" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="10" Description = "Leftover Owners Land Layer Name" Name = "_LeftoverOwnersLand" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="11" Description = "Splay Layer Name" Name = "_Splay" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="12" Description = "Road Widening Layer Name" Name = "_RoadWidening" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="13" Description = "Green Buffer Zone Layer Name" Name = "_GreenBufferZone" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="14" Description = "Document Number Layer Name" Name = "_DocNo" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="15" Description = "Land Lord Layer Name" Name = "_LandLord" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="16" Description = "Extent Layer Name" Name = "_Extent" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="17" Description = "Land Lord Sub Layer Name" Name = "_LandLord_Sub" Red = "0" Green = "255" Blue = "0"></Layer>
+ <Layer SNo ="18" Description = "Side Boundary Layer Name" Name = "_SideBoundary" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="19" Description = "Free Space Layer Name" Name = "_FreeSpace" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="20" Description = "Free Space Name Check Layer Name" Name = "_FreeSpace_NameCheck" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="21" Description = "Free Space Document Check Layer Name" Name = "_FreeSpace_DocCheck" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="22" Description = "Free Space Extent Check Layer Name" Name = "_FreeSpace_ExtentCheck" Red = "0" Green = "0" Blue = "255"></Layer>
  </Layers>
