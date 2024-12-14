@@ -734,49 +734,6 @@ namespace Square_ExtractData_CreateTable
 
             bool printMortageInReport = false;
 
-            //try
-            //{
-            //    // Set up the keyword options
-            //    PromptKeywordOptions pko = new PromptKeywordOptions("\nSelect Mode (A for Applicant, P for PreDCR):");
-            //    pko.Keywords.Add("Applicant", "A", "A");
-            //    pko.Keywords.Add("PreDCR", "P", "P");
-            //    pko.AllowNone = false; // Ensure the user makes a selection
-
-            //    // Display the prompt and get the result
-            //    PromptResult pr = ed.GetKeywords(pko);
-
-            //    // Check the prompt result
-            //    if (pr.Status == PromptStatus.OK)
-            //    {
-            //        if (pr.StringResult == "Applicant")
-            //        {
-            //            ed.WriteMessage("\nYou selected Applicant mode.");
-            //            printMortageInReport = true;
-            //            // Add Applicant logic here
-            //        }
-            //        else if (pr.StringResult == "PreDCR")
-            //        {
-            //            ed.WriteMessage("\nYou selected PreDCR mode.");
-            //            printMortageInReport = false;
-            //            // Add PreDCR logic here
-            //        }
-
-            //        // Additional logic after selection
-            //        ed.WriteMessage($"\nMortgage in Report: {printMortageInReport}");
-            //    }
-            //    else
-            //    {
-            //        ed.WriteMessage("\nSelection was canceled.");
-            //    }
-            //}
-            //catch (System.Exception ex)
-            //{
-            //    ed.WriteMessage($"\nAn error occurred: {ex.Message}");
-            //}
-
-            // Set the CMDECHO system variable to 0
-            Application.SetSystemVariable("CMDECHO", 0);
-
             //viewModel = new ViewModelObject();
             //myWpfForm = new MyWPF(viewModel);
             //frm = new Form1(viewModel);
@@ -787,7 +744,7 @@ namespace Square_ExtractData_CreateTable
             //viewModel = new ViewModel();
             //{
             //    ShowUI = ShowUI,
-            //};
+            //};          
 
             //cadThread1 = new Thread(ShowUI);
             //cadThread1.Start();
@@ -800,8 +757,53 @@ namespace Square_ExtractData_CreateTable
             /*Editor*/
             ed = acDoc.Editor;
 
+            // Set the CMDECHO system variable to 0
+            Application.SetSystemVariable("CMDECHO", 0);
+
             // Zoom extents
             ed.Command("_.zoom", "_e");
+
+            try
+            {
+                // Set up the keyword options
+                PromptKeywordOptions pko = new PromptKeywordOptions("\nSelect Mode (A for Applicant, P for PreDCR):");
+                pko.Keywords.Add("Applicant", "A", "A");
+                pko.Keywords.Add("PreDCR", "P", "P");
+                pko.AllowNone = false; // Ensure the user makes a selection
+
+                // Display the prompt and get the result
+                PromptResult pr = ed.GetKeywords(pko);
+
+                // Check the prompt result
+                if (pr.Status == PromptStatus.OK)
+                {
+                    if (pr.StringResult == "Applicant")
+                    {
+                        ed.WriteMessage("\nYou selected Applicant mode.");
+                        printMortageInReport = true;
+                        // Add Applicant logic here
+                    }
+                    else if (pr.StringResult == "PreDCR")
+                    {
+                        ed.WriteMessage("\nYou selected PreDCR mode.");
+                        printMortageInReport = false;
+                        // Add PreDCR logic here
+                    }
+
+                    // Additional logic after selection
+                    //ed.WriteMessage($"\nMortgage in Report: {printMortageInReport}");
+                }
+                else if (pr.Status == PromptStatus.Cancel)
+                {
+                    ed.WriteMessage("\nSelection was canceled.");
+                    return;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\nAn error occurred: {ex.Message}");
+            }
+
 
             // Turn on and thaw layers
             //ed.Command("_-layer", "t", Constants.SurveyNoLayer, "", "ON", Constants.SurveyNoLayer, "", "t", Constants.IndivPlotLayer, "", "ON", Constants.IndivPlotLayer, "");
@@ -2323,7 +2325,7 @@ namespace Square_ExtractData_CreateTable
 
                 ed.WriteMessage("Generating Report...");
 
-                ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots);
+                ExcelReport.WritetoExcel(prefix, folderPath, combinedPlots, printMortageInReport);
 
                 #region Test write
 

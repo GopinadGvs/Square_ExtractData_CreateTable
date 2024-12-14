@@ -11,9 +11,13 @@ namespace Square_ExtractData_CreateTable
 {
     public static class ExcelReport
     {
-        public static void WritetoExcel(string prefix, string path, List<Plot> combinedPlots)
+        public static void WritetoExcel(string prefix, string path, List<Plot> combinedPlots, bool printMortageInReport)
         {
+            double TotalPlotsArea = combinedPlots.Select(x => x._PlotArea).ToArray().Sum();
+            double TotalMortgageArea = combinedPlots.Select(x => x._MortgageArea).ToArray().Sum();
+
             AreaConstants areaConstants = new AreaConstants(SiteInfo.TotalSiteArea);
+            areaConstants.TotalPlotArea = TotalPlotsArea;
 
             MyDataTableRepository repo = new MyDataTableRepository();
             repo.TemplatePath = Constants.ExceltemplatePath;
@@ -105,6 +109,7 @@ namespace Square_ExtractData_CreateTable
                $"{combinedPlots.Select(x => x._AmenityArea).ToArray().Sum():0.00}" });
 
 
+
             int startRow = 6;
 
             MyDataTable dataTable1 = new MyDataTable(dt1)
@@ -164,12 +169,32 @@ namespace Square_ExtractData_CreateTable
 
             dt2.Rows.Add(new object[] { $"" });
 
-            dt2.Rows.Add(new object[] {$"" ,
+            if (printMortageInReport)
+            {
+                dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Plots Area".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(TotalPlotsArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(TotalPlotsArea/SiteInfo.TotalSiteArea * 100))}" + "%)" }" });
+
+                dt2.Rows.Add(new object[] {$"" ,
+               $"" ,
+               $"" ,
+               $"" ,
+               $"" ,$"" ,
+               $"Total Mortgages Area".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(TotalMortgageArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(TotalMortgageArea/SiteInfo.TotalSiteArea * 100))}" + "%)" }" });
+            }
+
+            else
+            {
+                dt2.Rows.Add(new object[] {$"" ,
                $"" ,
                $"" ,
                $"" ,
                $"" ,$"" ,
                $"Total Plots Area Including Mortgages".PadRight(33) , "-" , $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea)) + " (" + $"{String.Format("{0:0.00}", RoundValue(SiteInfo.PlotsArea/SiteInfo.TotalSiteArea * 100))}" + "%)" }" });
+            }
 
             dt2.Rows.Add(new object[] {$"" ,
                $"" ,
@@ -296,20 +321,36 @@ namespace Square_ExtractData_CreateTable
             }
 
             //logic added to highlight amenity, open space & utility areas as per predefined rule
+            //14.12.2024 validation added for mortgage area
+
+            int rowColorValidation = 3;
+            int rowColorValidationInc = 0;
+
+            if (printMortageInReport)
+            {
+                rowColorValidationInc = 1;
+
+                if (!areaConstants.ValidateMortgage(TotalMortgageArea))
+                {
+                    dataTable2.Rows[rowColorValidation].Cells[8].UpdateSettings = true;
+                    dataTable2.Rows[rowColorValidation].Cells[8].Settings = ColorhighlighterForArea;
+                }
+            }
+
             if (!areaConstants.ValidateAmenity(SiteInfo.AmenitiesArea))
             {
-                dataTable2.Rows[3].Cells[8].UpdateSettings = true;
-                dataTable2.Rows[3].Cells[8].Settings = ColorhighlighterForArea;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc].Cells[8].Settings = ColorhighlighterForArea;
             }
             if (!areaConstants.ValidateOpenSpace(SiteInfo.OpenSpaceArea))
             {
-                dataTable2.Rows[4].Cells[8].UpdateSettings = true;
-                dataTable2.Rows[4].Cells[8].Settings = ColorhighlighterForArea;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc + 1].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc + 1].Cells[8].Settings = ColorhighlighterForArea;
             }
             if (!areaConstants.ValidateUtility(SiteInfo.UtilityArea))
             {
-                dataTable2.Rows[5].Cells[8].UpdateSettings = true;
-                dataTable2.Rows[5].Cells[8].Settings = ColorhighlighterForArea;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc + 2].Cells[8].UpdateSettings = true;
+                dataTable2.Rows[rowColorValidation + rowColorValidationInc + 2].Cells[8].Settings = ColorhighlighterForArea;
             }
 
             repo.MyDataTables.Add(dataTable2);
@@ -334,7 +375,19 @@ namespace Square_ExtractData_CreateTable
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 2);
 
-            dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area Including Mortgages".PadRight(padLength), mergeSettings));
+            if (printMortageInReport)
+            {
+                dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area".PadRight(padLength), mergeSettings));
+
+                RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
+
+                dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Mortgages Area".PadRight(padLength), mergeSettings));
+            }
+
+            else
+            {
+                dataTable2.MergeCells.Add(Tuple.Create(mergeStartRow, mergeStartColumn, mergeEndRow, mergeEndColumn, $"Total Plots Area Including Mortgages".PadRight(padLength), mergeSettings));
+            }
 
             RowIncrement(ref mergeStartRow, ref mergeEndRow, 1);
 
