@@ -18,8 +18,8 @@
  <Layer SNo ="17" Description = "Extent Layer Name" Name = "_Extent" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="18" Description = "Side Boundary Layer Name" Name = "_SideBoundary" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="19" Description = "Free Space Layer Name" Name = "_FreeSpace" Red = "0" Green = "0" Blue = "255"></Layer>
- <Layer SNo ="20" Description = "Free Space Name Check Layer Name" Name = "_FreeSpace_NameCheck" Red = "0" Green = "0" Blue = "255"></Layer>
- <Layer SNo ="21" Description = "Free Space Document Check Layer Name" Name = "_FreeSpace_DocCheck" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="20" Description = "Free Space Name Check Layer Name" Name = "_FreeSpace_NameCheck" Red = "255" Green = "0" Blue = "0"></Layer>
+ <Layer SNo ="21" Description = "Free Space Document Check Layer Name" Name = "_FreeSpace_DocCheck" Red = "0" Green = "255" Blue = "0"></Layer>
  <Layer SNo ="22" Description = "Free Space Extent Check Layer Name" Name = "_FreeSpace_ExtentCheck" Red = "0" Green = "0" Blue = "255"></Layer>
- <Layer SNo ="23" Description = "Free Space SurveyNo Check Layer Name" Name = "_FreeSpace_SurveyNoCheck" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="23" Description = "Free Space SurveyNo Check Layer Name" Name = "_FreeSpace_SurveyNoCheck" Red = "255" Green = "0" Blue = "0"></Layer>
  </Layers>

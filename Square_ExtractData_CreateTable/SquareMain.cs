@@ -74,9 +74,9 @@ namespace Square_ExtractData_CreateTable
             Application.SetSystemVariable("CMDECHO", 0);
 
             Database acCurDb = acDoc.Database;
-           
+
             ed = acDoc.Editor;
-            
+
             ed.Command("_.zoom", "_e");
 
             string surveyNoLayer = Constants.SurveyNo.Name;
@@ -98,7 +98,7 @@ namespace Square_ExtractData_CreateTable
 
                 //create free space layer with red color
 
-                CreateLayerByName(acCurDb, acTrans, freespaceLayer, Color.FromRgb(rcolor, gcolor, bcolor));
+                CreateLayerByName(/*acCurDb, acTrans,*/ freespaceLayer, Color.FromRgb(rcolor, gcolor, bcolor));
 
                 #endregion
 
@@ -294,7 +294,7 @@ namespace Square_ExtractData_CreateTable
 
             Database acCurDb = acDoc.Database;
             ed = acDoc.Editor;
-           
+
             ed.Command("_.zoom", "_e");
 
             string surveyNoLayer = Constants.SurveyNo.Name;
@@ -311,6 +311,20 @@ namespace Square_ExtractData_CreateTable
             keyValuePairs.Add(landlordNameCheckLayer, landlordNameCheckFreeSpace);
             keyValuePairs.Add(DocNoCheckLayer, DocNoCheckFreeSpace);
             keyValuePairs.Add(ExtentCheckLayer, ExtentCheckFreeSpace);
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                string layerToCheck = keyValuePair.Key.Name;
+                string prompt = keyValuePair.Key.Name.Replace("_", "");
+                LayersLayer freeSpaceLayerObject = keyValuePairs[keyValuePair.Key];
+                string freeSpaceLayer = freeSpaceLayerObject.Name;
+                byte red = freeSpaceLayerObject.Red;
+                byte green = freeSpaceLayerObject.Blue;
+                byte blue = freeSpaceLayerObject.Green;
+
+                CreateLayerByName(/*acCurDb, localtrans,*/ freeSpaceLayer, Color.FromRgb(red, green, blue));
+            }
+
 
             //List<string> layersToCheck = keyValuePairs.Keys.Select(x => x.Name).ToList();
 
@@ -371,6 +385,7 @@ namespace Square_ExtractData_CreateTable
                 CreateReport();
                 //}
 
+
                 void CreateReport()
                 {
                     string txtFileNew = Path.Combine(Path.GetDirectoryName(acCurDb.Filename), Path.GetFileNameWithoutExtension(acCurDb.Filename) + "_NDEC.txt");
@@ -378,15 +393,13 @@ namespace Square_ExtractData_CreateTable
                     List<(ObjectId, List<string>)> temp = new List<(ObjectId, List<string>)>();
                     Dictionary<ObjectId, string> PolylineIDVssurveyNumberDictionary = GetListTextDictionaryFromLayer(surveyNoLayer, surveyNoLayer, acTrans, temp);
 
-                    List<string> layersToCheck = new List<string>() { "_LandLord", "_DocNo", "_Extent" };
-
                     using (StreamWriter sw = new StreamWriter(txtFileNew))
                     {
                         //foreach (string layerToCheck in layersToCheck)
                         foreach (var keyValuePair in keyValuePairs)
                         {
                             string layerToCheck = keyValuePair.Key.Name;
-                            string prompt = keyValuePair.Key.Name.Replace("_","");
+                            string prompt = keyValuePair.Key.Name.Replace("_", "");
                             LayersLayer freeSpaceLayerObject = keyValuePairs[keyValuePair.Key];
                             string freeSpaceLayer = freeSpaceLayerObject.Name;
                             byte red = freeSpaceLayerObject.Red;
@@ -434,7 +447,7 @@ namespace Square_ExtractData_CreateTable
 
                             //create free space layer with red color
 
-                            CreateLayerByName(acCurDb, acTrans, freeSpaceLayer, Color.FromRgb(red, green, blue));
+                            //CreateLayerByName(/*acCurDb, localtrans,*/ freeSpaceLayer, Color.FromRgb(red, green, blue));
 
                             #endregion
 
@@ -520,7 +533,6 @@ namespace Square_ExtractData_CreateTable
 
                     System.Diagnostics.Process.Start(txtFileNew);
                 }
-
                 acTrans.Commit();
             }
         }
@@ -624,7 +636,7 @@ namespace Square_ExtractData_CreateTable
 
             using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
             {
-                CreateLayerByName(acCurDb, acTrans, newLayerName, Color.FromRgb(255, 0, 0));
+                CreateLayerByName(/*acCurDb, acTrans,*/ newLayerName, Color.FromRgb(255, 0, 0));
 
                 PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartType(Constants.LWPOLYLINE));
 
@@ -717,29 +729,38 @@ namespace Square_ExtractData_CreateTable
             return layersListToValidate;
         }
 
-        private void CreateLayerByName(Database acCurDb, Transaction acTrans, string layerName, Color layerColor)
+        private void CreateLayerByName(/*Database acCurDb, Transaction acTrans, */string layerName, Color layerColor)
         {
-            // Open the LayerTable for read
-            LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            Database db = acDoc.Database;
 
-            // Upgrade the LayerTable to write
-            layerTable.UpgradeOpen();
-
-            //string layerName = Constants.FreeSpaceLayer;
-
-            if (!layerTable.Has(layerName))
+            //Start a transaction
+            using (Transaction trans = db.TransactionManager.StartTransaction())
             {
-                LayerTableRecord layerTableRecord = new LayerTableRecord
+                // Open the LayerTable for read
+                LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
+
+                // Upgrade the LayerTable to write
+                layerTable.UpgradeOpen();
+
+                //string layerName = Constants.FreeSpaceLayer;
+
+                if (!layerTable.Has(layerName))
                 {
-                    Name = layerName,
-                    Color = layerColor  /*Color.FromRgb(255, 0, 0)*/ // Red color
-                };
+                    LayerTableRecord layerTableRecord = new LayerTableRecord
+                    {
+                        Name = layerName,
+                        Color = layerColor  /*Color.FromRgb(255, 0, 0)*/ // Red color
+                    };
 
-                // Add the new layer to the LayerTable
-                layerTable.Add(layerTableRecord);
+                    // Add the new layer to the LayerTable
+                    layerTable.Add(layerTableRecord);
 
-                // Add the new LayerTableRecord to the transaction
-                acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
+                    // Add the new LayerTableRecord to the transaction
+                    trans.AddNewlyCreatedDBObject(layerTableRecord, true);
+                }
+
+                trans.Commit();
             }
         }
 
@@ -890,7 +911,7 @@ namespace Square_ExtractData_CreateTable
 
                 //create free space layer with red color
 
-                CreateLayerByName(acCurDb, acTrans, Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
+                CreateLayerByName(/*acCurDb, acTrans,*/ Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
 
                 //// Open the LayerTable for read
                 //LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);

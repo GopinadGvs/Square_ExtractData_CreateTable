@@ -1,13 +1,13 @@
 
-Names Check: Multiple Names in Same Polyline
+LandLord Check: Multiple LandLord in Same Polyline
 
 88/A1G - NALLAPATI SAMBA SIVA RAO,NALLAPATI PEDDANNA
 
-(140687565954096) - NALLAPATI SAMBA SIVA RAO,NALLAPATI PEDDANNA,VIJAYA LAKSHMI TOWNSHIP
+(140686760647728) - NALLAPATI SAMBA SIVA RAO,NALLAPATI PEDDANNA,VIJAYA LAKSHMI TOWNSHIP
 
 89/B3G - VIJAYA LAKSHMI TOWNSHIP,VIJAYA LAKSHMI TOWNSHIP
 
-Document Numbers Check: Survey Number for Missing Document Numbers
+DocNo Check: Survey Number for Missing DocNo
 
 89/B3I
 
@@ -33,7 +33,7 @@ Document Numbers Check: Survey Number for Missing Document Numbers
 
 89/B3H1
 
-(140687565954096)
+(140686760647728)
 
 88/A1D(P)
 
@@ -81,7 +81,7 @@ Document Numbers Check: Survey Number for Missing Document Numbers
 
 90/5C
 
-Document Numbers Check: Multiple Document Numbers in Same Polyline
+DocNo Check: Multiple DocNo in Same Polyline
 
 89/B3G - DOC NO.5432/2023,DOC NO.5432/2023
 
@@ -111,7 +111,7 @@ Extent Check: Survey Number for Missing Extent
 
 89/B3H1
 
-(140687565954096)
+(140686760647728)
 
 88/A1D(P)
 
