@@ -21,4 +21,5 @@
  <Layer SNo ="20" Description = "Free Space Name Check Layer Name" Name = "_FreeSpace_NameCheck" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="21" Description = "Free Space Document Check Layer Name" Name = "_FreeSpace_DocCheck" Red = "0" Green = "0" Blue = "255"></Layer>
  <Layer SNo ="22" Description = "Free Space Extent Check Layer Name" Name = "_FreeSpace_ExtentCheck" Red = "0" Green = "0" Blue = "255"></Layer>
+ <Layer SNo ="23" Description = "Free Space SurveyNo Check Layer Name" Name = "_FreeSpace_SurveyNoCheck" Red = "0" Green = "0" Blue = "255"></Layer>
  </Layers>

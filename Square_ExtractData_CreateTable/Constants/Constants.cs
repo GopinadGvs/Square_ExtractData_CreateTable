@@ -35,10 +35,11 @@ namespace Square_ExtractData_CreateTable
         public static LayersLayer FreeSpace_NameCheck;
         public static LayersLayer FreeSpace_DocCheck;
         public static LayersLayer FreeSpace_ExtentCheck;
+        public static LayersLayer FreeSpace_SurveyNoCheck;
 
         public static List<LayersLayer> LayersList = new List<LayersLayer>();
 
-        public static string SurveyNoMainLayer = "_SurveyNo";
+        //public static string SurveyNoMainLayer = "_SurveyNo";
 
         public static string IndivPlotLayer = "_IndivSubPlot";
         //public static string IndivPlotDimLayer = "_IndivSubPlot_DIMENSION";

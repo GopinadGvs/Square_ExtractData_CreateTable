@@ -66,24 +66,26 @@ namespace Square_ExtractData_CreateTable
             if (IsLicenseExpired())
                 return;
 
+            ReadConfig();
+
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
 
             // Set the CMDECHO system variable to 0
             Application.SetSystemVariable("CMDECHO", 0);
 
             Database acCurDb = acDoc.Database;
-            /*Editor*/
+           
             ed = acDoc.Editor;
-
-            //filename
-            //string logPath = acCurDb.Filename;
-
-            // Zoom extents
+            
             ed.Command("_.zoom", "_e");
 
-            string surveyNoLayer = "_SurveyNo";
-            string plotLayer = "_Plot";
-
+            string surveyNoLayer = Constants.SurveyNo.Name;
+            string plotLayer = Constants.Plot.Name;
+            LayersLayer survyeNoCheckLayer = Constants.FreeSpace_SurveyNoCheck;
+            string freespaceLayer = survyeNoCheckLayer.Name;
+            byte rcolor = survyeNoCheckLayer.Red;
+            byte gcolor = survyeNoCheckLayer.Green;
+            byte bcolor = survyeNoCheckLayer.Blue;
 
             ed.Command("_-layer", "t", surveyNoLayer, "ON", surveyNoLayer, "U", surveyNoLayer, "");
 
@@ -96,7 +98,7 @@ namespace Square_ExtractData_CreateTable
 
                 //create free space layer with red color
 
-                CreateLayerByName(acCurDb, acTrans, Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
+                CreateLayerByName(acCurDb, acTrans, freespaceLayer, Color.FromRgb(rcolor, gcolor, bcolor));
 
                 #endregion
 
@@ -192,9 +194,9 @@ namespace Square_ExtractData_CreateTable
                                 DBObject dbObject = acTrans.GetObject(duplicateId, OpenMode.ForRead);
 
                                 if (dbObject is MText mText)
-                                    CreatePoints(new List<Point3d>() { mText.Location }, Constants.FreeSpaceLayer);
+                                    CreatePoints(new List<Point3d>() { mText.Location }, freespaceLayer);
                                 if (dbObject is DBText dBText)
-                                    CreatePoints(new List<Point3d>() { dBText.Position }, Constants.FreeSpaceLayer);
+                                    CreatePoints(new List<Point3d>() { dBText.Position }, freespaceLayer);
                             }
                         }
                         if (SurveyNosForMissingpolylines.Count > 0)
@@ -206,9 +208,9 @@ namespace Square_ExtractData_CreateTable
                             DBObject dbObject = acTrans.GetObject(SurveyNosForMissingpolyline.Item1, OpenMode.ForRead);
 
                             if (dbObject is MText mText)
-                                CreatePoints(new List<Point3d>() { mText.Location }, Constants.FreeSpaceLayer);
+                                CreatePoints(new List<Point3d>() { mText.Location }, freespaceLayer);
                             if (dbObject is DBText dBText)
-                                CreatePoints(new List<Point3d>() { dBText.Position }, Constants.FreeSpaceLayer);
+                                CreatePoints(new List<Point3d>() { dBText.Position }, freespaceLayer);
 
                         }
                         if (polylineIdsForMissingSurveyNos.Count > 0)
@@ -226,7 +228,7 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), freespaceLayer);
                         }
                         //validate for multiple survey numbers in same survey Number polyline
                         if (polylineIdsWithMultipleSurveyNos.Count > 0)
@@ -244,7 +246,7 @@ namespace Square_ExtractData_CreateTable
                                 point3DCollection.Add(acPoly.GetPoint3dAt(i));
                             }
 
-                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
+                            CreatePoints(point3DCollection.Cast<Point3d>().ToList(), freespaceLayer);
 
                         }
                         //Validate for Total Area of Survey Polylines with Plot Layer 
@@ -272,7 +274,6 @@ namespace Square_ExtractData_CreateTable
                     System.Diagnostics.Process.Start(txtFileNew);
                 }
 
-                //ToDo - Today                
                 acTrans.Commit();
             }
 
@@ -284,22 +285,35 @@ namespace Square_ExtractData_CreateTable
             if (IsLicenseExpired())
                 return;
 
+            ReadConfig();
+
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
 
             // Set the CMDECHO system variable to 0
             Application.SetSystemVariable("CMDECHO", 0);
 
             Database acCurDb = acDoc.Database;
-            /*Editor*/
             ed = acDoc.Editor;
-
-            //filename
-            //string logPath = acCurDb.Filename;
-
-            // Zoom extents
+           
             ed.Command("_.zoom", "_e");
 
-            string surveyNoLayer = "_SurveyNo";
+            string surveyNoLayer = Constants.SurveyNo.Name;
+
+            LayersLayer landlordNameCheckLayer = Constants.LandLord;
+            LayersLayer DocNoCheckLayer = Constants.DocNo;
+            LayersLayer ExtentCheckLayer = Constants.Extent;
+
+            LayersLayer landlordNameCheckFreeSpace = Constants.FreeSpace_NameCheck;
+            LayersLayer DocNoCheckFreeSpace = Constants.FreeSpace_DocCheck;
+            LayersLayer ExtentCheckFreeSpace = Constants.FreeSpace_ExtentCheck;
+
+            Dictionary<LayersLayer, LayersLayer> keyValuePairs = new Dictionary<LayersLayer, LayersLayer>();
+            keyValuePairs.Add(landlordNameCheckLayer, landlordNameCheckFreeSpace);
+            keyValuePairs.Add(DocNoCheckLayer, DocNoCheckFreeSpace);
+            keyValuePairs.Add(ExtentCheckLayer, ExtentCheckFreeSpace);
+
+            //List<string> layersToCheck = keyValuePairs.Keys.Select(x => x.Name).ToList();
+
 
             ed.Command("_-layer", "t", surveyNoLayer, "ON", surveyNoLayer, "U", surveyNoLayer, "");
 
@@ -368,43 +382,53 @@ namespace Square_ExtractData_CreateTable
 
                     using (StreamWriter sw = new StreamWriter(txtFileNew))
                     {
-                        foreach (string layerToCheck in layersToCheck)
+                        //foreach (string layerToCheck in layersToCheck)
+                        foreach (var keyValuePair in keyValuePairs)
                         {
-                            string prompt;
-                            string freeSpaceLayer;
-                            byte red, green, blue;
+                            string layerToCheck = keyValuePair.Key.Name;
+                            string prompt = keyValuePair.Key.Name.Replace("_","");
+                            LayersLayer freeSpaceLayerObject = keyValuePairs[keyValuePair.Key];
+                            string freeSpaceLayer = freeSpaceLayerObject.Name;
+                            byte red = freeSpaceLayerObject.Red;
+                            byte green = freeSpaceLayerObject.Blue;
+                            byte blue = freeSpaceLayerObject.Green;
 
-                            switch (layerToCheck)
-                            {
-                                case "_LandLord":
-                                    prompt = "Names";
-                                    freeSpaceLayer = "_FreeSpace_NameCheck";
-                                    red = 255;
-                                    green = 0;
-                                    blue = 0;
-                                    break;
-                                case "_DocNo":
-                                    prompt = "Document Numbers";
-                                    freeSpaceLayer = "_FreeSpace_DocCheck";
-                                    red = 0;
-                                    green = 255;
-                                    blue = 0;
-                                    break;
-                                case "_Extent":
-                                    prompt = "Extent";
-                                    freeSpaceLayer = "_FreeSpace_ExtentCheck";
-                                    red = 0;
-                                    green = 0;
-                                    blue = 255;
-                                    break;
-                                default:
-                                    prompt = string.Empty;
-                                    freeSpaceLayer = "_FreeSpace_Temp";
-                                    red = 255;
-                                    green = 255;
-                                    blue = 255;
-                                    break;
-                            }
+                            #region Old Logic
+
+                            //switch (layerToCheck)
+                            //{
+                            //    case "_LandLord":
+                            //        prompt = "Names";
+                            //        freeSpaceLayer = "_FreeSpace_NameCheck";
+                            //        red = 255;
+                            //        green = 0;
+                            //        blue = 0;
+                            //        break;
+                            //    case "_DocNo":
+                            //        prompt = "Document Numbers";
+                            //        freeSpaceLayer = "_FreeSpace_DocCheck";
+                            //        red = 0;
+                            //        green = 255;
+                            //        blue = 0;
+                            //        break;
+                            //    case "_Extent":
+                            //        prompt = "Extent";
+                            //        freeSpaceLayer = "_FreeSpace_ExtentCheck";
+                            //        red = 0;
+                            //        green = 0;
+                            //        blue = 255;
+                            //        break;
+                            //    default:
+                            //        prompt = string.Empty;
+                            //        freeSpaceLayer = "_FreeSpace_Temp";
+                            //        red = 255;
+                            //        green = 255;
+                            //        blue = 255;
+                            //        break;
+                            //}
+
+                            #endregion
+
 
                             #region Create Free Space Layer
 
@@ -497,7 +521,6 @@ namespace Square_ExtractData_CreateTable
                     System.Diagnostics.Process.Start(txtFileNew);
                 }
 
-                //ToDo - Today                
                 acTrans.Commit();
             }
         }
@@ -718,6 +741,23 @@ namespace Square_ExtractData_CreateTable
                 // Add the new LayerTableRecord to the transaction
                 acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
             }
+        }
+
+        private bool LayerExist(Database acCurDb, Transaction acTrans, string layerName)
+        {
+            // Open the LayerTable for read
+            LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+
+            // Upgrade the LayerTable to write
+            layerTable.UpgradeOpen();
+
+            //string layerName = Constants.FreeSpaceLayer;
+
+            if (layerTable.Has(layerName))
+            {
+                return true;
+            }
+            return false;
         }
 
 
@@ -2029,167 +2069,178 @@ namespace Square_ExtractData_CreateTable
 
 
                 #region Validate all Areas and highlight free space from surveyNo & Landlord_Sub layers
+                //ToDo Now
 
-                PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoMainLayer));
-
-                if (acSSPromptNew.Status == PromptStatus.OK)
+                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name))
                 {
-                    SelectionSet acSSet = acSSPromptNew.Value;
+                    //PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoMainLayer));
+                    PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNo.Name));
 
-                    foreach (SelectedObject acSSObj in acSSet)
+                    if (acSSPromptNew.Status == PromptStatus.OK)
                     {
-                        double SurveyNoArea = 0.0;
-                        double landLordSubArea = 0.0;
+                        SelectionSet acSSet = acSSPromptNew.Value;
 
-                        Dictionary<string, ObjectId> myDict = new Dictionary<string, ObjectId>();
-                        string surveyNoText = string.Empty;
-
-                        if (acSSObj != null)
+                        foreach (SelectedObject acSSObj in acSSet)
                         {
-                            Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
+                            double SurveyNoArea = 0.0;
+                            double landLordSubArea = 0.0;
 
-                            Point3dCollection intersectionPointsOtherthanBoundary = new Point3dCollection();
+                            Dictionary<string, ObjectId> myDict = new Dictionary<string, ObjectId>();
+                            string surveyNoText = string.Empty;
 
-                            if (acPoly != null)
+                            if (acSSObj != null)
                             {
-                                SurveyNoArea = acPoly.Area;
+                                Polyline acPoly = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Polyline;
 
-                                //Collect all Points
-                                Point3dCollection point3DCollection = new Point3dCollection();
-                                for (int i = 0; i < acPoly.NumberOfVertices; i++)
+                                Point3dCollection intersectionPointsOtherthanBoundary = new Point3dCollection();
+
+                                if (acPoly != null)
                                 {
-                                    point3DCollection.Add(acPoly.GetPoint3dAt(i));
-                                }
+                                    SurveyNoArea = acPoly.Area;
 
-                                surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNoMainLayer);
-                                if (string.IsNullOrEmpty(surveyNoText))
-                                    surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoMainLayer);
-
-                                myDict.Add(surveyNoText, acPoly.ObjectId);
-
-                                //Done - 22.08.2024 use Cross window & window polygon
-
-                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
-
-                                if (acSSPromptPoly.Status == PromptStatus.OK)
-                                {
-                                    SelectionSet acSSetPoly = acSSPromptPoly.Value;
-
-                                    foreach (SelectedObject acSSObjPoly in acSSetPoly)
+                                    //Collect all Points
+                                    Point3dCollection point3DCollection = new Point3dCollection();
+                                    for (int i = 0; i < acPoly.NumberOfVertices; i++)
                                     {
-                                        if (acSSObjPoly != null)
+                                        point3DCollection.Add(acPoly.GetPoint3dAt(i));
+                                    }
+
+                                    //surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNoMainLayer);
+                                    surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.SurveyNo.Name);
+                                    if (string.IsNullOrEmpty(surveyNoText))
+                                        //surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoMainLayer);
+                                        surveyNoText = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNo.Name);
+
+                                    myDict.Add(surveyNoText, acPoly.ObjectId);
+
+                                    //Done - 22.08.2024 use Cross window & window polygon
+
+                                    //PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+                                    PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.LandLord_Sub.Name));
+
+                                    if (acSSPromptPoly.Status == PromptStatus.OK)
+                                    {
+                                        SelectionSet acSSetPoly = acSSPromptPoly.Value;
+
+                                        foreach (SelectedObject acSSObjPoly in acSSetPoly)
                                         {
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
-
-                                            //Collect all Points
-                                            Point3dCollection point3DCollection2 = new Point3dCollection();
-                                            for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                            if (acSSObjPoly != null)
                                             {
-                                                point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
-                                            }
+                                                Polyline acPoly2 = acTrans.GetObject(acSSObjPoly.ObjectId, OpenMode.ForRead) as Polyline;
 
-                                            if (acPoly2 != null)
-                                            {
-                                                List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
-                                                List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
-
-                                                if (uniquePoints.Count > Constants.uniquePointsIdentifier) //ToDo - test multiple types and confirm this logic
+                                                //Collect all Points
+                                                Point3dCollection point3DCollection2 = new Point3dCollection();
+                                                for (int i = 0; i < acPoly2.NumberOfVertices; i++)
                                                 {
-                                                    string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                                    point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
+                                                }
+
+                                                if (acPoly2 != null)
+                                                {
+                                                    List<Point3d> intersectionPoints = GetIntersections(acPoly, acPoly2);
+                                                    List<Point3d> uniquePoints = RemoveConsecutiveDuplicates(intersectionPoints);
+
+                                                    if (uniquePoints.Count > Constants.uniquePointsIdentifier) //ToDo - test multiple types and confirm this logic
+                                                    {
+                                                        string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                                        if (string.IsNullOrEmpty(text))
+                                                            text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+
+                                                        if (surveyNoText == text)
+                                                        {
+                                                            landLordSubArea += acPoly2.Area;
+                                                        }
+
+                                                        //add points to intersectionPointsOtherthanBoundary to draw red color boundary
+                                                        foreach (Point3d uniquePoint in uniquePoints)
+                                                        {
+                                                            if (!point3DCollection.Contains(uniquePoint))
+                                                                intersectionPointsOtherthanBoundary.Add(uniquePoint);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    //PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+                                    PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.LandLord_Sub.Name));
+
+                                    if (acSSPromptZeroPoly.Status == PromptStatus.OK)
+                                    {
+                                        SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
+
+                                        foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
+                                        {
+                                            if (acSSObjZeroPoly != null)
+                                            {
+                                                Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
+
+                                                //Collect all Points
+                                                Point3dCollection point3DCollection2 = new Point3dCollection();
+                                                for (int i = 0; i < acPoly2.NumberOfVertices; i++)
+                                                {
+                                                    point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
+                                                }
+
+                                                if (acPoly2 != null)
+                                                {
+                                                    //string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                                    string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.LandLord_Sub.Name);
                                                     if (string.IsNullOrEmpty(text))
-                                                        text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+                                                        //text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+                                                        text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.LandLord_Sub.Name);
 
                                                     if (surveyNoText == text)
                                                     {
                                                         landLordSubArea += acPoly2.Area;
                                                     }
-
-                                                    //add points to intersectionPointsOtherthanBoundary to draw red color boundary
-                                                    foreach (Point3d uniquePoint in uniquePoints)
-                                                    {
-                                                        if (!point3DCollection.Contains(uniquePoint))
-                                                            intersectionPointsOtherthanBoundary.Add(uniquePoint);
-                                                    }
                                                 }
                                             }
                                         }
                                     }
+
+                                    //List<Polyline> polylines = GetPolylinesUsingCrossPolygon(point3DCollection.Cast<Point3d>().ToList(), acTrans, Constants.SurveyNoLayer);
+
+                                    //foreach (Polyline polyline in polylines)
+                                    //{
+                                    //    landLordSubArea += polyline.Area;
+                                    //}
                                 }
 
-                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(point3DCollection, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+                                double diffArea = landLordSubArea - SurveyNoArea;
 
-                                if (acSSPromptZeroPoly.Status == PromptStatus.OK)
-                                {
-                                    SelectionSet acSSetZeroPoly = acSSPromptZeroPoly.Value;
-
-                                    foreach (SelectedObject acSSObjZeroPoly in acSSetZeroPoly)
-                                    {
-                                        if (acSSObjZeroPoly != null)
-                                        {
-                                            Polyline acPoly2 = acTrans.GetObject(acSSObjZeroPoly.ObjectId, OpenMode.ForRead) as Polyline;
-
-                                            //Collect all Points
-                                            Point3dCollection point3DCollection2 = new Point3dCollection();
-                                            for (int i = 0; i < acPoly2.NumberOfVertices; i++)
-                                            {
-                                                point3DCollection2.Add(acPoly2.GetPoint3dAt(i));
-                                            }
-
-                                            if (acPoly2 != null)
-                                            {
-                                                string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
-                                                if (string.IsNullOrEmpty(text))
-                                                    text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
-
-                                                if (surveyNoText == text)
-                                                {
-                                                    landLordSubArea += acPoly2.Area;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                //List<Polyline> polylines = GetPolylinesUsingCrossPolygon(point3DCollection.Cast<Point3d>().ToList(), acTrans, Constants.SurveyNoLayer);
-
-                                //foreach (Polyline polyline in polylines)
+                                //if (diffArea != 0 && diffArea < Constants.areaTolerance) //ToDo Update logic here
                                 //{
-                                //    landLordSubArea += polyline.Area;
+                                //    //Area Mismatch
+                                //    System.Diagnostics.Debug.Print(surveyNoText);
+
+                                //    if (intersectionPointsOtherthanBoundary.Count > 0)
+                                //    {
+                                //        
+                                //        double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                                //    }
                                 //}
-                            }
-
-                            double diffArea = landLordSubArea - SurveyNoArea;
-
-                            //if (diffArea != 0 && diffArea < Constants.areaTolerance) //ToDo Update logic here
-                            //{
-                            //    //Area Mismatch
-                            //    System.Diagnostics.Debug.Print(surveyNoText);
-
-                            //    if (intersectionPointsOtherthanBoundary.Count > 0)
-                            //    {
-                            //        
-                            //        double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
-                            //    }
-                            //}
-                            if (diffArea == 0)
-                            {
-                                //correct area
-                                System.Diagnostics.Debug.Print(surveyNoText);
-                            }
-
-                            else
-                            {
-                                //Area Mismatch
-                                System.Diagnostics.Debug.Print(surveyNoText);
-
-                                if (intersectionPointsOtherthanBoundary.Count > 0)
+                                if (diffArea == 0)
                                 {
-                                    //22.08.2024, validate logic
-                                    //create polyline code commented as some times we will get only single point, so creating points only
-                                    //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+                                    //correct area
+                                    System.Diagnostics.Debug.Print(surveyNoText);
+                                }
 
-                                    //Create points at the unidentified areas
-                                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
+                                else
+                                {
+                                    //Area Mismatch
+                                    System.Diagnostics.Debug.Print(surveyNoText);
+
+                                    if (intersectionPointsOtherthanBoundary.Count > 0)
+                                    {
+                                        //22.08.2024, validate logic
+                                        //create polyline code commented as some times we will get only single point, so creating points only
+                                        //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
+
+                                        //Create points at the unidentified areas
+                                        CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpace.Name);
+                                    }
                                 }
                             }
                         }
@@ -3849,6 +3900,7 @@ namespace Square_ExtractData_CreateTable
                 Constants.FreeSpace_NameCheck = layers.Layer.Where(x => x.SNo == "20").Select(x => x).FirstOrDefault();
                 Constants.FreeSpace_DocCheck = layers.Layer.Where(x => x.SNo == "21").Select(x => x).FirstOrDefault();
                 Constants.FreeSpace_ExtentCheck = layers.Layer.Where(x => x.SNo == "22").Select(x => x).FirstOrDefault();
+                Constants.FreeSpace_SurveyNoCheck = layers.Layer.Where(x => x.SNo == "23").Select(x => x).FirstOrDefault();
 
                 Constants.LayersList.Add(Constants.Plot);
                 Constants.LayersList.Add(Constants.SurveyNo);
@@ -3872,6 +3924,7 @@ namespace Square_ExtractData_CreateTable
                 Constants.LayersList.Add(Constants.FreeSpace_NameCheck);
                 Constants.LayersList.Add(Constants.FreeSpace_DocCheck);
                 Constants.LayersList.Add(Constants.FreeSpace_ExtentCheck);
+                Constants.LayersList.Add(Constants.FreeSpace_SurveyNoCheck);
             }
         }
     }
