@@ -2424,6 +2424,7 @@ namespace Square_ExtractData_CreateTable
 
                 //Set Point Mode
                 Application.SetSystemVariable("PDMODE", 35);
+                Application.SetSystemVariable("PDSIZE", 2.0);
 
                 DateTime datetime = DateTime.Now;
                 string uniqueId = String.Format("{0:00}{1:00}{2:0000}{3:00}{4:00}{5:00}{6:000}",
