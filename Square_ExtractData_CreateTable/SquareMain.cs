@@ -712,18 +712,32 @@ namespace Square_ExtractData_CreateTable
 
         private List<string> GetLayerListToValidateFreeSpace()
         {
+            //List<string> layersListToValidate = new List<string>()
+            //{
+            //    Constants.InternalRoadLayer,
+            //    Constants.IndivPlotLayer,
+            //    Constants.AmenityLayer,
+            //    Constants.PlotLayer,
+            //    Constants.UtilityLayer,
+            //    Constants.LeftOverOwnerLandLayer,
+            //    Constants.SideBoundaryLayer,
+            //    Constants.MainRoadLayer,
+            //    Constants.SplayLayer,
+            //    Constants.OpenSpaceLayer
+            //};
+
             List<string> layersListToValidate = new List<string>()
             {
-                Constants.InternalRoadLayer,
-                Constants.IndivPlotLayer,
-                Constants.AmenityLayer,
-                Constants.PlotLayer,
-                Constants.UtilityLayer,
-                Constants.LeftOverOwnerLandLayer,
-                Constants.SideBoundaryLayer,
-                Constants.MainRoadLayer,
-                Constants.SplayLayer,
-                Constants.OpenSpaceLayer
+                Constants.InternalRoad.Name,
+                Constants.IndivPlot.Name,
+                Constants.Amenity.Name,
+                Constants.Plot.Name,
+                Constants.Utility.Name,
+                Constants.LeftoverOwnersLand.Name,
+                Constants.SideBoundary.Name,
+                Constants.MainRoad.Name,
+                Constants.Splay.Name,
+                Constants.OrganizedOpenSpace.Name
             };
 
             return layersListToValidate;
@@ -881,6 +895,8 @@ namespace Square_ExtractData_CreateTable
 
             List<string> layersList = GetLayerList();
 
+            LayersLayer freeSpaceLayer = Constants.FreeSpace;
+
             // Turn on, unlock and thaw layers
             foreach (var layerName in layersList)
             {
@@ -911,7 +927,7 @@ namespace Square_ExtractData_CreateTable
 
                 //create free space layer with red color
 
-                CreateLayerByName(/*acCurDb, acTrans,*/ Constants.FreeSpaceLayer, Color.FromRgb(255, 0, 0));
+                CreateLayerByName(/*acCurDb, acTrans,*/ freeSpaceLayer.Name, Color.FromRgb(freeSpaceLayer.Red, freeSpaceLayer.Green, freeSpaceLayer.Blue));
 
                 //// Open the LayerTable for read
                 //LayerTable layerTable = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
@@ -941,18 +957,18 @@ namespace Square_ExtractData_CreateTable
 
                 #region Collect Areas
 
-                SiteInfo.TotalSiteArea = GetAreaByLayer(Constants.PlotLayer, acTrans);
+                SiteInfo.TotalSiteArea = GetAreaByLayer(Constants.Plot.Name, acTrans);
 
-                SiteInfo.PlotsArea = GetAreaByLayer(Constants.IndivPlotLayer, acTrans);
+                SiteInfo.PlotsArea = GetAreaByLayer(Constants.IndivPlot.Name, acTrans);
                 //MortgageArea = GetAreaByLayer(Constants.MortgageLayer, acTrans);
-                SiteInfo.AmenitiesArea = GetAreaByLayer(Constants.AmenityLayer, acTrans);
-                SiteInfo.OpenSpaceArea = GetAreaByLayer(Constants.OpenSpaceLayer, acTrans);
-                SiteInfo.UtilityArea = GetAreaByLayer(Constants.UtilityLayer, acTrans);
-                SiteInfo.InternalRoadsArea = GetAreaByLayer(Constants.InternalRoadLayer, acTrans);
-                SiteInfo.SplayArea = GetAreaByLayer(Constants.SplayLayer, acTrans);
-                SiteInfo.LeftOverOwnerLandArea = GetAreaByLayer(Constants.LeftOverOwnerLandLayer, acTrans);
-                SiteInfo.RoadWideningArea = GetAreaByLayer(Constants.RoadWideningLayer, acTrans);
-                SiteInfo.GreenArea = GetAreaByLayer(Constants.GreenBufferZoneLayer, acTrans);
+                SiteInfo.AmenitiesArea = GetAreaByLayer(Constants.Amenity.Name, acTrans);
+                SiteInfo.OpenSpaceArea = GetAreaByLayer(Constants.OrganizedOpenSpace.Name, acTrans);
+                SiteInfo.UtilityArea = GetAreaByLayer(Constants.Utility.Name, acTrans);
+                SiteInfo.InternalRoadsArea = GetAreaByLayer(Constants.InternalRoad.Name, acTrans);
+                SiteInfo.SplayArea = GetAreaByLayer(Constants.Splay.Name, acTrans);
+                SiteInfo.LeftOverOwnerLandArea = GetAreaByLayer(Constants.LeftoverOwnersLand.Name, acTrans);
+                SiteInfo.RoadWideningArea = GetAreaByLayer(Constants.RoadWidening.Name, acTrans);
+                SiteInfo.GreenArea = GetAreaByLayer(Constants.GreenBufferZone.Name, acTrans);
 
                 SiteInfo.VerifiedArea = SiteInfo.PlotsArea + SiteInfo.AmenitiesArea + SiteInfo.OpenSpaceArea + SiteInfo.UtilityArea + SiteInfo.InternalRoadsArea + SiteInfo.SplayArea + SiteInfo.LeftOverOwnerLandArea + SiteInfo.RoadWideningArea + SiteInfo.GreenArea;
 
@@ -962,8 +978,8 @@ namespace Square_ExtractData_CreateTable
 
                 #region Collect Plot & Amenity numbers to find missing,duplicate & other numbers
 
-                List<string> plotnumbers = GetListTextFromLayer(Constants.IndivPlotLayer, acTrans);
-                List<string> amenityNumbers = GetListTextFromLayer(Constants.AmenityLayer, acTrans);
+                List<string> plotnumbers = GetListTextFromLayer(Constants.IndivPlot.Name, acTrans);
+                List<string> amenityNumbers = GetListTextFromLayer(Constants.Amenity.Name, acTrans);
                 List<string> combinedPlotAndAmenityNumbers = plotnumbers.Concat(amenityNumbers).ToList();
 
                 combinedPlotAndAmenityNumbers.Sort(new AlphanumericComparer());
@@ -1032,7 +1048,7 @@ namespace Square_ExtractData_CreateTable
                 UpdateAutoCADProgressBar(pm);
 
 
-                PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.MortgageLayer));
+                PromptSelectionResult acSSPrompt1 = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.Mortgage.Name));
 
                 if (acSSPrompt1.Status == PromptStatus.OK)
                 {
@@ -1059,14 +1075,14 @@ namespace Square_ExtractData_CreateTable
                                 }
 
                                 //get plot text inside mortgage
-                                List<string> plotsInsideMortgage = GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.TEXT, Constants.IndivPlotLayer);
+                                List<string> plotsInsideMortgage = GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.TEXT, Constants.IndivPlot.Name);
                                 if (plotsInsideMortgage.Count > 0)
                                 {
                                     mortgage._PlotNos.AddRange(plotsInsideMortgage);
                                 }
                                 else
                                 {
-                                    mortgage._PlotNos.AddRange(GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.MTEXT, Constants.IndivPlotLayer));
+                                    mortgage._PlotNos.AddRange(GetListTextFromLayer(acTrans, mortgage._PolylinePoints, Constants.MTEXT, Constants.IndivPlot.Name));
                                 }
 
                                 #region Old code
@@ -1101,7 +1117,7 @@ namespace Square_ExtractData_CreateTable
                 //ed.WriteMessage("Collecting Roadlines information...");
                 UpdateAutoCADProgressBar(pm);
 
-                PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.InternalRoadLayer));
+                PromptSelectionResult roadPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.InternalRoad.Name));
 
                 if (roadPrompt.Status == PromptStatus.OK)
                 {
@@ -1127,14 +1143,14 @@ namespace Square_ExtractData_CreateTable
                                 }
 
                                 //get road text inside Roadline
-                                string roadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.TEXT, Constants.InternalRoadLayer);
+                                string roadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.TEXT, Constants.InternalRoad.Name);
                                 if (!string.IsNullOrEmpty(roadText))
                                 {
                                     Roadline._RoadText = roadText;
                                 }
                                 else
                                 {
-                                    Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.MTEXT, Constants.InternalRoadLayer);
+                                    Roadline._RoadText = GetTextFromLayer(acTrans, Roadline._PolylinePoints, Constants.MTEXT, Constants.InternalRoad.Name);
                                 }
 
                                 roadlines.Add(Roadline);
@@ -1201,11 +1217,11 @@ namespace Square_ExtractData_CreateTable
 
                 #endregion
 
-                Dictionary<ObjectId, string> openSpaceDict = GetObjectIdAndTextDictionary(Constants.OpenSpaceLayer, acTrans);
-                Dictionary<ObjectId, string> utilityDict = GetObjectIdAndTextDictionary(Constants.UtilityLayer, acTrans);
-                Dictionary<ObjectId, string> LeftOverLandDict = GetObjectIdAndTextDictionary(Constants.LeftOverOwnerLandLayer, acTrans);
-                Dictionary<ObjectId, string> SideBoundaryDict = GetObjectIdAndTextDictionary(Constants.SideBoundaryLayer, acTrans);
-                Dictionary<ObjectId, string> MainRoadDict = GetObjectIdAndTextDictionary(Constants.MainRoadLayer, acTrans);
+                Dictionary<ObjectId, string> openSpaceDict = GetObjectIdAndTextDictionary(Constants.OrganizedOpenSpace.Name, acTrans);
+                Dictionary<ObjectId, string> utilityDict = GetObjectIdAndTextDictionary(Constants.Utility.Name, acTrans);
+                Dictionary<ObjectId, string> LeftOverLandDict = GetObjectIdAndTextDictionary(Constants.LeftoverOwnersLand.Name, acTrans);
+                Dictionary<ObjectId, string> SideBoundaryDict = GetObjectIdAndTextDictionary(Constants.SideBoundary.Name, acTrans);
+                Dictionary<ObjectId, string> MainRoadDict = GetObjectIdAndTextDictionary(Constants.MainRoad.Name, acTrans);
 
 
                 #region Process SurveyNo Polylines
@@ -1213,7 +1229,21 @@ namespace Square_ExtractData_CreateTable
                 //ed.WriteMessage("Collecting Survey Numbers...");
                 UpdateAutoCADProgressBar(pm);
 
-                PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoLayer));
+                //logic to deal with both survey no & landlord_sub layer 19.12.2024
+
+                string firstLayer = string.Empty;
+
+                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name))
+                {
+                    //Add Validation for polylines existence also
+                    firstLayer = Constants.LandLord_Sub.Name;
+                }
+                else
+                {
+                    firstLayer = Constants.SurveyNo.Name;
+                }
+
+                PromptSelectionResult acSSPrompt = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, firstLayer));
 
                 if (acSSPrompt.Status == PromptStatus.OK)
                 {
@@ -1242,37 +1272,37 @@ namespace Square_ExtractData_CreateTable
                                 #region Fill Text information inside SurveyNo Layer
 
                                 //Get SurveyNo Text info
-                                string surveyNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.SurveyNoLayer);
+                                string surveyNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, firstLayer);
                                 if (!string.IsNullOrEmpty(surveyNoText))
                                 {
                                     surveyNo._SurveyNo = surveyNoText;//assign surveyNo
                                 }
                                 else
                                 {
-                                    surveyNo._SurveyNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.SurveyNoLayer);
+                                    surveyNo._SurveyNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, firstLayer);
                                 }
 
                                 //Get DocNo Text info
-                                string DocNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.DocNoLayer);
+                                string DocNoText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.DocNo.Name);
                                 if (!string.IsNullOrEmpty(DocNoText))
                                 {
                                     surveyNo.DocumentNo = DocNoText;//assign DocNo
                                 }
                                 else
                                 {
-                                    surveyNo.DocumentNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.DocNoLayer);
+                                    surveyNo.DocumentNo = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.DocNo.Name);
                                 }
 
 
                                 //Get LandLord Text info
-                                string LandLordText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.LandLordLayer);
+                                string LandLordText = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.TEXT, Constants.LandLord.Name);
                                 if (!string.IsNullOrEmpty(LandLordText))
                                 {
                                     surveyNo.LandLordName = LandLordText;//assign LandLordName
                                 }
                                 else
                                 {
-                                    surveyNo.LandLordName = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.LandLordLayer);
+                                    surveyNo.LandLordName = GetTextFromLayer(acTrans, surveyNo._PolylinePoints, Constants.MTEXT, Constants.LandLord.Name);
                                 }
 
                                 #endregion
@@ -1281,7 +1311,7 @@ namespace Square_ExtractData_CreateTable
 
                                 #region Collect & Fill IndivSubPlot data using Cross Polygon                                
 
-                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlotLayer));
+                                PromptSelectionResult acSSPromptPoly = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlot.Name));
 
                                 if (acSSPromptPoly.Status == PromptStatus.OK)
                                 {
@@ -1329,7 +1359,7 @@ namespace Square_ExtractData_CreateTable
                                                     else
                                                     {
                                                         //considering dimensions from layer Constants.IndivPlotDimLayer
-                                                        plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer/*, Constants.IndivPlotDimLayer*/);
+                                                        plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlot.Name/*, Constants.IndivPlotDimLayer*/);
 
                                                         //collect all points inside surveyno & intersecting points of plot polygon
                                                         List<Point3d> InsideAndIntersectingPoints = new List<Point3d>();
@@ -1359,7 +1389,7 @@ namespace Square_ExtractData_CreateTable
                                 #region Collect & Fill IndivSubPlot data using Window Polygon
 
                                 // Using WindowPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlotLayer));
+                                PromptSelectionResult acSSPromptZeroPoly = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.IndivPlot.Name));
 
                                 if (acSSPromptZeroPoly.Status == PromptStatus.OK)
                                 {
@@ -1388,7 +1418,7 @@ namespace Square_ExtractData_CreateTable
                                                 else
                                                 {
                                                     //considering dimensions from layer Constants.IndivPlotDimLayer
-                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlotLayer/*, Constants.IndivPlotDimLayer*/);
+                                                    plotNo = FillPlotObject(surveyNos, acPoly2, plotNo, surveyNo, acTrans, Constants.IndivPlot.Name/*, Constants.IndivPlotDimLayer*/);
                                                     plotNo.AreaInSurveyNo.Add(surveyNo, plotNo._Area);
                                                 }
                                                 if (!string.IsNullOrEmpty(plotNo._PlotNo))
@@ -1404,7 +1434,7 @@ namespace Square_ExtractData_CreateTable
 
                                 #region Collect & Fill Amenity data using Cross Polygon                                
 
-                                PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.AmenityLayer));
+                                PromptSelectionResult acSSPromptPoly1 = ed.SelectCrossingPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.Amenity.Name));
 
                                 if (acSSPromptPoly1.Status == PromptStatus.OK)
                                 {
@@ -1451,7 +1481,7 @@ namespace Square_ExtractData_CreateTable
                                                     else
                                                     {
                                                         //considering dimensions from layer Constants.AmenityDimLayer
-                                                        amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer/*, Constants.AmenityDimLayer*/);
+                                                        amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.Amenity.Name/*, Constants.AmenityDimLayer*/);
                                                         amenityPlotNo.IsAmenity = true;
 
                                                         //collect all points inside surveyno & intersecting points of plot polygon
@@ -1482,7 +1512,7 @@ namespace Square_ExtractData_CreateTable
                                 #region Collect & Fill Amenity data using Window Polygon
 
                                 // Using WindowPolygon selection to find intersections
-                                PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.AmenityLayer));
+                                PromptSelectionResult acSSPromptZeroPoly2 = ed.SelectWindowPolygon(surveyNo._PolylinePoints, CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.Amenity.Name));
 
                                 if (acSSPromptZeroPoly2.Status == PromptStatus.OK)
                                 {
@@ -1510,7 +1540,7 @@ namespace Square_ExtractData_CreateTable
                                                 else
                                                 {
                                                     //considering dimensions from layer Constants.AmenityDimLayer                                                    
-                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.AmenityLayer/*, Constants.AmenityDimLayer*/);
+                                                    amenityPlotNo = FillPlotObject(surveyNos, acPoly2, amenityPlotNo, surveyNo, acTrans, Constants.Amenity.Name/*, Constants.AmenityDimLayer*/);
                                                     amenityPlotNo.IsAmenity = true;
                                                     amenityPlotNo.AreaInSurveyNo.Add(surveyNo, amenityPlotNo._Area);
 
@@ -1594,15 +1624,15 @@ namespace Square_ExtractData_CreateTable
                     Point3d epoint2 = new Point3d(item.eastLineSegment[0].MidPoint.X - 0.5, item.eastLineSegment[0].MidPoint.Y - 0.5, 0);
                     EastPointsCollection.AddRange(new List<Point3d> { epoint1, epoint2/*, point3, point4*/ });
 
-                    List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.InternalRoadLayer);
-                    List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.IndivPlotLayer);
-                    List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.AmenityLayer);
+                    List<Polyline> roadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.InternalRoad.Name);
+                    List<Polyline> plotPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.IndivPlot.Name);
+                    List<Polyline> amenityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.Amenity.Name);
 
-                    List<Polyline> openSpacePolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.OpenSpaceLayer);
-                    List<Polyline> utilityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.UtilityLayer);
-                    List<Polyline> leftoverlandPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
-                    List<Polyline> sideBoundaryPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.SideBoundaryLayer);
-                    List<Polyline> mainRoadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.MainRoadLayer);
+                    List<Polyline> openSpacePolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.OrganizedOpenSpace.Name);
+                    List<Polyline> utilityPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.Utility.Name);
+                    List<Polyline> leftoverlandPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.LeftoverOwnersLand.Name);
+                    List<Polyline> sideBoundaryPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.SideBoundary.Name);
+                    List<Polyline> mainRoadPolylinesInEast = GetPolylinesUsingCrossPolygon(EastPointsCollection, acTrans, Constants.MainRoad.Name);
 
                     plotPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
                     amenityPolylinesInEast.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -1666,15 +1696,15 @@ namespace Square_ExtractData_CreateTable
                     Point3d spoint2 = new Point3d(item.southLineSegment[0].MidPoint.X - 0.5, item.southLineSegment[0].MidPoint.Y - 0.5, 0);
                     SouthPointsCollection.AddRange(new List<Point3d> { spoint1, spoint2 });
 
-                    List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.InternalRoadLayer);
-                    List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.IndivPlotLayer);
-                    List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.AmenityLayer);
+                    List<Polyline> roadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.InternalRoad.Name);
+                    List<Polyline> plotPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.IndivPlot.Name);
+                    List<Polyline> amenityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.Amenity.Name);
 
-                    List<Polyline> openSpacePolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.OpenSpaceLayer);
-                    List<Polyline> utilityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.UtilityLayer);
-                    List<Polyline> leftoverlandPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
-                    List<Polyline> sideBoundaryPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.SideBoundaryLayer);
-                    List<Polyline> mainRoadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.MainRoadLayer);
+                    List<Polyline> openSpacePolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.OrganizedOpenSpace.Name);
+                    List<Polyline> utilityPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.Utility.Name);
+                    List<Polyline> leftoverlandPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.LeftoverOwnersLand.Name);
+                    List<Polyline> sideBoundaryPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.SideBoundary.Name);
+                    List<Polyline> mainRoadPolylinesInSouth = GetPolylinesUsingCrossPolygon(SouthPointsCollection, acTrans, Constants.MainRoad.Name);
 
                     plotPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                     amenityPolylinesInSouth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -1739,15 +1769,15 @@ namespace Square_ExtractData_CreateTable
                     Point3d wpoint2 = new Point3d(item.westLineSegment[0].MidPoint.X - 0.5, item.westLineSegment[0].MidPoint.Y - 0.5, 0);
                     WestPointsCollection.AddRange(new List<Point3d> { wpoint1, wpoint2 });
 
-                    List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.InternalRoadLayer);
-                    List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.IndivPlotLayer);
-                    List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.AmenityLayer);
+                    List<Polyline> roadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.InternalRoad.Name);
+                    List<Polyline> plotPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.IndivPlot.Name);
+                    List<Polyline> amenityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.Amenity.Name);
 
-                    List<Polyline> openSpacePolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.OpenSpaceLayer);
-                    List<Polyline> utilityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.UtilityLayer);
-                    List<Polyline> leftoverlandPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
-                    List<Polyline> sideBoundaryPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.SideBoundaryLayer);
-                    List<Polyline> mainRoadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.MainRoadLayer);
+                    List<Polyline> openSpacePolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.OrganizedOpenSpace.Name);
+                    List<Polyline> utilityPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.Utility.Name);
+                    List<Polyline> leftoverlandPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.LeftoverOwnersLand.Name);
+                    List<Polyline> sideBoundaryPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.SideBoundary.Name);
+                    List<Polyline> mainRoadPolylinesInWest = GetPolylinesUsingCrossPolygon(WestPointsCollection, acTrans, Constants.MainRoad.Name);
 
                     plotPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
                     amenityPolylinesInWest.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -1812,15 +1842,15 @@ namespace Square_ExtractData_CreateTable
                     Point3d npoint2 = new Point3d(item.northLineSegment[0].MidPoint.X - 0.5, item.northLineSegment[0].MidPoint.Y - 0.5, 0);
                     NorthPointsCollection.AddRange(new List<Point3d> { npoint1, npoint2 });
 
-                    List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.InternalRoadLayer);
-                    List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.IndivPlotLayer);
-                    List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.AmenityLayer);
+                    List<Polyline> roadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.InternalRoad.Name);
+                    List<Polyline> plotPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.IndivPlot.Name);
+                    List<Polyline> amenityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.Amenity.Name);
 
-                    List<Polyline> openSpacePolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.OpenSpaceLayer);
-                    List<Polyline> utilityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.UtilityLayer);
-                    List<Polyline> leftoverlandPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.LeftOverOwnerLandLayer);
-                    List<Polyline> sideBoundaryPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.SideBoundaryLayer);
-                    List<Polyline> mainRoadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.MainRoadLayer);
+                    List<Polyline> openSpacePolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.OrganizedOpenSpace.Name);
+                    List<Polyline> utilityPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.Utility.Name);
+                    List<Polyline> leftoverlandPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.LeftoverOwnersLand.Name);
+                    List<Polyline> sideBoundaryPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.SideBoundary.Name);
+                    List<Polyline> mainRoadPolylinesInNorth = GetPolylinesUsingCrossPolygon(NorthPointsCollection, acTrans, Constants.MainRoad.Name);
 
                     plotPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
                     amenityPolylinesInNorth.Remove(item._Polyline); //remove current plot or amenity poyline from list
@@ -1892,7 +1922,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.eastLineSegment[0].StartPoint);
                         points.Add(item.eastLineSegment[0].EndPoint);
 
-                        CreatePoints(points, Constants.FreeSpaceLayer);
+                        CreatePoints(points, Constants.FreeSpace.Name);
                     }
 
                     if (item._SouthInfo.Equals("-"))
@@ -1902,7 +1932,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.southLineSegment[0].StartPoint);
                         points.Add(item.southLineSegment[0].EndPoint);
 
-                        CreatePoints(points, Constants.FreeSpaceLayer);
+                        CreatePoints(points, Constants.FreeSpace.Name);
                     }
 
                     if (item._WestInfo.Equals("-"))
@@ -1912,7 +1942,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.westLineSegment[0].StartPoint);
                         points.Add(item.westLineSegment[0].EndPoint);
 
-                        CreatePoints(points, Constants.FreeSpaceLayer);
+                        CreatePoints(points, Constants.FreeSpace.Name);
                     }
 
                     if (item._NorthInfo.Equals("-"))
@@ -1922,7 +1952,7 @@ namespace Square_ExtractData_CreateTable
                         points.Add(item.northLineSegment[0].StartPoint);
                         points.Add(item.northLineSegment[0].EndPoint);
 
-                        CreatePoints(points, Constants.FreeSpaceLayer);
+                        CreatePoints(points, Constants.FreeSpace.Name);
                     }
 
                     #endregion
@@ -2163,9 +2193,9 @@ namespace Square_ExtractData_CreateTable
 
                                                     if (uniquePoints.Count > Constants.uniquePointsIdentifier) //ToDo - test multiple types and confirm this logic
                                                     {
-                                                        string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.SurveyNoLayer);
+                                                        string text = GetTextFromLayer(acTrans, point3DCollection2, Constants.TEXT, Constants.LandLord_Sub.Name);
                                                         if (string.IsNullOrEmpty(text))
-                                                            text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.SurveyNoLayer);
+                                                            text = GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.LandLord_Sub.Name);
 
                                                         if (surveyNoText == text)
                                                         {
@@ -2274,11 +2304,19 @@ namespace Square_ExtractData_CreateTable
 
                 List<string> layersListToValidate = GetLayerListToValidateFreeSpace();
 
+                //List<string> layersToSkip = new List<string>()
+                //{
+                //    Constants.PlotLayer,
+                //    Constants.MainRoadLayer,
+                //    Constants.SideBoundaryLayer,
+                //    //Constants.SplayLayer
+                //};
+
                 List<string> layersToSkip = new List<string>()
                 {
-                    Constants.PlotLayer,
-                    Constants.MainRoadLayer,
-                    Constants.SideBoundaryLayer,
+                    Constants.Plot.Name,
+                    Constants.MainRoad.Name,
+                    Constants.SideBoundary.Name,
                     //Constants.SplayLayer
                 };
 
@@ -2320,7 +2358,7 @@ namespace Square_ExtractData_CreateTable
                                         List<string> layersListforValidation = GetLayerListToValidateFreeSpace();
 
                                         //IndivPlotLayer can intersect with IndivPlotLayer also
-                                        if (currentValidateLayer != Constants.IndivPlotLayer)
+                                        if (currentValidateLayer != Constants.IndivPlot.Name)
                                             layersListforValidation.Remove(currentValidateLayer);
 
                                         List<Polyline> boundaryPolylines = new List<Polyline>();
@@ -2331,7 +2369,7 @@ namespace Square_ExtractData_CreateTable
                                         }
 
                                         if (!boundaryPolylines.Any())
-                                            CreatePoints(new List<Point3d>() { mypoint }, Constants.FreeSpaceLayer);
+                                            CreatePoints(new List<Point3d>() { mypoint }, Constants.FreeSpace.Name);
 
                                         //List<Polyline> roadPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.InternalRoadLayer);
                                         //List<Polyline> plotPolylines = GetPolylinesUsingCrossPolygon(points, acTrans, Constants.IndivPlotLayer);
@@ -2468,14 +2506,14 @@ namespace Square_ExtractData_CreateTable
                             }
 
                             //get road text inside Roadline
-                            string roadText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.InternalRoadLayer);
+                            string roadText = GetTextFromLayer(acTrans, point3DCollection, Constants.TEXT, Constants.InternalRoad.Name);
                             if (!string.IsNullOrEmpty(roadText))
                             {
                                 myDict.Add(acPoly.ObjectId, roadText);
                             }
                             else
                             {
-                                myDict.Add(acPoly.ObjectId, GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.InternalRoadLayer));
+                                myDict.Add(acPoly.ObjectId, GetTextFromLayer(acTrans, point3DCollection, Constants.MTEXT, Constants.InternalRoad.Name));
                             }
                         }
                     }
@@ -2764,7 +2802,7 @@ namespace Square_ExtractData_CreateTable
                     //double area = CalculateAreaAndCreatePolyline(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList());
 
                     //Create points at the unidentified areas
-                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpaceLayer);
+                    CreatePoints(intersectionPointsOtherthanBoundary.Cast<Point3d>().ToList(), Constants.FreeSpace.Name);
                 }
             }
         }
@@ -2799,7 +2837,7 @@ namespace Square_ExtractData_CreateTable
 
                 // Open the LayerTable for read
                 LayerTable layerTable = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForRead);
-                string layerName = Constants.FreeSpaceLayer;
+                string layerName = Constants.FreeSpace.Name;
 
                 if (layerTable.Has(layerName))
                 {
