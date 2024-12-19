@@ -1,0 +1,6 @@
+
+Total Area is Matched.
+
+Total Area From Survey No = 41880.22
+
+Total Area From Plot Layer = 41880.22

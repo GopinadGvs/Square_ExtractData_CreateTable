@@ -2655,6 +2655,8 @@ namespace Square_ExtractData_CreateTable
 
                 pm.MeterProgress();
 
+
+
                 // This allows AutoCAD to repaint
 
                 System.Windows.Forms.Application.DoEvents();
