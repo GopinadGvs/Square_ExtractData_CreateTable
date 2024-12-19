@@ -545,6 +545,8 @@ namespace Square_ExtractData_CreateTable
             if (IsLicenseExpired())
                 return;
 
+            ReadConfig();
+
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
             Editor ed = acDoc.Editor;
@@ -564,16 +566,19 @@ namespace Square_ExtractData_CreateTable
                 // Upgrade the LayerTable to write
                 layerTable.UpgradeOpen();
 
-                foreach (var layerName in layersList)
+                foreach (LayersLayer layer in Constants.LayersList)
                 {
+                    if (layer.Name.Contains("FreeSpace"))
+                        continue;
+
                     // Check if the layer exists
-                    if (!layerTable.Has(layerName))
+                    if (!layerTable.Has(layer.Name))
                     {
                         // Create a new layer table record
                         LayerTableRecord layerTableRecord = new LayerTableRecord
                         {
-                            Name = layerName,
-                            //Color = Color.FromRgb(255, 0, 0) // Red color
+                            Name = layer.Name,
+                            Color = Color.FromRgb(layer.Red, layer.Green, layer.Blue) // Red color
                         };
 
                         // Add the new layer to the LayerTable
@@ -583,7 +588,7 @@ namespace Square_ExtractData_CreateTable
                         acTrans.AddNewlyCreatedDBObject(layerTableRecord, true);
 
                         // Inform the user
-                        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"\nLayer {layerName} has been created...");
+                        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"\nLayer {layer.Name} has been created...");
                     }
                     else
                     {
@@ -1233,9 +1238,9 @@ namespace Square_ExtractData_CreateTable
 
                 string firstLayer = string.Empty;
 
-                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name))
+                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name) && GetPolyLines(Constants.LandLord_Sub.Name, acTrans).Count > 0)
                 {
-                    //Add Validation for polylines existence also
+                    //Added Validation for polylines existence also
                     firstLayer = Constants.LandLord_Sub.Name;
                 }
                 else
@@ -2122,7 +2127,7 @@ namespace Square_ExtractData_CreateTable
                 #region Validate all Areas and highlight free space from surveyNo & Landlord_Sub layers
                 //ToDo Now
 
-                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name))
+                if (LayerExist(acCurDb, acTrans, Constants.LandLord_Sub.Name) && GetPolyLines(Constants.LandLord_Sub.Name, acTrans).Count > 0)
                 {
                     //PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNoMainLayer));
                     PromptSelectionResult acSSPromptNew = ed.SelectAll(CreateSelectionFilterByStartTypeAndLayer(Constants.LWPOLYLINE, Constants.SurveyNo.Name));
