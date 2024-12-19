@@ -1007,13 +1007,17 @@ namespace Square_ExtractData_CreateTable
 
                 FindMissingNumber.otherNumbersString = "Other Numbers: " + string.Join(",", sortedStrings.ToArray());
 
-                int startNum = sortedIntegers.Min();
-                int endNum = sortedIntegers.Max();
+                try
+                {
+                    int startNum = sortedIntegers.Min();
+                    int endNum = sortedIntegers.Max();
 
-                //logic to get missing numbers from range
-                IEnumerable<int> missingNumbers = Enumerable.Range(startNum, endNum - startNum).Except(sortedIntegers);
+                    //logic to get missing numbers from range
+                    IEnumerable<int> missingNumbers = Enumerable.Range(startNum, endNum - startNum).Except(sortedIntegers);
+                    FindMissingNumber.missingNumbersString = $"Missing Numbers in Range ({startNum} - {endNum}): " + string.Join(",", missingNumbers.ToArray());
+                }
 
-                FindMissingNumber.missingNumbersString = $"Missing Numbers in Range ({startNum} - {endNum}): " + string.Join(",", missingNumbers.ToArray());
+                catch (System.Exception e) { }
 
                 //create a dictionary with item number and it's repetative count to get duplicates
                 Dictionary<int, int> dictionary = new Dictionary<int, int>();
